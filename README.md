@@ -1,37 +1,26 @@
-# ZAZO PLAYER PERSONAL — MusicKit sürümü
+# ZAZO PLAYER PERSONAL — FIXED Xcode Project
 
-Bu sürüm web/PWA değil, **gerçek iPhone uygulaması** için hazırlanmış SwiftUI + MusicKit projesidir.
+Bu paket artık **gerçek bir `.xcodeproj`** içerir. XcodeGen veya Terminal komutu gerekmez.
 
-## Ne yapıyor?
+## Açılış
+1. ZIP'i Mac'te çıkar.
+2. `ZAZOPlayerPersonal.xcodeproj` dosyasına çift tıkla.
+3. Xcode → **ZAZOPlayerPersonal target → Signing & Capabilities → Team** alanında kendi Apple Developer takımını seç.
+4. Gerekirse Bundle Identifier'ı sana özel benzersiz bir değer yap (ör. `com.seninadın.zazoplayer`).
+5. Apple Developer → Certificates, Identifiers & Profiles → Identifiers → bu Bundle ID → **App Services → MusicKit** açık olmalı.
+6. iPhone'u seçip Run (▶) yap.
+
+## Kullanım
 - Uygulama doğrudan **Ara** ekranında açılır.
-- Şarkı veya sanatçı yazılır, Apple Music kataloğunda aranır.
-- Sonuçtaki ▶ düğmesiyle şarkı uygulamadan çıkmadan çalar.
-- Reklam yoktur.
-- Zazaca / Kürtçe / Kırmancki / Türkçe hızlı arama düğmeleri vardır.
-- Favoriler cihazda tutulur.
-- Arka plan sesi açıktır.
+- İlk kullanımda Apple Music erişim izni istenir.
+- Şarkı/sanatçı yaz → sonuç → ▶ → uygulama içinde çal.
+- Favoriler cihazda saklanır.
+- Arka plan sesi `UIBackgroundModes = audio` ile açık.
 
-## İlk kurulum — bir kez
-1. Apple Developer hesabında **Certificates, Identifiers & Profiles → Identifiers** bölümüne gir.
-2. `com.zazo.playerpersonal` (veya Xcode'da kullanacağın kendi bundle ID) için bir App ID oluştur.
-3. App ID içindeki **App Services** sekmesinde **MusicKit** seçeneğini aç.
-4. Projeyi Xcode'da aç, **Signing & Capabilities → Team** alanından kendi takımını seç.
-5. Gerçek iPhone'a yükle. Apple'ın güncel örnek projesi MusicKit testinin gerçek cihazda yapılmasını istiyor.
-6. İlk açılışta Apple Music erişimine izin ver.
+## Gereksinim
+- iOS 17+
+- Apple Music katalog erişimi / tam parça oynatma için uygun Apple Music hesabı ve üyelik gerekir.
+- MusicKit, App ID üzerinde **App Service** olarak etkinleştirilir; ekstra `com.apple.developer.musickit` entitlement ekleme.
 
-> Apple platformlarında Swift MusicKit, kullanıcı token yönetimini otomatik yapar. Uygulamanın içine YouTube API anahtarı koyman gerekmez.
-
-## Xcode projesi
-Bu klasörde hem kaynak dosyalar hem de `project.yml` vardır. Mac'te XcodeGen kullanıyorsan:
-
-```bash
-brew install xcodegen
-cd ZAZO_PLAYER_PERSONAL_MUSICKIT
-xcodegen generate
-open ZAZOPlayerPersonal.xcodeproj
-```
-
-İstersen Xcode'da boş bir iOS App projesi açıp `ZAZOPlayerPersonal` klasöründeki Swift dosyalarını da doğrudan ekleyebilirsin.
-
-## Önemli
-Tam parça oynatma, Apple Music kataloğundaki içeriğe ve kullanıcının Apple Music erişimine/üyeliğine bağlıdır. Hiçbir uygulama internetteki her telifli şarkıyı sınırsız ve izinsiz oynatmayı garanti edemez.
+## Önceki paketteki hata
+Önceki ZIP'te `ZAZOPlayerPersonal.xcodeproj` klasörü boştu. Bu sürümde `project.pbxproj` ve shared scheme gerçek olarak eklendi.
