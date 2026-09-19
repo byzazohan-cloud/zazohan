@@ -1,4 +1,4 @@
-const CACHE='zazo-player-v1-3-4';
+const CACHE='zazo-player-v1-3-6';
 const APP=['./','index.html','styles.css','config.js','app.js','manifest.webmanifest','icon.svg','icon-180.png','icon-192.png','icon-512.png'];
 const APP_URLS=new Set(APP.map(x=>new URL(x,self.registration.scope).href));
 const INDEX_URL=new URL('index.html',self.registration.scope).href;

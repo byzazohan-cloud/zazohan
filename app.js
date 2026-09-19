@@ -28,7 +28,7 @@ const state={
   audio:new Audio(),video:null,youtubeActive:false,youtubePlayer:null,youtubeApiPromise:null,fallbackBusy:false,installPrompt:null,downloadBusy:false,downloadController:null,downloadTask:null,pendingItem:null,openController:null,uiItems:new Map(),uiSeq:0,
   youtubeKey:window.ZAZO_CONFIG?.youtubeApiKey||localGet('zazo.youtubeKey')||'',
   jamendoClientId:window.ZAZO_CONFIG?.jamendoClientId||localGet('zazo.jamendoClientId')||'',
-  storagePersistent:null,audioToken:0,browseView:null,libraryCategory:'songs',queueAutoExtend:false
+  storagePersistent:null,audioToken:0,browseView:null,libraryCategory:'songs',queueAutoExtend:false,inlineSearchPlayer:false
 };
 const $=s=>document.querySelector(s), view=$('#view'), tabs=[...document.querySelectorAll('.nav-btn')];
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
@@ -37,6 +37,8 @@ const encArg=s=>encodeURIComponent(String(s??'')).replace(/'/g,'%27');
 const providerLabel=i=>i?.provider==='youtube'?'YouTube':i?.provider==='jamendo'?'Jamendo':i?.source||'Internet Archive';
 const providerClass=i=>i?.provider==='youtube'?'youtube':i?.provider==='jamendo'?'jamendo':'archive';
 const sourcePill=i=>`<span class="source-pill ${providerClass(i)}">${esc(providerLabel(i))}</span>`;
+const musicCatalogConnected=()=>Boolean(state.youtubeKey||state.jamendoClientId);
+const youtubeSearchUrl=q=>`https://www.youtube.com/results?search_query=${encodeURIComponent(String(q||''))}`;
 const key=i=>i?.originalKey||i?.canonicalKey||i?.id||i?.identifier||i?.url||`${i?.type||''}:${i?.title||''}:${i?.creator||''}`;
 function slimBase(i){const x={...i};delete x.blob;delete x.thumbBlob;delete x.fallbacks;delete x.alternatives;if(x.local||x.downloaded)delete x.url;if(x.downloaded&&String(x.thumb||'').startsWith('blob:'))delete x.thumb;return x}
 const slim=i=>{const x=slimBase(i);if(Array.isArray(i?.alternatives)&&i.alternatives.length)x.alternatives=i.alternatives.slice(0,5).map(slimBase);return x};
@@ -108,7 +110,7 @@ tabs.forEach(b=>b.onclick=()=>setTab(b.dataset.tab,b.dataset.mode||null));
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{$('#drawer').classList.add('hidden');setTab(b.dataset.go)});
 const settingsBtn=$('#settingsBtn');if(settingsBtn)settingsBtn.onclick=()=>setTab('settings');
 const searchHomeBtn=$('#searchHomeBtn');if(searchHomeBtn)searchHomeBtn.onclick=()=>setTab('music');
-const miniOpen=$('#miniOpen');if(miniOpen)miniOpen.onclick=e=>{e.stopPropagation();if(state.now)showPlayer(state.now)};
+const miniOpen=$('#miniOpen');if(miniOpen)miniOpen.onclick=e=>{e.stopPropagation();if(state.now)showFullPlayer(state.now)};
 $('#menuBtn').onclick=()=>$('#drawer').classList.remove('hidden');
 $('#closeDrawer').onclick=()=>$('#drawer').classList.add('hidden');
 $('#drawer').onclick=e=>{if(e.target.id==='drawer')$('#drawer').classList.add('hidden')};
@@ -171,7 +173,7 @@ function searchHeader(type){
 }
 function wireSearch(type){$('#searchBtn').onclick=()=>searchInternet(type,$('#searchInput').value);$('#searchInput').onkeydown=e=>{if(e.key==='Enter')searchInternet(type,e.target.value)};document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>searchInternet(type,c.dataset.q));}
 function searchAvailabilityBadge(i){if(i.identifier&&!i.verifiedPlayable)return '<span class="availability checking">◌ Oynatma kontrol edilir</span>';if(i.provider==='youtube')return '<span class="availability youtube">▶ Tam şarkı · YouTube</span>';return '<span class="availability full">● Tam şarkı</span>'}
-function musicSearchRow(i,queue=null){const id=registerUi(i,'music',queue);const creator=i.creator||'Bilinmeyen sanatçı',artistArg=encArg(creator),albumArg=encArg(i.album||'');return `<div class="song-result"><div class="song-main" role="button" tabindex="0" onclick="openUi('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openUi('${id}')}"><span class="song-art">${i.thumb?`<img loading="lazy" decoding="async" src="${esc(i.thumb)}" alt="">`:'♫'}</span><span class="song-info"><strong>${esc(i.title)}</strong><span class="song-links"><button type="button" onclick="event.stopPropagation();browseArtist(decodeURIComponent('${artistArg}'))">${esc(creator)}</button>${i.album?`<button type="button" onclick="event.stopPropagation();browseAlbum(decodeURIComponent('${albumArg}'),decodeURIComponent('${artistArg}'))">${esc(i.album)}</button>`:''}</span></span></div><button class="song-play" onclick="openUi('${id}')" aria-label="Çal">▶</button><button class="more-btn" type="button" aria-label="Daha fazla" onclick="event.stopPropagation();quickMenuUi('${id}')">⋮</button></div>`}
+function musicSearchRow(i,queue=null){const id=registerUi(i,'music',queue);const creator=i.creator||'Bilinmeyen sanatçı',artistArg=encArg(creator),albumArg=encArg(i.album||'');return `<div class="song-result ${state.now&&key(state.now)===key(i)?'is-playing':''}"><div class="song-main" role="button" tabindex="0" onclick="playSearchUi('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();playSearchUi('${id}')}"><span class="song-art">${i.thumb?`<img loading="lazy" decoding="async" src="${esc(i.thumb)}" alt="">`:'♫'}</span><span class="song-info"><strong>${esc(i.title)}</strong><span class="song-links"><button type="button" onclick="event.stopPropagation();browseArtist(decodeURIComponent('${artistArg}'))">${esc(creator)}</button>${i.album?`<button type="button" onclick="event.stopPropagation();browseAlbum(decodeURIComponent('${albumArg}'),decodeURIComponent('${artistArg}'))">${esc(i.album)}</button>`:''}</span></span></div><button class="song-play" onclick="event.stopPropagation();playSearchUi('${id}')" aria-label="Çal">${state.now&&key(state.now)===key(i)?'❚❚':'▶'}</button><button class="more-btn" type="button" aria-label="Daha fazla" onclick="event.stopPropagation();quickMenuUi('${id}')">⋮</button></div>`}
 function musicCatalogItems(includeResults=false){
   const transient=includeResults?state.results.music:[];
   const all=[...transient,...state.favorites,...state.history,...state.localMedia,...state.downloads,...state.playlists.flatMap(p=>p.items||[])].filter(x=>x&&x.type!=='video');
@@ -186,8 +188,9 @@ function renderMusic(){
   resetUiRegistry();
   if(state.browseView){view.innerHTML=browseViewHtml();return;}
   const chips=['Türkçe Pop','Pop','Rock','Rap','Arabesk'],results=state.results.music;
-  const resultsHtml=state.musicSearching?`<section class="section"><div class="searching-card"><span class="search-spinner">◌</span><strong>Şarkı aranıyor…</strong><small>${state.lowPower?'Düşük güçte önce doğrudan ses kaynakları taranıyor.':'Tam oynatılabilen kaynaklar aranıyor.'}</small></div></section>`:results.length?`<section class="section search-results-section"><div class="section-head"><div><h2>Bulunan şarkılar</h2><div class="muted">${results.length} sonuç</div></div><button onclick="clearResults('music')">Temizle</button></div><div class="song-results">${results.map(x=>musicSearchRow(x,results)).join('')}</div></section>`:state.musicQuery?`<section class="section"><div class="empty">${state.searchError.music?esc(state.searchError.music):`“${esc(state.musicQuery)}” için oynatılabilir sonuç bulunamadı.<br><small>Sanatçı adıyla veya daha kısa bir aramayla tekrar deneyebilirsin. ZAZO önizleme sonucu göstermez.</small>`}</div></section>`:`<div class="chips music-chips">${chips.map(c=>`<button class="chip" data-q="${c}">${c}</button>`).join('')}</div>${state.recentSearches.length?`<section class="recent-searches"><div class="section-head compact"><h3>Son aramalar</h3><button onclick="clearRecentSearches()">Temizle</button></div><div class="recent-chips">${state.recentSearches.map(q=>`<button class="recent-search-btn" data-recent="${esc(q)}">⌕ ${esc(q)}</button>`).join('')}</div></section>`:''}<section class="music-feature"><div><span>TEK ARAMA</span><h2>Şarkıyı yaz, ▶ bas ve dinle.</h2><p>ZAZO yalnızca tam oynatılabilen sonuçları gösterir. Önizleme yok.</p></div><button onclick="document.getElementById('searchInput')?.focus()">⌕</button></section>`;
-  view.innerHTML=`${searchHeader('music')}${resultsHtml}`;
+  const resultsHtml=state.musicSearching?`<section class="section"><div class="searching-card"><span class="search-spinner">◌</span><strong>Şarkı aranıyor…</strong><small>${state.lowPower?'Düşük güçte önce doğrudan ses kaynakları taranıyor.':'Tam oynatılabilen kaynaklar aranıyor.'}</small></div></section>`:results.length?`<section class="section search-results-section"><div class="section-head"><div><h2>Bulunan şarkılar</h2><div class="muted">${results.length} sonuç</div></div><button onclick="clearResults('music')">Temizle</button></div><div class="song-results">${results.map(x=>musicSearchRow(x,results)).join('')}</div></section>`:state.musicQuery?`<section class="section"><div class="empty music-empty">${state.searchError.music?esc(state.searchError.music):(musicCatalogConnected()?`“${esc(state.musicQuery)}” için tam oynatılabilir sonuç bulunamadı.<br><small>Başka bir yazımla tekrar deneyebilirsin.</small>`:`Bu şarkı açık kaynaklarda bulunamadı.<br><small>Geniş müzik kataloğu henüz bağlı değil. Bir kez bağladıktan sonra popüler şarkıları doğrudan arayabilirsin.</small><div class="empty-actions"><button type="button" class="primary-btn" onclick="setTab('settings')">Müzik kataloğunu bağla</button><button type="button" class="text-btn" onclick="openExternalYouTubeSearch()">YouTube'da ara</button></div>`)}</div></section>`:`<div class="chips music-chips">${chips.map(c=>`<button class="chip" data-q="${c}">${c}</button>`).join('')}</div>${state.recentSearches.length?`<section class="recent-searches"><div class="section-head compact"><h3>Son aramalar</h3><button onclick="clearRecentSearches()">Temizle</button></div><div class="recent-chips">${state.recentSearches.map(q=>`<button class="recent-search-btn" data-recent="${esc(q)}">⌕ ${esc(q)}</button>`).join('')}</div></section>`:''}<section class="music-feature"><div><span>TEK ARAMA</span><h2>Şarkıyı yaz, ▶ bas ve dinle.</h2><p>ZAZO yalnızca tam oynatılabilen sonuçları gösterir. Önizleme yok.</p></div><button onclick="document.getElementById('searchInput')?.focus()">⌕</button></section>`;
+  view.innerHTML=`${searchHeader('music')}<div id="inlineSearchPlayer"></div>${resultsHtml}`;
+  if(state.inlineSearchPlayer&&state.now?.type==='music')showInlineSearchPlayer(state.now);
   wireSearch('music');document.querySelectorAll('.recent-search-btn').forEach(b=>b.onclick=()=>searchInternet('music',b.dataset.recent));
   requestAnimationFrame(()=>{const input=$('#searchInput');if(input&&state.musicQuery&&!state.musicSearching)input.setSelectionRange(input.value.length,input.value.length)});
 }
@@ -244,6 +247,7 @@ async function searchInternet(type,q){
     const {results:all,failures}=await runSearchJobs(type,query,controller.signal);if(seq!==state.searchSeq[type]||controller.signal.aborted)return;
     const seen=new Set();state.results[type]=type==='music'?rankMusicResults(all,query):all.filter(x=>!seen.has(key(x))&&seen.add(key(x)));
     if(!state.results[type].length&&failures)state.searchError[type]='Bağlantı veya içerik servislerinden biri yanıt vermedi. Tekrar deneyebilirsin.';
+    if(type==='music'&&!state.results.music.length&&!failures&&!musicCatalogConnected())state.searchError.music='';
   }catch(e){if(e?.name!=='AbortError'&&seq===state.searchSeq[type])state.searchError[type]='Arama tamamlanamadı. İnternet bağlantını kontrol edip tekrar dene.';}
   finally{if(seq===state.searchSeq[type]){state.searchControllers[type]=null;if(type==='music'){state.musicSearching=false;if(state.tab==='music')renderMusic();}else{state.videoSearching=false;if(state.tab==='video')renderVideo();}}}
 }
@@ -307,16 +311,16 @@ function ensureYouTubeApi(){
   if(window.YT?.Player)return Promise.resolve(window.YT);if(state.youtubeApiPromise)return state.youtubeApiPromise;
   state.youtubeApiPromise=new Promise((resolve,reject)=>{const old=window.onYouTubeIframeAPIReady,timer=setTimeout(()=>reject(new Error('youtube-api-timeout')),9000);window.onYouTubeIframeAPIReady=()=>{clearTimeout(timer);try{old?.()}catch{};resolve(window.YT)};let sc=document.querySelector('script[data-zazo-youtube-api]');if(!sc){sc=document.createElement('script');sc.dataset.zazoYoutubeApi='1';sc.src='https://www.youtube.com/iframe_api';sc.onerror=()=>{clearTimeout(timer);reject(new Error('youtube-api-network'))};document.head.appendChild(sc)}}).catch(e=>{state.youtubeApiPromise=null;throw e});return state.youtubeApiPromise;
 }
-function stopYoutube(){try{state.youtubePlayer?.destroy?.()}catch{}state.youtubePlayer=null;const f=$('#youtubeFrame');if(f)f.replaceChildren();state.youtubeActive=false}
-async function mountYouTube(i){
-  const host=$('#youtubeFrame');if(!host||!i?.youtubeId)return;state.youtubeActive=true;
+function stopYoutube(){try{state.youtubePlayer?.destroy?.()}catch{}state.youtubePlayer=null;for(const id of ['youtubeFrame','youtubeFrameInline']){const f=document.getElementById(id);if(f)f.replaceChildren()}state.youtubeActive=false}
+async function mountYouTube(i,hostId='youtubeFrame'){
+  const host=document.getElementById(hostId);if(!host||!i?.youtubeId)return;state.youtubeActive=true;
   try{
-    const YT=await ensureYouTubeApi();if(!$('#youtubeFrame')||state.now?.youtubeId!==i.youtubeId)return;
+    const YT=await ensureYouTubeApi();if(!document.getElementById(hostId)||state.now?.youtubeId!==i.youtubeId)return;
     try{state.youtubePlayer?.destroy?.()}catch{};
     const origin=location.origin&&location.origin!=='null'?location.origin:undefined;
-    state.youtubePlayer=new YT.Player('youtubeFrame',{videoId:i.youtubeId,playerVars:{autoplay:1,playsinline:1,controls:1,rel:0,...(origin?{origin}:{})},events:{onReady:e=>{try{e.target.playVideo()}catch{}bindMini();updateMediaSession()},onStateChange:e=>{if(!state.youtubeActive||state.now?.youtubeId!==i.youtubeId)return;if(e.data===YT.PlayerState.ENDED){next(1);return}bindMini()},onError:()=>{if(state.youtubeActive&&state.now?.youtubeId===i.youtubeId)mediaPlaybackFailed(i.type||'music')}}});
+    state.youtubePlayer=new YT.Player(hostId,{videoId:i.youtubeId,playerVars:{autoplay:1,playsinline:1,controls:1,rel:0,...(origin?{origin}:{})},events:{onReady:e=>{try{e.target.playVideo()}catch{}bindMini();updateMediaSession()},onStateChange:e=>{if(!state.youtubeActive||state.now?.youtubeId!==i.youtubeId)return;if(e.data===YT.PlayerState.ENDED){next(1);return}bindMini()},onError:()=>{if(state.youtubeActive&&state.now?.youtubeId===i.youtubeId)mediaPlaybackFailed(i.type||'music')}}});
   }catch{
-    const h=$('#youtubeFrame');if(h){const origin=location.origin&&location.origin!=='null'?`&origin=${encodeURIComponent(location.origin)}`:'';h.innerHTML=`<iframe class="youtube-frame" src="https://www.youtube.com/embed/${encodeURIComponent(i.youtubeId)}?autoplay=1&playsinline=1&controls=1${origin}" title="${esc(i.title)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`}
+    const h=document.getElementById(hostId);if(h){const origin=location.origin&&location.origin!=='null'?`&origin=${encodeURIComponent(location.origin)}`:'';h.innerHTML=`<iframe class="youtube-frame" src="https://www.youtube.com/embed/${encodeURIComponent(i.youtubeId)}?autoplay=1&playsinline=1&controls=1${origin}" title="${esc(i.title)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`}
   }
 }
 function stopOther(type,provider=''){if(state.youtubeActive||state.youtubePlayer)stopYoutube();if(state.video){state.video.onerror=null;state.video.pause();state.video.removeAttribute('src');try{state.video.load()}catch{}state.video=null}try{state.audio.pause()}catch{}}
@@ -346,7 +350,54 @@ function play(i,t){
 async function extendMusicQueue(){if(!state.queueAutoExtend||!state.now||state.now.type!=='music'||navigator.onLine===false)return false;const creator=String(state.now.creator||'').trim(),title=String(state.now.title||'').trim();const q=(creator&&!/^(internet archive|jamendo|youtube|dosyalarım|telefon)$/i.test(creator)?creator:title).trim();if(!q)return false;try{const c=new AbortController(),timer=setTimeout(()=>c.abort(),6500);const {results}=await runSearchJobs('music',q,c.signal);clearTimeout(timer);const currentTitle=normalizeWords(state.now.title),ranked=rankMusicResults(results,q).filter(x=>normalizeWords(x.title)!==currentTitle&&key(x)!==key(state.now)&&!state.queue.some(y=>key(y)===key(x)));if(ranked.length){state.queue.push(...ranked.slice(0,8));return true}}catch{}return false}
 async function next(delta=1){if(!state.queue.length)return;if(delta>0&&state.queueIndex>=state.queue.length-1&&state.now?.type==='music'&&state.queueAutoExtend){const added=await extendMusicQueue();if(added){state.queueIndex++;const target=hydrate(state.queue[state.queueIndex]);openItem(target,target.type||'music',true);return}}state.queueIndex=(state.queueIndex+delta+state.queue.length)%state.queue.length;const target=hydrate(state.queue[state.queueIndex]);openItem(target,target.type||state.now?.type||'music',true)}window.next=next;
 function downloadExists(i){return state.downloads.some(x=>x.originalKey===key(i)||x.id===i.id)}
+async function playSearchUi(id){
+  const x=state.uiItems.get(id);if(!x)return;
+  state.inlineSearchPlayer=true;
+  await openItem(x.item,'music',false,x.queue);
+  const sheet=$('#playerSheet');if(sheet)sheet.classList.add('hidden');
+  if(state.tab==='music'&&state.now?.type==='music')showInlineSearchPlayer(state.now);
+}
+window.playSearchUi=playSearchUi;
+function showFullPlayer(i){state.inlineSearchPlayer=false;showPlayer(i)}window.showFullPlayer=showFullPlayer;
+function closeInlineSearchPlayer(){
+  state.inlineSearchPlayer=false;
+  if(state.now?.provider==='youtube')stopYoutube();
+  else if(state.now?.type==='music'){try{state.audio.pause()}catch{}}
+  const host=$('#inlineSearchPlayer');if(host)host.innerHTML='';bindMini();
+}
+window.closeInlineSearchPlayer=closeInlineSearchPlayer;
+function inlineTogglePlay(){
+  if(!state.now)return;
+  if(state.now.provider==='youtube'){
+    if(state.youtubePlayer){try{youtubePlaying()?state.youtubePlayer.pauseVideo():state.youtubePlayer.playVideo()}catch{}}
+    else showInlineSearchPlayer(state.now);
+  }else state.audio.paused?state.audio.play().catch(()=>{}):state.audio.pause();
+  setTimeout(()=>showInlineSearchPlayer(state.now),80);
+}
+window.inlineTogglePlay=inlineTogglePlay;
+function showInlineSearchPlayer(i){
+  if(!state.inlineSearchPlayer||state.tab!=='music'||i?.type!=='music')return;
+  const host=$('#inlineSearchPlayer');if(!host)return;
+  const yt=i.provider==='youtube',fav=state.favorites.some(x=>key(x)===key(i));
+  const playing=yt?youtubePlaying():!state.audio.paused;
+  host.innerHTML=`<section class="inline-now-playing"><div class="inline-np-head"><span>ŞİMDİ ÇALIYOR</span><div><button class="icon-btn ghost" onclick="showFullPlayer(state.now)" aria-label="Genişlet">⌃</button><button class="icon-btn ghost" onclick="closeInlineSearchPlayer()" aria-label="Kapat">✕</button></div></div><div class="inline-np-main"><div class="inline-np-art">${i.thumb?`<img src="${esc(i.thumb)}" alt="">`:'♫'}</div><div class="inline-np-meta"><strong>${esc(i.title)}</strong><small>${esc(i.creator||providerLabel(i))}</small>${sourcePill(i)}</div></div>${yt?'<div id="youtubeFrameInline" class="youtube-frame-host inline-youtube"></div>':`<input id="inlineSeek" class="progress" type="range" min="0" max="100" value="0"><div class="time-row"><span id="inlineElapsed">${fmt(state.audio.currentTime||0)}</span><span id="inlineDuration">${fmt(state.audio.duration||0)}</span></div>`}<div class="inline-np-controls"><button onclick="next(-1)" aria-label="Önceki">⏮</button><button id="inlinePlay" class="main" onclick="inlineTogglePlay()">${playing?'❚❚':'▶'}</button><button onclick="next(1)" aria-label="Sonraki">⏭</button></div><div class="inline-np-actions"><button onclick="toggleFav();showInlineSearchPlayer(state.now)">${fav?'♥ Favoride':'♡ Favori'}</button><button onclick="addToPlaylistPrompt()">＋ Liste</button><button onclick="showFullPlayer(state.now)">Tam ekran</button></div></section>`;
+  if(yt){setTimeout(()=>mountYouTube(i,'youtubeFrameInline'),0)}
+  else{
+    const seek=$('#inlineSeek');
+    if(seek){seek.value=state.audio.duration?state.audio.currentTime/state.audio.duration*100:0;seek.oninput=e=>{if(state.audio.duration)state.audio.currentTime=state.audio.duration*(Number(e.target.value)/100)}}
+  }
+}
+function refreshInlinePlayback(){
+  if(!state.inlineSearchPlayer||state.tab!=='music'||!state.now||state.now.type!=='music')return;
+  const seek=$('#inlineSeek'),e=$('#inlineElapsed'),d=$('#inlineDuration'),p=$('#inlinePlay');
+  if(seek&&state.audio.duration)seek.value=state.audio.currentTime/state.audio.duration*100;
+  if(e)e.textContent=fmt(state.audio.currentTime||0);if(d)d.textContent=fmt(state.audio.duration||0);
+  if(p)p.textContent=state.now.provider==='youtube'?(youtubePlaying()?'❚❚':'▶'):(state.audio.paused?'▶':'❚❚');
+}
 function showPlayer(i){
+  if(state.inlineSearchPlayer&&state.tab==='music'&&i?.type==='music'){
+    const s=$('#playerSheet');if(s)s.classList.add('hidden');showInlineSearchPlayer(i);return;
+  }
   const s=$('#playerSheet');s.classList.remove('hidden');const v=i.type==='video',yt=i.provider==='youtube',visualVideo=v||yt,fav=state.favorites.some(x=>key(x)===key(i)),canDl=!i.loading&&!i.local&&!i.downloaded&&!!i.identifier&&!yt,actionsDisabled=i.loading?'disabled aria-disabled="true"':'';
   const visual=i.loading?'Yükleniyor…':yt?'<div id="youtubeFrame" class="youtube-frame-host"></div>':v?`<video id="videoEl" src="${esc(i.url)}" poster="${esc(i.thumb||'')}" controls playsinline preload="${state.lowPower?'metadata':'auto'}"></video>`:i.thumb?`<img src="${esc(i.thumb)}" alt="">`:'♫';
   const actions=[`<button class="action" ${actionsDisabled} onclick="toggleFav()">${fav?'♥':'♡'} Favori</button>`,`<button class="action" ${actionsDisabled} onclick="addToPlaylistPrompt()">＋ Liste</button>`,canDl?`<button class="action" id="downloadAction" onclick="downloadNow()">${downloadExists(i)?'✓ İndirildi':'⇩ İndir'}</button>`:'',!i.loading?'<button class="action" onclick="shareNow()">↗ Paylaş</button>':'',i.local||i.downloaded?`<button class="action danger" onclick="deleteStored('${esc(i.id)}','${i.downloaded?'downloads':'media'}')">⌫ Sil</button>`:''].filter(Boolean).join('');
@@ -357,19 +408,19 @@ function showPlayer(i){
   if(state.downloadTask?.key===key(i))setTimeout(()=>updateDownloadUi(state.downloadTask.text,state.downloadTask.percent,state.downloadTask.key),0);
   s.onclick=e=>{if(e.target===s)closePlayer()};
   if(v&&!yt&&!i.loading){const el=$('#videoEl');state.video=el;applyResume(el,i);el.play().catch(()=>bindMini());el.ontimeupdate=()=>{state.positions[key(i)]=el.currentTime||0};el.onpause=()=>{save();bindMini()};el.onplay=bindMini;el.onerror=()=>{if(state.video===el&&state.now?.type==='video')mediaPlaybackFailed('video')};el.onended=()=>{state.positions[key(i)]=0;save();next(1)}}
-  else if(!yt&&!i.loading){const p=$('#mainPlay'),seek=$('#seek');p.onclick=()=>state.audio.paused?state.audio.play().catch(()=>syncMainPlayButton()):state.audio.pause();state.audio.ontimeupdate=()=>{if(state.audio.duration&&seek){seek.value=state.audio.currentTime/state.audio.duration*100;const e=$('#elapsed'),d=$('#duration');if(e)e.textContent=fmt(state.audio.currentTime);if(d)d.textContent=fmt(state.audio.duration);state.positions[key(i)]=state.audio.currentTime}};seek.oninput=e=>{if(state.audio.duration)state.audio.currentTime=state.audio.duration*(e.target.value/100)};syncMainPlayButton()}
+  else if(!yt&&!i.loading){const p=$('#mainPlay'),seek=$('#seek');p.onclick=()=>state.audio.paused?state.audio.play().catch(()=>syncMainPlayButton()):state.audio.pause();state.audio.ontimeupdate=()=>{if(state.audio.duration&&seek){seek.value=state.audio.currentTime/state.audio.duration*100;const e=$('#elapsed'),d=$('#duration');if(e)e.textContent=fmt(state.audio.currentTime);if(d)d.textContent=fmt(state.audio.duration);state.positions[key(i)]=state.audio.currentTime}refreshInlinePlayback()};seek.oninput=e=>{if(state.audio.duration)state.audio.currentTime=state.audio.duration*(e.target.value/100)};syncMainPlayButton()}
 }
 function closePlayer(){state.pendingItem=null;state.openController?.abort();state.openController=null;if(state.now?.provider==='youtube'){stopYoutube();bindMini()}if(state.now?.type==='video'&&state.video){state.positions[key(state.now)]=state.video.currentTime||state.positions[key(state.now)]||0;state.video.onerror=null;state.video.pause();state.video.removeAttribute('src');try{state.video.load()}catch{}state.video=null;bindMini()}$('#playerSheet').classList.add('hidden');save()}window.closePlayer=closePlayer;
 function fmt(s){if(!isFinite(s))return'0:00';return`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`}
 function youtubePlaying(){try{return !!(window.YT&&state.youtubePlayer&&state.youtubePlayer.getPlayerState?.()===window.YT.PlayerState.PLAYING)}catch{return false}}
-function bindMini(){const m=$('#miniPlayer');if(!state.now){hideMini();return;}m.classList.remove('hidden');$('#miniTitle').textContent=state.now.title;$('#miniType').textContent=state.now.provider==='youtube'?'YouTube':state.now.type==='music'?'Müzik':'Video';if(state.now.provider==='youtube'){const playing=youtubePlaying();$('#miniPlay').textContent=playing?'❚❚':'▶';$('#miniPlay').onclick=e=>{e.stopPropagation();if(state.youtubePlayer){try{playing?state.youtubePlayer.pauseVideo():state.youtubePlayer.playVideo()}catch{showPlayer(state.now)}}else showPlayer(state.now);setTimeout(bindMini,80)};m.onclick=()=>showPlayer(state.now);return}const paused=state.now.type==='music'?state.audio.paused:(state.video?.paused??true);$('#miniPlay').textContent=paused?'▶':'❚❚';$('#miniPlay').onclick=e=>{e.stopPropagation();if(state.now.type==='music'){state.audio.paused?state.audio.play():state.audio.pause()}else if(state.video){state.video.paused?state.video.play():state.video.pause()}else{showPlayer(state.now)}bindMini()};m.onclick=()=>showPlayer(state.now)}
-state.audio.onplay=()=>{bindMini();syncMainPlayButton()};state.audio.onpause=()=>{save();bindMini();syncMainPlayButton()};
+function bindMini(){const m=$('#miniPlayer');if(!state.now){hideMini();return;}m.classList.remove('hidden');$('#miniTitle').textContent=state.now.title;$('#miniType').textContent=state.now.provider==='youtube'?'YouTube':state.now.type==='music'?'Müzik':'Video';if(state.now.provider==='youtube'){const playing=youtubePlaying();$('#miniPlay').textContent=playing?'❚❚':'▶';$('#miniPlay').onclick=e=>{e.stopPropagation();if(state.youtubePlayer){try{playing?state.youtubePlayer.pauseVideo():state.youtubePlayer.playVideo()}catch{showPlayer(state.now)}}else showPlayer(state.now);setTimeout(bindMini,80)};m.onclick=()=>showFullPlayer(state.now);return}const paused=state.now.type==='music'?state.audio.paused:(state.video?.paused??true);$('#miniPlay').textContent=paused?'▶':'❚❚';$('#miniPlay').onclick=e=>{e.stopPropagation();if(state.now.type==='music'){state.audio.paused?state.audio.play():state.audio.pause()}else if(state.video){state.video.paused?state.video.play():state.video.pause()}else{showPlayer(state.now)}bindMini()};m.onclick=()=>showFullPlayer(state.now)}
+state.audio.onplay=()=>{bindMini();syncMainPlayButton();refreshInlinePlayback()};state.audio.onpause=()=>{save();bindMini();syncMainPlayButton();refreshInlinePlayback()};
 function updateMediaSession(){if(!('mediaSession'in navigator))return;try{if(!state.now){navigator.mediaSession.metadata=null;return}navigator.mediaSession.metadata=new MediaMetadata({title:state.now.title,artist:state.now.creator||state.now.source||'ZAZO PLAYER',artwork:state.now.thumb?[{src:state.now.thumb,sizes:'512x512'}]:[]});navigator.mediaSession.setActionHandler('play',()=>{if(state.now.provider==='youtube'){if(state.youtubePlayer){try{state.youtubePlayer.playVideo?.()}catch{}}else showPlayer(hydrate(state.now));return}if(state.now.type==='music')return state.audio.play();if(state.video)return state.video.play();showPlayer(hydrate(state.now))});navigator.mediaSession.setActionHandler('pause',()=>{if(state.now.provider==='youtube'){try{state.youtubePlayer?.pauseVideo?.()}catch{};return}return state.now.type==='music'?state.audio.pause():state.video?.pause()});navigator.mediaSession.setActionHandler('previoustrack',()=>next(-1));navigator.mediaSession.setActionHandler('nexttrack',()=>next(1));try{navigator.mediaSession.setActionHandler('seekto',e=>{const m=state.now?.type==='music'?state.audio:state.video;if(m&&Number.isFinite(e.seekTime)){m.currentTime=Math.max(0,Math.min(e.seekTime,m.duration||e.seekTime));}})}catch{};}catch{}}
 
 function toggleFavoriteItem(item){if(!item)return;const k=key(item),idx=state.favorites.findIndex(x=>key(x)===k);if(idx>=0)state.favorites.splice(idx,1);else state.favorites.unshift(slim(item));save();if(state.tab==='library')drawLibrary(state.libraryMode||'fav');}
 function addItemToPlaylistPrompt(item){if(!item)return;let name=prompt('Çalma listesi adı','Favori Liste');if(!name?.trim())return;name=name.trim();let p=state.playlists.find(x=>x.name.toLowerCase()===name.toLowerCase());if(!p){p={id:uid(),name,items:[]};state.playlists.unshift(p)}if(!p.items.some(x=>key(x)===key(item)))p.items.push(slim(item));save();if(state.tab==='library')drawLibrary(state.libraryMode||'lists');}
 function closeQuickMenu(){document.getElementById('quickMenu')?.remove()}window.closeQuickMenu=closeQuickMenu;
-function quickMenuUi(id){const x=state.uiItems.get(id);if(!x)return;closeQuickMenu();const item=hydrate(x.item),fav=state.favorites.some(f=>key(f)===key(item));const wrap=document.createElement('div');wrap.id='quickMenu';wrap.className='quick-menu-backdrop';wrap.innerHTML=`<div class="quick-menu"><div class="quick-menu-head"><div><strong>${esc(item.title)}</strong><small>${esc(item.creator||providerLabel(item))}</small></div><button onclick="closeQuickMenu()">✕</button></div><button id="qmPlay">▶ Oynat</button><button id="qmFav">${fav?'♥ Favoriden çıkar':'♡ Favoriye ekle'}</button><button id="qmList">＋ Çalma listesine ekle</button><button id="qmShare">↗ Paylaş</button></div>`;document.body.appendChild(wrap);wrap.onclick=e=>{if(e.target===wrap)closeQuickMenu()};wrap.querySelector('#qmPlay').onclick=()=>{closeQuickMenu();openItem(item,item.type,false,x.queue)};wrap.querySelector('#qmFav').onclick=()=>{toggleFavoriteItem(item);closeQuickMenu()};wrap.querySelector('#qmList').onclick=()=>{addItemToPlaylistPrompt(item);closeQuickMenu()};wrap.querySelector('#qmShare').onclick=()=>{const u=item.shareUrl||item.url||location.href;if(navigator.share)navigator.share({title:item.title,url:u}).catch(()=>{});else navigator.clipboard?.writeText(u);closeQuickMenu()};}
+function quickMenuUi(id){const x=state.uiItems.get(id);if(!x)return;closeQuickMenu();const item=hydrate(x.item),fav=state.favorites.some(f=>key(f)===key(item));const wrap=document.createElement('div');wrap.id='quickMenu';wrap.className='quick-menu-backdrop';wrap.innerHTML=`<div class="quick-menu"><div class="quick-menu-head"><div><strong>${esc(item.title)}</strong><small>${esc(item.creator||providerLabel(item))}</small></div><button onclick="closeQuickMenu()">✕</button></div><button id="qmPlay">▶ Oynat</button><button id="qmFav">${fav?'♥ Favoriden çıkar':'♡ Favoriye ekle'}</button><button id="qmList">＋ Çalma listesine ekle</button><button id="qmShare">↗ Paylaş</button></div>`;document.body.appendChild(wrap);wrap.onclick=e=>{if(e.target===wrap)closeQuickMenu()};wrap.querySelector('#qmPlay').onclick=()=>{closeQuickMenu();if(item.type==='music'&&state.tab==='music'){state.inlineSearchPlayer=true;openItem(item,'music',false,x.queue)}else openItem(item,item.type,false,x.queue)};wrap.querySelector('#qmFav').onclick=()=>{toggleFavoriteItem(item);closeQuickMenu()};wrap.querySelector('#qmList').onclick=()=>{addItemToPlaylistPrompt(item);closeQuickMenu()};wrap.querySelector('#qmShare').onclick=()=>{const u=item.shareUrl||item.url||location.href;if(navigator.share)navigator.share({title:item.title,url:u}).catch(()=>{});else navigator.clipboard?.writeText(u);closeQuickMenu()};}
 window.quickMenuUi=quickMenuUi;
 function toggleFav(){if(!state.now)return;const k=key(state.now),idx=state.favorites.findIndex(x=>key(x)===k);if(idx>=0)state.favorites.splice(idx,1);else state.favorites.unshift(slim(state.now));save();const b=document.querySelector('#playerSheet .actions .action');if(b)b.textContent=`${state.favorites.some(x=>key(x)===k)?'♥':'♡'} Favori`;if(state.now.provider!=='youtube'&&!state.video&&state.now.type==='video')showPlayer(state.now)}window.toggleFav=toggleFav;
 function shareNow(){if(!state.now)return;const shareUrl=state.now.local||state.now.downloaded?location.href:(state.now.shareUrl||state.now.url||location.href);if(navigator.share)navigator.share({title:state.now.title,url:shareUrl}).catch(()=>{});else navigator.clipboard?.writeText(shareUrl)}window.shareNow=shareNow;
@@ -525,20 +576,33 @@ async function deleteStored(id,store){
   save();await refreshStored();render();if(wasCurrent)updateMediaSession();
 }window.deleteStored=deleteStored;
 
+function openExternalYouTubeSearch(){if(!state.musicQuery)return;window.open(youtubeSearchUrl(state.musicQuery),'_blank','noopener,noreferrer')}window.openExternalYouTubeSearch=openExternalYouTubeSearch;
+function connectMusicCatalog(){
+  const current=state.youtubeKey||'';
+  const v=prompt('YouTube müzik kataloğu için API anahtarını bir kez yapıştır. Bu cihazda saklanır.',current);
+  if(v===null)return;
+  const key=String(v).trim();
+  if(!key){if(confirm('Kayıtlı katalog bağlantısı kaldırılsın mı?')){state.youtubeKey='';localStorage.removeItem('zazo.youtubeKey');renderSettings()}return;}
+  state.youtubeKey=key;localSet('zazo.youtubeKey',key);
+  alert('Müzik kataloğu bağlandı. Artık arama ekranından şarkını yazabilirsin.');
+  renderSettings();
+}window.connectMusicCatalog=connectMusicCatalog;
 function renderSettings(){
   const total=[...state.localMedia,...state.downloads].reduce((a,x)=>a+(x.size||0),0),online=navigator.onLine!==false;
   view.innerHTML=`<div class="section-head"><h2>Ayarlar</h2></div>
   <div class="setting"><div><strong>Düşük Güç Modu</strong><div class="muted">Animasyonları ve arka plan ağ kullanımını azaltır</div></div><button id="lpSwitch" class="switch ${state.lowPower?'on':''}" aria-label="Düşük güç modu"></button></div>
   <div class="setting"><div><strong>Bağlantı</strong><div class="muted">Arama için internet bağlantısı gerekir</div></div><span>${online?'✓ Çevrimiçi':'Çevrimdışı'}</span></div>
+  <div class="setting"><div><strong>Müzik kataloğu</strong><div class="muted">${musicCatalogConnected()?'Popüler şarkı araması hazır':'Bir kez bağla; sonra yalnızca şarkını ara'}</div></div><button id="catalogConnectBtn" class="text-btn">${musicCatalogConnected()?'✓ Bağlı':'Bağla'}</button></div>
   <div class="setting"><div><strong>Kendi müzik ve videoların</strong><div class="muted">Telefonundaki uyumlu dosyaları Kütüphane’ye ekleyebilirsin</div></div><button id="settingsAddFile" class="text-btn">Dosya Ekle</button></div>
   <div class="setting"><div><strong>Çevrimdışı depolama</strong><div class="muted">${state.downloads.length} indirme · ${formatBytes(total)}</div></div><button id="clearDownloadsBtn" class="text-btn danger-text" ${state.downloads.length?'':'disabled'}>Temizle</button></div>
   <div class="setting"><div><strong>Depolama koruması</strong><div class="muted">Çevrimdışı dosyaların sistem tarafından temizlenme riskini azaltır</div></div><span>${state.storagePersistent===true?'✓ Kalıcı':state.storagePersistent===false?'Sistem yönetiyor':'Kontrol ediliyor'}</span></div>
   <div class="setting"><div><strong>Kaldığın yerden devam</strong><div class="muted">Müzik ve video konumu otomatik kaydedilir</div></div><span>✓</span></div>
   <div class="setting"><div><strong>Kilit ekranı kontrolleri</strong><div class="muted">Desteklenen ses akışlarında iPhone medya kontrolleri</div></div><span>✓</span></div>
-  <div class="setting"><div><strong>Sürüm</strong><div class="muted">ZAZO PLAYER V1.3.4 STABILITY</div></div><span>1.3.4</span></div>`;
+  <div class="setting"><div><strong>Sürüm</strong><div class="muted">ZAZO PLAYER V1.3.6 INLINE PLAY</div></div><span>1.3.6</span></div>`;
   $('#lpSwitch').onclick=()=>$('#powerBtn').click();
   const clear=$('#clearDownloadsBtn');if(clear)clear.onclick=clearAllDownloads;
   const add=$('#settingsAddFile');if(add)add.onclick=()=>$('#fileInput').click();
+  const cat=$('#catalogConnectBtn');if(cat)cat.onclick=connectMusicCatalog;
 }
 async function clearAllDownloads(){if(!state.downloads.length||!confirm('Tüm indirilen içerikler silinsin mi?'))return;const ids=new Set(state.downloads.map(x=>x.id));for(const x of [...state.downloads]){stopStoredIfCurrent(x);try{await dbDel('downloads',x.id)}catch{}if(x.opfsName)await opfsDelete(x.opfsName);if(x.url?.startsWith('blob:'))try{URL.revokeObjectURL(x.url)}catch{};if(x.thumb?.startsWith('blob:'))try{URL.revokeObjectURL(x.thumb)}catch{};delete state.positions[x.id];if(x.originalKey)delete state.positions[x.originalKey];}state.queue=state.queue.filter(x=>!ids.has(x.id));state.queueIndex=Math.min(state.queueIndex,state.queue.length-1);state.downloads=[];save();await refreshStored();renderSettings()}window.clearAllDownloads=clearAllDownloads;
 function formatBytes(n){if(!n)return'0 MB';if(n<1024*1024)return`${Math.round(n/1024)} KB`;return`${(n/1024/1024).toFixed(n>100*1024*1024?0:1)} MB`}
