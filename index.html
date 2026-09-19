@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#071018" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ZAZO PLAYER" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>ZAZO PLAYER</title>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="topbar">
+      <button class="icon-btn ghost" id="menuBtn" aria-label="Menü">☰</button>
+      <div class="brand-wrap">
+        <div class="brand">ZAZO</div><div class="subbrand">PLAYER</div>
+      </div>
+      <button class="icon-btn ghost" id="powerBtn" aria-label="Düşük güç modu">◐</button>
+    </header>
+
+    <main id="view" class="view"></main>
+
+    <div id="miniPlayer" class="mini-player hidden">
+      <div class="mini-art" id="miniArt">♪</div>
+      <div class="mini-meta"><strong id="miniTitle">—</strong><span id="miniType">—</span></div>
+      <button id="miniPlay" class="round-btn">▶</button>
+    </div>
+
+    <nav class="bottom-nav">
+      <button data-tab="home" class="nav-btn active"><span>⌂</span><small>Ana Sayfa</small></button>
+      <button data-tab="music" class="nav-btn"><span>♫</span><small>Müzik</small></button>
+      <button data-tab="video" class="nav-btn"><span>▣</span><small>Video</small></button>
+      <button data-tab="library" class="nav-btn"><span>▥</span><small>Kütüphane</small></button>
+      <button data-tab="settings" class="nav-btn"><span>⚙</span><small>Ayarlar</small></button>
+    </nav>
+  </div>
+
+  <aside id="drawer" class="drawer hidden">
+    <div class="drawer-card">
+      <div class="drawer-brand">ZAZO <span>PLAYER</span></div>
+      <button class="drawer-item" data-go="home">⌂ Ana Sayfa</button>
+      <button class="drawer-item" data-go="music">♫ Müzik</button>
+      <button class="drawer-item" data-go="video">▣ Video</button>
+      <button class="drawer-item" data-go="library">▥ Kütüphane</button>
+      <button class="drawer-item" data-go="settings">⚙ Ayarlar</button>
+      <button class="drawer-item" id="installBtn">＋ Ana Ekrana Ekle</button>
+      <button class="drawer-item" id="closeDrawer">✕ Kapat</button>
+    </div>
+  </aside>
+
+  <div id="playerSheet" class="sheet hidden"></div>
+  <input id="fileInput" type="file" accept="audio/*,video/*" multiple hidden />
+
+  <script src="app.js"></script>
+</body>
+</html>
