@@ -1,4 +1,4 @@
-const CACHE='zazo-player-v1-2-9';
+const CACHE='zazo-player-v1-3-4';
 const APP=['./','index.html','styles.css','config.js','app.js','manifest.webmanifest','icon.svg','icon-180.png','icon-192.png','icon-512.png'];
 const APP_URLS=new Set(APP.map(x=>new URL(x,self.registration.scope).href));
 const INDEX_URL=new URL('index.html',self.registration.scope).href;
@@ -18,6 +18,8 @@ self.addEventListener('fetch',e=>{
       catch{const c=await caches.open(CACHE),hit=await c.match(normalized);return hit||(await caches.match(INDEX_URL))}
       finally{clearTimeout(timer)}
     })());
+  }else if(e.request.mode==='navigate'){
+    e.respondWith(fetch(e.request).catch(async()=>{const c=await caches.open(CACHE);return (await c.match(INDEX_URL))||Response.error()}));
   }else{
     e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
   }
