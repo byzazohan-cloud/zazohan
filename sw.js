@@ -1,5 +1,5 @@
-const CACHE='zazo-player-v1-2-3';
-const APP=['./','index.html','styles.css','app.js','manifest.webmanifest','icon.svg','icon-180.png','icon-192.png','icon-512.png'];
+const CACHE='zazo-player-v1-2-9';
+const APP=['./','index.html','styles.css','config.js','app.js','manifest.webmanifest','icon.svg','icon-180.png','icon-192.png','icon-512.png'];
 const APP_URLS=new Set(APP.map(x=>new URL(x,self.registration.scope).href));
 const INDEX_URL=new URL('index.html',self.registration.scope).href;
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP)).then(()=>self.skipWaiting())));
@@ -12,10 +12,12 @@ self.addEventListener('fetch',e=>{
   const normalized=u.href;
   const isAppShell=APP_URLS.has(normalized);
   if(isAppShell){
-    e.respondWith(fetch(e.request).then(r=>{
-      if(r&&r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(normalized,copy));}
-      return r;
-    }).catch(()=>caches.open(CACHE).then(c=>c.match(normalized)).then(r=>r||caches.match(INDEX_URL))));
+    e.respondWith((async()=>{
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),3500);
+      try{const r=await fetch(e.request,{signal:controller.signal});if(!r||!r.ok)throw new Error('network');const copy=r.clone();caches.open(CACHE).then(c=>c.put(normalized,copy));return r}
+      catch{const c=await caches.open(CACHE),hit=await c.match(normalized);return hit||(await caches.match(INDEX_URL))}
+      finally{clearTimeout(timer)}
+    })());
   }else{
     e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
   }
