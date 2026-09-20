@@ -1,66 +1,55 @@
 <!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#05070b" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="ZAZO PLAYER" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png" />
-  <link rel="stylesheet" href="styles.css" />
-  <title>ZAZO PLAYER</title>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RUTİN">
+<title>RUTİN V43.18.7 Z TASARIM ÖNİZLEME</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css?v=v43.18.7">
+<link rel="stylesheet" href="z-design.css?v=z1">
+<link rel="icon" href="icon-180.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
 </head>
 <body>
-  <div id="splash" class="splash-screen" aria-hidden="true">
-    <div class="splash-brand">ZAZO<span>PLAYER</span></div>
-    <div class="splash-wave"><i></i><i></i><i></i></div>
-    <div class="splash-copy">Müzik her yerde seninle.</div>
-  </div>
-
-  <div id="app" class="app">
-    <header class="topbar">
-      <button class="icon-btn ghost" id="menuBtn" aria-label="Menü">☰</button>
-      <button class="brand-wrap brand-button" id="searchHomeBtn" aria-label="Aramaya dön">
-        <div class="brand">ZAZO <b>PLAYER</b></div>
-      </button>
-      <button class="icon-btn ghost" id="settingsBtn" aria-label="Ayarlar">⚙</button>
-      <button class="icon-btn ghost hidden" id="powerBtn" aria-label="Düşük güç modu">◐</button>
-    </header>
-
-    <main id="view" class="view"></main>
-
-    <div id="miniPlayer" class="mini-player hidden">
-      <div class="mini-art" id="miniArt">♪</div>
-      <button class="mini-meta" id="miniOpen" type="button"><strong id="miniTitle">—</strong><span id="miniType">—</span></button>
-      <button id="miniPlay" class="round-btn">▶</button>
-    </div>
-
-    <nav class="bottom-nav">
-      <button data-tab="music" class="nav-btn active"><span>⌕</span><small>Ara</small></button>
-      <button data-tab="library" data-mode="files" class="nav-btn"><span>▥</span><small>Kütüphane</small></button>
-      <button data-tab="library" data-mode="lists" class="nav-btn"><span>☷</span><small>Listeler</small></button>
-      <button data-tab="library" data-mode="downloads" class="nav-btn"><span>⇩</span><small>İndirilenler</small></button>
-    </nav>
-  </div>
-
-  <aside id="drawer" class="drawer hidden">
-    <div class="drawer-card">
-      <div class="drawer-brand">ZAZO <span>PLAYER</span></div>
-      <button class="drawer-item" data-go="music">⌕ Müzik Ara</button>
-      <button class="drawer-item" data-go="video">▶ Video</button>
-      <button class="drawer-item" data-go="library">▥ Kütüphane</button>
-      <button class="drawer-item" data-go="settings">⚙ Ayarlar</button>
-      <button class="drawer-item" id="installBtn">＋ Ana Ekrana Ekle</button>
-      <button class="drawer-item" id="closeDrawer">✕ Kapat</button>
-    </div>
-  </aside>
-
-  <div id="playerSheet" class="sheet hidden"></div>
-  <input id="fileInput" type="file" accept="audio/*,video/*" multiple hidden />
-
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+<div id="app"></div>
+<script src="app.js?v=v43.18.7"></script>
+<script src="legacy.js?v=v43.18.7"></script>
+<script src="calendar.js?v=v43.18.7"></script>
+<script src="records.js?v=v43.18.7"></script>
+<script src="work.js?v=v43.18.7"></script>
+<script src="finance.js?v=v43.18.7"></script>
+<script src="ui.js?v=v43.18.7"></script>
+<script src="accounting.js?v=v43.18.7"></script>
+<script src="v43165_cards_allowance.js?v=v43.18.7"></script>
+<script src="v431651_integrity_fix.js?v=v43.18.7"></script>
+<script src="v43166_calendar_categories.js?v=v43.18.7"></script>
+<script src="v43167_report_quickfix.js?v=v43.18.7"></script>
+<script src="v43168_navigation_interaction.js?v=v43.18.7"></script>
+<script src="v43169_report_road_fix.js?v=v43.18.7"></script>
+<script src="v431691_stable_fix.js?v=v43.18.7"></script>
+<script src="v4317_standard_migration.js?v=v43.18.7"></script>
+<script src="v43171_quick_calendar_fix.js?v=v43.18.7"></script>
+<script src="v43172_real_quick_calendar_fix.js?v=v43.18.7"></script>
+<script src="v43173_calendar_restore.js?v=v43.18.7"></script>
+<script src="v43174_integrity_reports.js?v=v43.18.7"></script>
+<script src="v43175_finance_edit_reminders.js?v=v43.18.7"></script>
+<script src="v43176_finance_details_reports.js?v=v43.18.7"></script>
+<script src="v43177_card_statement_design.js?v=v43.18.7"></script>
+<script src="v43178_flex_finance_standard.js?v=v43.18.7"></script>
+<script src="v43179_final_integrity.js?v=v43.18.7"></script>
+<script src="v43182_finance_platinum_cards.js?v=v43.18.7"></script>
+<script src="v43183_vertical_card_statement_fix.js?v=v43.18.7"></script>
+<script src="v43184_card_info_design.js?v=v43.18.7"></script>
+<script src="v43185_backup_restore.js?v=v43.18.7"></script>
+<script src="v43186_salary_compact_ui.js?v=v43.18.7"></script>
+<script src="v43187_premium_cleanup.js?v=v43.18.7"></script>
 </body>
 </html>

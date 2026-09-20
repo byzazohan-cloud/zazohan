@@ -1,614 +1,1181 @@
-function localGet(name,fallback=''){try{const v=localStorage.getItem(name);return v==null?fallback:v}catch{return fallback}}
-function localSet(name,value){try{localStorage.setItem(name,value);return true}catch{return false}}
-function uid(){try{return crypto.randomUUID?.()||`z${Date.now()}_${Math.random().toString(36).slice(2)}`}catch{return `z${Date.now()}_${Math.random().toString(36).slice(2)}`} }
-function safeJSON(name,fallback,kind){
-  try{
-    const raw=localStorage.getItem(name);if(!raw)return fallback;
-    const v=JSON.parse(raw);
-    if(kind==='array'&&!Array.isArray(v))throw Error('invalid');
-    if(kind==='object'&&(v===null||Array.isArray(v)||typeof v!=='object'))throw Error('invalid');
-    return v;
-  }catch{try{localStorage.removeItem(name)}catch{};return fallback;}
-}
-function normalizeItems(v){return (Array.isArray(v)?v:[]).filter(x=>x&&typeof x==='object');}
-function normalizePlaylists(v){return normalizeItems(v).map(x=>({id:String(x.id||uid()),name:String(x.name||'Liste'),items:normalizeItems(x.items)}));}
-function normalizePositions(v){const out={};if(v&&typeof v==='object'&&!Array.isArray(v))for(const [k,n] of Object.entries(v)){const x=Number(n);if(Number.isFinite(x)&&x>=0)out[k]=x;}return out;}
-const state={
-  tab:'music',
-  lowPower:localGet('zazo.lowPower')==='1',
-  favorites:normalizeItems(safeJSON('zazo.favorites',[],'array')),
-  history:normalizeItems(safeJSON('zazo.history',[],'array')),
-  playlists:normalizePlaylists(safeJSON('zazo.playlists',[],'array')),
-  positions:normalizePositions(safeJSON('zazo.positions',{},'object')),
-  results:{music:[],video:[]},
-  discovery:{music:[],video:[]},
-  musicQuery:'', musicSearching:false, videoQuery:'', videoSearching:false, searchSeq:{music:0,video:0}, searchControllers:{music:null,video:null}, searchError:{music:'',video:''},
-  recentSearches:normalizeItems(safeJSON('zazo.recentSearches',[],'array')).map(x=>String(x.q||x)).filter(Boolean).slice(0,8),
-  localMedia:[],downloads:[],now:null,queue:[],queueIndex:-1,
-  audio:new Audio(),video:null,youtubeActive:false,youtubePlayer:null,youtubeApiPromise:null,fallbackBusy:false,installPrompt:null,downloadBusy:false,downloadController:null,downloadTask:null,pendingItem:null,openController:null,uiItems:new Map(),uiSeq:0,
-  youtubeKey:window.ZAZO_CONFIG?.youtubeApiKey||localGet('zazo.youtubeKey')||'',
-  jamendoClientId:window.ZAZO_CONFIG?.jamendoClientId||localGet('zazo.jamendoClientId')||'',
-  storagePersistent:null,audioToken:0,browseView:null,libraryCategory:'songs',queueAutoExtend:false,inlineSearchPlayer:false
+
+/* V22 GLOBAL SAFE HTML ESCAPE */
+window.esc = window.esc || function(value){
+ return String(value==null?'':value)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 };
-const $=s=>document.querySelector(s), view=$('#view'), tabs=[...document.querySelectorAll('.nav-btn')];
-const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
-const decodeText=s=>{const t=document.createElement('textarea');t.innerHTML=String(s??'');return t.value};
-const encArg=s=>encodeURIComponent(String(s??'')).replace(/'/g,'%27');
-const providerLabel=i=>i?.provider==='youtube'?'YouTube':i?.provider==='jamendo'?'Jamendo':i?.source||'Internet Archive';
-const providerClass=i=>i?.provider==='youtube'?'youtube':i?.provider==='jamendo'?'jamendo':'archive';
-const sourcePill=i=>`<span class="source-pill ${providerClass(i)}">${esc(providerLabel(i))}</span>`;
-const musicCatalogConnected=()=>Boolean(state.youtubeKey||state.jamendoClientId);
-const youtubeSearchUrl=q=>`https://www.youtube.com/results?search_query=${encodeURIComponent(String(q||''))}`;
-const key=i=>i?.originalKey||i?.canonicalKey||i?.id||i?.identifier||i?.url||`${i?.type||''}:${i?.title||''}:${i?.creator||''}`;
-function slimBase(i){const x={...i};delete x.blob;delete x.thumbBlob;delete x.fallbacks;delete x.alternatives;if(x.local||x.downloaded)delete x.url;if(x.downloaded&&String(x.thumb||'').startsWith('blob:'))delete x.thumb;return x}
-const slim=i=>{const x=slimBase(i);if(Array.isArray(i?.alternatives)&&i.alternatives.length)x.alternatives=i.alternatives.slice(0,5).map(slimBase);return x};
-function prunePositions(){
-  const keep=new Set();
-  const add=i=>{if(!i)return;keep.add(key(i));if(i.id)keep.add(i.id);if(i.originalKey)keep.add(i.originalKey);if(i.canonicalKey)keep.add(i.canonicalKey)};
-  state.history.slice(0,80).forEach(add);state.favorites.forEach(add);state.playlists.forEach(p=>p.items.forEach(add));state.localMedia.forEach(add);state.downloads.forEach(add);state.queue.forEach(add);add(state.now);
-  const entries=Object.keys(state.positions);if(entries.length>320)for(const k of entries)if(!keep.has(k))delete state.positions[k];
-}
-const save=()=>{try{
-  prunePositions();
-  localStorage.setItem('zazo.favorites',JSON.stringify(state.favorites.map(slim)));
-  localStorage.setItem('zazo.history',JSON.stringify(state.history.slice(0,80).map(slim)));
-  localStorage.setItem('zazo.playlists',JSON.stringify(state.playlists.map(p=>({...p,items:p.items.map(slim)}))));
-  localStorage.setItem('zazo.positions',JSON.stringify(state.positions));
-  localStorage.setItem('zazo.recentSearches',JSON.stringify(state.recentSearches.map(q=>({q}))));
-}catch{}};
-if(state.lowPower)document.body.classList.add('low-power');
 
-const DB='zazo-player-db';
-const OPFS_DIR='zazo-media';
-let dbPromise=null;
-function dbOpen(){if(dbPromise)return dbPromise;dbPromise=new Promise((res,rej)=>{const r=indexedDB.open(DB,2);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('media'))db.createObjectStore('media',{keyPath:'id'});if(!db.objectStoreNames.contains('downloads'))db.createObjectStore('downloads',{keyPath:'id'});};r.onsuccess=()=>{const db=r.result;db.onversionchange=()=>{db.close();dbPromise=null};res(db)};r.onerror=()=>{dbPromise=null;rej(r.error)};r.onblocked=()=>{dbPromise=null;rej(new Error('indexeddb-blocked'))}});return dbPromise;}
-async function dbAll(store){const db=await dbOpen();return new Promise((res,rej)=>{const tx=db.transaction(store),r=tx.objectStore(store).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});}
-async function dbPut(store,x){const db=await dbOpen();return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(x);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new Error('indexeddb-abort'));});}
-async function dbDel(store,id){const db=await dbOpen();return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).delete(id);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new Error('indexeddb-abort'));});}
-function fileUrl(i){return i?.blob?URL.createObjectURL(i.blob):(i?.url||null)}
-async function opfsDir(create=false){if(!navigator.storage?.getDirectory)return null;const root=await navigator.storage.getDirectory();return root.getDirectoryHandle(OPFS_DIR,{create});}
-async function opfsFileUrl(name){try{const dir=await opfsDir(false);if(!dir)return null;const h=await dir.getFileHandle(name);const f=await h.getFile();return URL.createObjectURL(f);}catch{return null;}}
-async function opfsDelete(name){if(!name)return;try{const dir=await opfsDir(false);if(dir)await dir.removeEntry(name)}catch{}}
-async function syncStoredUrls(records,previous=[],store=''){
-  const prev=new Map(previous.map(x=>[x.id,x])),next=[];
-  for(const x of records){
-    const old=prev.get(x.id);prev.delete(x.id);
-    let url=old?.url?.startsWith('blob:')?old.url:null;
-    if(!url){if(x.blob)url=URL.createObjectURL(x.blob);else if(x.opfsName)url=await opfsFileUrl(x.opfsName);else url=x.url||null;}
-    if(store==='downloads'&&x.opfsName&&!x.blob&&!url){try{await dbDel('downloads',x.id)}catch{};continue;}
-    let thumb=x.thumb||'';
-    if(x.thumbBlob){thumb=old?.thumb?.startsWith('blob:')?old.thumb:URL.createObjectURL(x.thumbBlob);}
-    next.push({...x,url,thumb});
-  }
-  for(const old of prev.values()){
-    if(old?.url?.startsWith('blob:')&&old.url!==state.now?.url)try{URL.revokeObjectURL(old.url)}catch{}
-    if(old?.thumb?.startsWith('blob:'))try{URL.revokeObjectURL(old.thumb)}catch{}
-  }
-  return next;
-}
-async function refreshStored(){
-  try{state.localMedia=await syncStoredUrls(await dbAll('media'),state.localMedia,'media');}catch{state.localMedia=[]}
-  try{state.downloads=await syncStoredUrls(await dbAll('downloads'),state.downloads,'downloads');}catch{state.downloads=[]}
-}
-function hydrate(i){
-  if(!i)return i;
-  if(i.local){const x=state.localMedia.find(x=>x.id===i.id);if(x)return {...x};}
-  if(i.downloaded){const x=state.downloads.find(x=>x.id===i.id);if(x)return {...x};}
-  const offline=state.downloads.find(x=>x.originalKey===key(i));
-  if(offline)return {...offline};
-  return {...i};
-}
 
-function syncNav(){tabs.forEach(b=>{const sameTab=b.dataset.tab===state.tab;const mode=b.dataset.mode||'';const modeOk=!mode||mode===(state.libraryMode||'files');b.classList.toggle('active',sameTab&&modeOk)});}
-function setTab(tab,mode=null){
-  if(tab!=='music'&&state.searchControllers.music){state.searchControllers.music.abort();state.searchControllers.music=null;state.musicSearching=false;}
-  if(tab!=='video'&&state.searchControllers.video){state.searchControllers.video.abort();state.searchControllers.video=null;state.videoSearching=false;}
-  state.tab=tab;if(tab==='library'&&mode)state.libraryMode=mode;syncNav();render();scrollTo({top:0,behavior:state.lowPower?'auto':'smooth'});if(tab==='video')ensureDiscovery('video');
-}
-window.setTab=setTab;
-tabs.forEach(b=>b.onclick=()=>setTab(b.dataset.tab,b.dataset.mode||null));
-document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{$('#drawer').classList.add('hidden');setTab(b.dataset.go)});
-const settingsBtn=$('#settingsBtn');if(settingsBtn)settingsBtn.onclick=()=>setTab('settings');
-const searchHomeBtn=$('#searchHomeBtn');if(searchHomeBtn)searchHomeBtn.onclick=()=>setTab('music');
-const miniOpen=$('#miniOpen');if(miniOpen)miniOpen.onclick=e=>{e.stopPropagation();if(state.now)showFullPlayer(state.now)};
-$('#menuBtn').onclick=()=>$('#drawer').classList.remove('hidden');
-$('#closeDrawer').onclick=()=>$('#drawer').classList.add('hidden');
-$('#drawer').onclick=e=>{if(e.target.id==='drawer')$('#drawer').classList.add('hidden')};
-$('#powerBtn').onclick=()=>{state.lowPower=!state.lowPower;document.body.classList.toggle('low-power',state.lowPower);localSet('zazo.lowPower',state.lowPower?'1':'0');render();};
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.installPrompt=e});
-$('#installBtn').onclick=async()=>{if(state.installPrompt){state.installPrompt.prompt();await state.installPrompt.userChoice;state.installPrompt=null}else{const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);alert(ios?'Safari → Paylaş → Ana Ekrana Ekle':'Tarayıcı menüsünden “Uygulamayı yükle” veya “Ana ekrana ekle” seçeneğini kullanabilirsin.')}};
+const $=s=>document.querySelector(s);
+const money=n=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:0}).format(+n||0);
+const iso=(d=new Date())=>{let z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,10)};
+const ym=(d=new Date())=>iso(d).slice(0,7);
+const uid=()=>crypto.randomUUID?.()||Date.now()+Math.random().toString(16).slice(2);
+const upper=s=>String(s||'').toLocaleUpperCase('tr-TR');
 
-function hero(){return `<section class="hero home-search-hero"><span class="hero-badge">● ZAZO Akıllı Arama</span><h1>İstediğin şarkıyı yaz, ZAZO bulsun.</h1><p>Şarkı adı veya sanatçı yaz. ZAZO yalnızca tam oynatılabilen sonuçları bulur ve tek dokunuşla çalar.</p><div class="hero-search"><span>⌕</span><input id="homeMusicSearch" placeholder="Şarkı veya sanatçı ara…" enterkeyhint="search" autocomplete="off"><button id="homeMusicSearchBtn">Ara</button></div><div class="hero-actions"><button onclick="setTab('music')">♫ Müzik</button><button onclick="setTab('video')">▶ Video</button></div></section>`}
-function quick(label,sub,icon,tab,onclick=''){return `<button class="quick" ${onclick?`onclick="${onclick}"`:`onclick="setTab('${tab}')"`}><span class="big">${icon}</span><strong>${label}</strong><small>${sub}</small></button>`}
-function art(i,t,loading='lazy'){return `<div class="thumb ${t==='video'?'video':''}">${i.thumb?`<img loading="lazy" decoding="async" src="${esc(i.thumb)}" alt="">`:(t==='video'?'▶':'♫')}</div>`}
-function registerUi(i,t,queue=null){const id=`u${++state.uiSeq}`;state.uiItems.set(id,{item:slim(i),type:t||i.type,queue:Array.isArray(queue)?queue:null});return id}
-function openUi(id){const x=state.uiItems.get(id);if(x)openItem(x.item,x.type,false,x.queue)}window.openUi=openUi;
-function resetUiRegistry(){state.uiItems.clear();state.uiSeq=0}
-function mediaCard(i,t,queue=null){const id=registerUi(i,t,queue);return `<article class="media-card" onclick="openUi('${id}')">${art(i,t)}<strong>${esc(i.title)}</strong><small>${esc(i.creator||i.source||'ZAZO')}</small>${sourcePill(i)}</article>`}
-function continueItems(){return state.history.filter(x=>(state.positions[key(x)]||0)>8).slice(0,6)}
-function renderHome(){
-  resetUiRegistry();
-  const cont=continueItems().map(hydrate),rec=state.history.slice(0,6).map(hydrate);
-  view.innerHTML=`${hero()}<div class="quick-grid">${quick('Müzik','Ara ve dinle','♫','music')}${quick('Video','Akışta izle','▶','video')}${quick('İndirilenler',`${state.downloads.length} çevrimdışı içerik`,'⇩','library',"openLibrary('downloads')")}${quick('Dosyalarım',`${state.localMedia.length} yerel içerik`,'＋','library',"openLibrary('files')")}</div>${cont.length?`<section class="section"><div class="section-head"><h2>Kaldığın yerden</h2></div><div class="h-scroll">${cont.map(x=>mediaCard(x,x.type,cont)).join('')}</div></section>`:''}<section class="section"><div class="section-head"><h2>Son oynatılanlar</h2></div>${rec.length?`<div class="h-scroll">${rec.map(x=>mediaCard(x,x.type,rec)).join('')}</div>`:'<div class="empty">Henüz oynatılan içerik yok.</div>'}</section>`;
-  const input=$('#homeMusicSearch'),btn=$('#homeMusicSearchBtn');
-  const go=()=>{const q=input?.value.trim();if(!q)return;state.tab='music';tabs.forEach(b=>b.classList.toggle('active',b.dataset.tab==='music'));renderMusic();const mi=$('#searchInput');if(mi)mi.value=q;searchInternet('music',q);};
-  if(btn)btn.onclick=go;if(input)input.onkeydown=e=>{if(e.key==='Enter')go()};
-}
-
-const DISCOVERY={music:['live music','jazz','classical music'],video:['documentary','travel film','concert']};
-async function fetchWithTimeout(url,{signal,timeout=8500,...opts}={}){
-  const own=new AbortController(),timer=setTimeout(()=>own.abort('zazo-timeout'),timeout);
-  const relay=()=>own.abort();if(signal){if(signal.aborted)relay();else signal.addEventListener('abort',relay,{once:true});}
-  try{return await fetch(url,{...opts,signal:own.signal})}
-  catch(e){if(!signal?.aborted&&own.signal.aborted&&own.signal.reason==='zazo-timeout'){const err=new Error('timeout');err.code='TIMEOUT';throw err}throw e}
-  finally{clearTimeout(timer);if(signal)signal.removeEventListener('abort',relay)}
-}
-async function iaSearch(type,q,rows=14,signal=null){
-  const mediatype=type==='music'?'audio':'movies';
-  const params=new URLSearchParams();
-  const safeQ=String(q||'').replace(/[(){}:\[\]\"']/g,' ').replace(/\s+/g,' ').trim();if(!safeQ)return[];
-  params.set('q',`(${safeQ}) AND mediatype:${mediatype}`);
-  for(const f of ['identifier','title','creator','date'])params.append('fl[]',f);
-  params.append('sort[]','downloads desc');params.set('rows',String(rows));params.set('page','1');params.set('output','json');
-  const r=await fetchWithTimeout(`https://archive.org/advancedsearch.php?${params}`,{signal,timeout:8000});if(!r.ok)throw Error('archive');const d=await r.json();
-  return (d.response?.docs||[]).map(x=>({id:`ia:${x.identifier}`,title:x.title||x.identifier,creator:Array.isArray(x.creator)?x.creator.join(', '):(x.creator||'Internet Archive'),identifier:x.identifier,source:'Internet Archive',provider:'archive',archiveUnverified:true,thumb:`https://archive.org/services/img/${encodeURIComponent(x.identifier)}`,type,date:x.date||''}));
-}
-async function ensureDiscovery(type){
-  if(state.discovery[type].length)return;
-  if(navigator.onLine===false){const marker=type==='music'?'#musicDiscovery':'#videoFeed';if($(marker))$(marker).innerHTML='<div class="empty">Çevrimdışısın. İndirilenler ve Dosyalarım kullanılabilir.</div>';return;}
-  const marker=type==='music'?'#musicDiscovery':'#videoFeed';if($(marker))$(marker).innerHTML='<div class="empty">İçerikler hazırlanıyor…</div>';
-  try{
-    const qs=state.lowPower?DISCOVERY[type].slice(0,1):DISCOVERY[type],rows=state.lowPower?(type==='music'?5:4):(type==='music'?8:7);
-    const settled=await Promise.allSettled(qs.map(q=>iaSearch(type,q,rows)));
-    const parts=settled.filter(x=>x.status==='fulfilled').map(x=>x.value);
-    if(!parts.length)throw Error('discovery');
-    const seen=new Set(); state.discovery[type]=parts.flat().filter(x=>!seen.has(x.id)&&seen.add(x.id)).slice(0,state.lowPower?8:24);
-    if(state.tab===type)render();
-  }catch{if($(marker))$(marker).innerHTML='<div class="empty">Keşif akışı şu anda alınamadı. Aramayı kullanabilirsin.</div>'}
-}
-function sourceSummary(type){const parts=[];if(state.jamendoClientId&&type==='music')parts.push('Tam müzik');if(state.youtubeKey)parts.push('Video');return parts.join(' · ')}
-function searchHeader(type){
-  if(type==='music')return `<section class="music-search-hero"><span class="eyebrow">ZAZO PLAYER</span><h2>Ne dinlemek istiyorsun?</h2><p>Şarkı, sanatçı veya albüm adını yaz. Tam oynatılabilen sonucu tek dokunuşla aç.</p><div class="searchbar music-main-search"><span class="search-icon">⌕</span><input id="searchInput" value="${esc(state.musicQuery)}" placeholder="Şarkı, sanatçı veya albüm ara…" enterkeyhint="search" autocomplete="off" autofocus><button id="searchBtn">Ara</button></div></section>`;
-  return `<div class="section-head"><h2>Video</h2><span class="muted">${esc(sourceSummary(type))}</span></div><div class="searchbar"><input id="searchInput" value="${esc(state.videoQuery)}" placeholder="Video ara…" enterkeyhint="search" autocomplete="off"><button id="searchBtn">Ara</button></div>`;
-}
-function wireSearch(type){$('#searchBtn').onclick=()=>searchInternet(type,$('#searchInput').value);$('#searchInput').onkeydown=e=>{if(e.key==='Enter')searchInternet(type,e.target.value)};document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>searchInternet(type,c.dataset.q));}
-function searchAvailabilityBadge(i){if(i.identifier&&!i.verifiedPlayable)return '<span class="availability checking">◌ Oynatma kontrol edilir</span>';if(i.provider==='youtube')return '<span class="availability youtube">▶ Tam şarkı · YouTube</span>';return '<span class="availability full">● Tam şarkı</span>'}
-function musicSearchRow(i,queue=null){const id=registerUi(i,'music',queue);const creator=i.creator||'Bilinmeyen sanatçı',artistArg=encArg(creator),albumArg=encArg(i.album||'');return `<div class="song-result ${state.now&&key(state.now)===key(i)?'is-playing':''}"><div class="song-main" role="button" tabindex="0" onclick="playSearchUi('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();playSearchUi('${id}')}"><span class="song-art">${i.thumb?`<img loading="lazy" decoding="async" src="${esc(i.thumb)}" alt="">`:'♫'}</span><span class="song-info"><strong>${esc(i.title)}</strong><span class="song-links"><button type="button" onclick="event.stopPropagation();browseArtist(decodeURIComponent('${artistArg}'))">${esc(creator)}</button>${i.album?`<button type="button" onclick="event.stopPropagation();browseAlbum(decodeURIComponent('${albumArg}'),decodeURIComponent('${artistArg}'))">${esc(i.album)}</button>`:''}</span></span></div><button class="song-play" onclick="event.stopPropagation();playSearchUi('${id}')" aria-label="Çal">${state.now&&key(state.now)===key(i)?'❚❚':'▶'}</button><button class="more-btn" type="button" aria-label="Daha fazla" onclick="event.stopPropagation();quickMenuUi('${id}')">⋮</button></div>`}
-function musicCatalogItems(includeResults=false){
-  const transient=includeResults?state.results.music:[];
-  const all=[...transient,...state.favorites,...state.history,...state.localMedia,...state.downloads,...state.playlists.flatMap(p=>p.items||[])].filter(x=>x&&x.type!=='video');
-  const seen=new Set();return all.map(hydrate).filter(x=>{const k=key(x);if(seen.has(k))return false;seen.add(k);return true});
-}
-function browseArtist(name){if(!name)return;state.browseView={kind:'artist',name:String(name)};if(state.tab!=='music')state.tab='music';syncNav();renderMusic();scrollTo({top:0,behavior:'auto'})}window.browseArtist=browseArtist;
-function browseAlbum(name,artist=''){if(!name)return;state.browseView={kind:'album',name:String(name),artist:String(artist||'')};if(state.tab!=='music')state.tab='music';syncNav();renderMusic();scrollTo({top:0,behavior:'auto'})}window.browseAlbum=browseAlbum;
-function closeBrowse(){state.browseView=null;renderMusic()}window.closeBrowse=closeBrowse;
-function browseViewHtml(){const b=state.browseView;if(!b)return'';const all=musicCatalogItems(true);let items=[];if(b.kind==='artist')items=all.filter(x=>normalizeWords(x.creator)===normalizeWords(b.name));else items=all.filter(x=>normalizeWords(x.album)===normalizeWords(b.name)&&(b.artist?normalizeWords(x.creator)===normalizeWords(b.artist):true));const queue=items;return `<section class="browse-page"><button class="back-link" onclick="closeBrowse()">‹ Aramaya dön</button><div class="browse-hero"><div class="browse-avatar">${b.kind==='artist'?'♪':'▣'}</div><div><span>${b.kind==='artist'?'SANATÇI':'ALBÜM'}</span><h2>${esc(b.name)}</h2>${b.artist?`<button class="text-link" onclick="browseArtist(decodeURIComponent('${encArg(b.artist)}'))">${esc(b.artist)}</button>`:''}<p>${items.length} parça</p></div></div>${items.length?`<div class="song-results">${items.map(x=>musicSearchRow(x,queue)).join('')}</div>`:'<div class="empty">Bu sayfa için henüz yeterli parça yok. Aramadan yeni parçalar açtıkça burada toplanır.</div>'}</section>`}
-function libraryGroups(){const items=musicCatalogItems(),artists=new Map(),albums=new Map();for(const x of items){const a=(x.creator||'Bilinmeyen sanatçı').trim();if(!artists.has(a))artists.set(a,[]);artists.get(a).push(x);if(x.album){const k=`${x.album}|||${a}`;if(!albums.has(k))albums.set(k,{name:x.album,artist:a,items:[]});albums.get(k).items.push(x)}}return {items,artists:[...artists.entries()].sort((a,b)=>b[1].length-a[1].length),albums:[...albums.values()].sort((a,b)=>b.items.length-a.items.length)}}
-function renderMusic(){
-  resetUiRegistry();
-  if(state.browseView){view.innerHTML=browseViewHtml();return;}
-  const chips=['Türkçe Pop','Pop','Rock','Rap','Arabesk'],results=state.results.music;
-  const resultsHtml=state.musicSearching?`<section class="section"><div class="searching-card"><span class="search-spinner">◌</span><strong>Şarkı aranıyor…</strong><small>${state.lowPower?'Düşük güçte önce doğrudan ses kaynakları taranıyor.':'Tam oynatılabilen kaynaklar aranıyor.'}</small></div></section>`:results.length?`<section class="section search-results-section"><div class="section-head"><div><h2>Bulunan şarkılar</h2><div class="muted">${results.length} sonuç</div></div><button onclick="clearResults('music')">Temizle</button></div><div class="song-results">${results.map(x=>musicSearchRow(x,results)).join('')}</div></section>`:state.musicQuery?`<section class="section"><div class="empty music-empty">${state.searchError.music?esc(state.searchError.music):(musicCatalogConnected()?`“${esc(state.musicQuery)}” için tam oynatılabilir sonuç bulunamadı.<br><small>Başka bir yazımla tekrar deneyebilirsin.</small>`:`Bu şarkı açık kaynaklarda bulunamadı.<br><small>Geniş müzik kataloğu henüz bağlı değil. Bir kez bağladıktan sonra popüler şarkıları doğrudan arayabilirsin.</small><div class="empty-actions"><button type="button" class="primary-btn" onclick="setTab('settings')">Müzik kataloğunu bağla</button><button type="button" class="text-btn" onclick="openExternalYouTubeSearch()">YouTube'da ara</button></div>`)}</div></section>`:`<div class="chips music-chips">${chips.map(c=>`<button class="chip" data-q="${c}">${c}</button>`).join('')}</div>${state.recentSearches.length?`<section class="recent-searches"><div class="section-head compact"><h3>Son aramalar</h3><button onclick="clearRecentSearches()">Temizle</button></div><div class="recent-chips">${state.recentSearches.map(q=>`<button class="recent-search-btn" data-recent="${esc(q)}">⌕ ${esc(q)}</button>`).join('')}</div></section>`:''}<section class="music-feature"><div><span>TEK ARAMA</span><h2>Şarkıyı yaz, ▶ bas ve dinle.</h2><p>ZAZO yalnızca tam oynatılabilen sonuçları gösterir. Önizleme yok.</p></div><button onclick="document.getElementById('searchInput')?.focus()">⌕</button></section>`;
-  view.innerHTML=`${searchHeader('music')}<div id="inlineSearchPlayer"></div>${resultsHtml}`;
-  if(state.inlineSearchPlayer&&state.now?.type==='music')showInlineSearchPlayer(state.now);
-  wireSearch('music');document.querySelectorAll('.recent-search-btn').forEach(b=>b.onclick=()=>searchInternet('music',b.dataset.recent));
-  requestAnimationFrame(()=>{const input=$('#searchInput');if(input&&state.musicQuery&&!state.musicSearching)input.setSelectionRange(input.value.length,input.value.length)});
-}
-function videoCard(i,queue=null){const id=registerUi(i,'video',queue);return `<article class="video-card" onclick="openUi('${id}')">${art(i,'video')}<div class="video-meta"><div class="avatar">${i.provider==='youtube'?'▶':'Z'}</div><div><strong>${esc(i.title)}</strong><small>${esc(i.creator||providerLabel(i))}</small>${sourcePill(i)}</div><button class="more-btn" type="button" aria-label="Daha fazla" onclick="event.stopPropagation();quickMenuUi('${id}')">⋮</button></div></article>`}
-function renderVideo(){
-  resetUiRegistry();
-  const chips=['Tümü','Belgesel','Konser','Eğitim','Seyahat','Arşiv'], results=state.results.video, feed=state.discovery.video;
-  const body=state.videoSearching?`<section class="section"><div class="searching-card"><span class="search-spinner">◌</span><strong>Video aranıyor…</strong><small>${state.lowPower?'Düşük güçte daha az kaynak taranıyor.':'Uygun kaynaklar taranıyor.'}</small></div></section>`:results.length?`<section class="section"><div class="section-head"><h2>Arama sonuçları</h2><button onclick="clearResults('video')">Temizle</button></div><div class="video-feed">${results.map(x=>videoCard(x,results)).join('')}</div></section>`:state.videoQuery?`<section class="section"><div class="empty">${state.searchError.video?esc(state.searchError.video):`“${esc(state.videoQuery)}” için video bulunamadı.`}</div></section>`:`<section class="section flush"><div class="section-head"><h2>Video akışı</h2><span class="muted">${state.youtubeKey?'Archive + YouTube':'Internet Archive'}</span></div><div id="videoFeed" class="video-feed">${feed.length?feed.map(x=>videoCard(x,feed)).join(''):'<div class="empty">Video akışı hazırlanıyor…</div>'}</div></section>`;
-  view.innerHTML=`${searchHeader('video')}<div class="chips">${chips.map(c=>`<button class="chip" data-q="${c==='Tümü'?'documentary':c}">${c}</button>`).join('')}</div>${body}`;
-  wireSearch('video');
-}
-function rowItem(i,t,queue=null){const id=registerUi(i,t,queue);return `<div class="row" onclick="openUi('${id}')">${art(i,t)}<div class="meta"><strong>${esc(i.title)}</strong><small>${esc(i.creator||i.source||'Internet Archive')}</small>${sourcePill(i)}</div><button type="button" aria-label="Aç">›</button></div>`}
-function jsonp(url,{signal,timeout=8000}={}){return new Promise((resolve,reject)=>{const cb=`zazoJsonp_${Date.now()}_${Math.random().toString(36).slice(2)}`,script=document.createElement('script'),timer=setTimeout(()=>done(null,new Error('timeout')),timeout);let ended=false;function done(data,err){if(ended)return;ended=true;clearTimeout(timer);if(signal)signal.removeEventListener('abort',onAbort);try{delete window[cb]}catch{};script.remove();err?reject(err):resolve(data)}function onAbort(){const e=new DOMException('Arama iptal edildi','AbortError');done(null,e)}if(signal){if(signal.aborted)return onAbort();signal.addEventListener('abort',onAbort,{once:true})}window[cb]=data=>done(data);script.onerror=()=>done(null,new Error('network'));script.src=`${url}${url.includes('?')?'&':'?'}callback=${cb}`;document.head.appendChild(script)})}
-async function jamendoSearch(q,limit=10,signal=null){if(!state.jamendoClientId)return[];const u=`https://api.jamendo.com/v3.0/tracks/?client_id=${encodeURIComponent(state.jamendoClientId)}&format=json&limit=${limit}&search=${encodeURIComponent(q)}&audioformat=mp32&imagesize=300`;const r=await fetchWithTimeout(u,{signal,timeout:8000});const d=await r.json();if(!r.ok||d.headers?.status==='failed')throw Error('jamendo');return (d.results||[]).filter(x=>x.audio).map(x=>({id:`jamendo:${x.id}`,title:x.name||'Parça',creator:x.artist_name||'Jamendo',source:'Jamendo',provider:'jamendo',type:'music',url:x.audio,thumb:x.image||x.album_image||'',shareUrl:x.shareurl||'',duration:Number(x.duration)||0,album:x.album_name||'',license:x.license_ccurl||'',verifiedPlayable:true}))}
-async function youtubeSearch(type,q,limit=12,signal=null){if(!state.youtubeKey)return[];const p=new URLSearchParams({part:'snippet',type:'video',maxResults:String(limit),q,videoEmbeddable:'true',videoSyndicated:'true',key:state.youtubeKey,relevanceLanguage:'tr',regionCode:'TR'});if(type==='music')p.set('videoCategoryId','10');const r=await fetchWithTimeout(`https://www.googleapis.com/youtube/v3/search?${p}`,{signal,timeout:8500}),d=await r.json();if(!r.ok)throw Error(d.error?.message||'youtube');return (d.items||[]).filter(x=>x.id?.videoId).map(x=>({id:`youtube:${x.id.videoId}`,youtubeId:x.id.videoId,title:decodeText(x.snippet?.title||'YouTube'),creator:decodeText(x.snippet?.channelTitle||'YouTube'),source:'YouTube',provider:'youtube',type,url:`https://www.youtube.com/watch?v=${x.id.videoId}`,shareUrl:`https://www.youtube.com/watch?v=${x.id.videoId}`,thumb:x.snippet?.thumbnails?.high?.url||x.snippet?.thumbnails?.medium?.url||x.snippet?.thumbnails?.default?.url||'',verifiedPlayable:true}))}
-function normalizeWords(v){return String(v||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/vevo\b/g,' ').replace(/\b(official|video|audio|lyrics?|lyric|clip|music|remaster(?:ed)?|hd|4k|visualizer|topic|records?|channel)\b/g,' ').replace(/[^a-z0-9çğıöşü]+/gi,' ').replace(/\s+/g,' ').trim()}
-function musicProviderRank(i){if(i.provider==='jamendo')return 74;if(i.provider==='youtube')return 68;if(i.provider==='archive'||i.identifier)return i.verifiedPlayable?62:36;return 25}
-function relevanceScore(i,q){const query=normalizeWords(q),title=normalizeWords(i.title),creator=normalizeWords(i.creator);if(!query)return 0;const toks=query.split(' ').filter(Boolean);let score=0;if(title===query)score+=90;if(`${creator} ${title}`===query||`${title} ${creator}`===query)score+=120;if(title.includes(query))score+=45;if(creator.includes(query))score+=24;for(const t of toks){if(title.includes(t))score+=10;if(creator.includes(t))score+=7;}const raw=String(i.title||'').toLocaleLowerCase('tr-TR'),qraw=String(q||'').toLocaleLowerCase('tr-TR');for(const tag of ['remix','live','canlı','akustik','karaoke','cover'])if(raw.includes(tag)&&!qraw.includes(tag))score-=18;return score}
-function musicGroupKey(i){let title=normalizeWords(i.title).replace(/\b(feat|ft)\b.*$/,'').trim();let creator=normalizeWords(i.creator).replace(/ - topic$/,'').trim();return `${title}|${creator}`}
-function tokenSet(v){return new Set(normalizeWords(v).split(' ').filter(x=>x.length>1))}
-function setContainsAll(big,small){for(const x of small)if(!big.has(x))return false;return small.size>0}
-function sameMusicCandidate(a,b){
-  const at=tokenSet(a.title),bt=tokenSet(b.title),ac=tokenSet(a.creator),bc=tokenSet(b.creator),aAll=tokenSet(`${a.title} ${a.creator}`),bAll=tokenSet(`${b.title} ${b.creator}`);
-  const titleMatch=setContainsAll(aAll,bt)||setContainsAll(bAll,at);if(!titleMatch)return false;
-  const creatorStrong=setContainsAll(aAll,bc)||setContainsAll(bAll,ac);let overlap=false;for(const x of ac)if(bc.has(x)){overlap=true;break}
-  return creatorStrong||overlap;
-}
-function rankMusicResults(items,q){
-  const sorted=[...items].sort((a,b)=>(musicProviderRank(b)+relevanceScore(b,q))-(musicProviderRank(a)+relevanceScore(a,q))),groups=[];
-  for(const i of sorted){let g=groups.find(x=>sameMusicCandidate(x[0],i));if(!g){g=[];groups.push(g)}g.push(i)}
-  const out=[];for(const group of groups){const base=group[0],canonical=`music:${musicGroupKey(base)||key(base)}`,primary={...base,canonicalKey:canonical};const alternatives=group.slice(1,6).map(x=>({...x,canonicalKey:canonical}));if(alternatives.length)primary.alternatives=alternatives;out.push(primary);if(out.length>=36)break}return out;
-}
-async function runSearchJobs(type,query,signal){
-  const small=state.lowPower,results=[];let failures=0;
-  const settle=async jobs=>{const a=await Promise.allSettled(jobs);for(const x of a){if(x.status==='fulfilled')results.push(...x.value);else if(x.reason?.name!=='AbortError')failures++;}return a};
-  if(type==='music'){
-    const base=[iaSearch(type,query,small?6:12,signal)];if(state.jamendoClientId)base.push(jamendoSearch(query,small?6:12,signal));
-    if(state.youtubeKey)base.push(youtubeSearch(type,query,small?8:18,signal));
-    await settle(base);
-  }else{
-    await settle([iaSearch(type,query,small?8:14,signal)]);
-    if(state.youtubeKey&&(!small||results.length<4))await settle([youtubeSearch(type,query,small?6:12,signal)]);
-  }
-  return {results,failures};
-}
-async function searchInternet(type,q){
-  if(!q?.trim())return;const query=q.trim(),seq=++state.searchSeq[type];
-  state.searchControllers[type]?.abort();state.searchControllers[type]=null;state.searchError[type]='';
-  if(navigator.onLine===false){state.searchError[type]='İnternet bağlantısı yok. Kütüphanendeki indirilen veya yerel içerikleri kullanabilirsin.';if(type==='music'){state.musicQuery=query;state.musicSearching=false;state.results.music=[];renderMusic()}else{state.videoQuery=query;state.videoSearching=false;state.results.video=[];renderVideo()}return;}
-  const controller=new AbortController();state.searchControllers[type]=controller;
-  if(type==='music'){state.musicQuery=query;state.musicSearching=true;state.results.music=[];state.recentSearches=[query,...state.recentSearches.filter(x=>normalizeWords(x)!==normalizeWords(query))].slice(0,8);save();renderMusic();}
-  else{state.videoQuery=query;state.videoSearching=true;state.results.video=[];renderVideo();}
-  try{
-    const {results:all,failures}=await runSearchJobs(type,query,controller.signal);if(seq!==state.searchSeq[type]||controller.signal.aborted)return;
-    const seen=new Set();state.results[type]=type==='music'?rankMusicResults(all,query):all.filter(x=>!seen.has(key(x))&&seen.add(key(x)));
-    if(!state.results[type].length&&failures)state.searchError[type]='Bağlantı veya içerik servislerinden biri yanıt vermedi. Tekrar deneyebilirsin.';
-    if(type==='music'&&!state.results.music.length&&!failures&&!musicCatalogConnected())state.searchError.music='';
-  }catch(e){if(e?.name!=='AbortError'&&seq===state.searchSeq[type])state.searchError[type]='Arama tamamlanamadı. İnternet bağlantını kontrol edip tekrar dene.';}
-  finally{if(seq===state.searchSeq[type]){state.searchControllers[type]=null;if(type==='music'){state.musicSearching=false;if(state.tab==='music')renderMusic();}else{state.videoSearching=false;if(state.tab==='video')renderVideo();}}}
-}
-function clearRecentSearches(){state.recentSearches=[];save();if(state.tab==='music')renderMusic()}window.clearRecentSearches=clearRecentSearches;
-function clearResults(type){state.searchControllers[type]?.abort();state.searchControllers[type]=null;state.searchError[type]='';state.results[type]=[];if(type==='music'){state.musicQuery='';state.musicSearching=false;}else{state.videoQuery='';state.videoSearching=false;}render()}window.clearResults=clearResults;
-function randomDiscovery(type){const a=state.discovery[type];if(!a.length)return;openItem(a[Math.floor(Math.random()*a.length)],type,false,a)}window.randomDiscovery=randomDiscovery;
-
-function candidateScore(f,t){
-  const n=(f.name||'').toLowerCase(),size=Number(f.size)||0;
-  let score=0;
-  if(t==='music'){
-    if(n.endsWith('.m4a'))score+=40;else if(n.endsWith('.mp3'))score+=35;else if(n.endsWith('.aac'))score+=25;
-  }else{
-    if(n.endsWith('.mp4'))score+=50;else if(n.endsWith('.m4v'))score+=40;
-    const fmt=String(f.format||'').toLowerCase();if(/h\.264|avc|mpeg4|mpeg-4/.test(fmt))score+=20;
-  }
-  if(size>0)score+=Math.min(25,Math.log10(size+1)*3);
-  return score;
-}
-async function resolveArchive(i,t,signal=null){
-  const r=await fetchWithTimeout(`https://archive.org/metadata/${encodeURIComponent(i.identifier)}`,{signal,timeout:8500});if(!r.ok)throw Error('archive-metadata');const m=await r.json(),fs=m.files||[];
-  const exts=t==='music'?['.m4a','.mp3','.aac']:['.mp4','.m4v'];
-  const limit=t==='music'?60*1024*1024:450*1024*1024;
-  const playable=fs.filter(f=>exts.some(e=>(f.name||'').toLowerCase().endsWith(e))&&!/sample|thumb|preview|trailer/i.test(f.name||''));
-  if(!playable.length)throw Error('no-file');
-  const preferred=playable.filter(f=>!(Number(f.size)||0)||(Number(f.size)||0)<=limit);
-  const pool=(preferred.length?preferred:playable).sort((a,b)=>candidateScore(b,t)-candidateScore(a,t)).slice(0,6);
-  const toCandidate=f=>({url:`https://archive.org/download/${encodeURIComponent(i.identifier)}/${encodeURIComponent(f.name).replace(/%2F/g,'/')}`,filename:f.name,size:Number(f.size)||0,mime:String(f.format||''),ext:(f.name||'').toLowerCase().split('.').pop()||'',verifiedPlayable:true,archiveUnverified:false});
-  const candidates=pool.map(toCandidate);const first=candidates[0];
-  return {...first,fallbacks:candidates.slice(1)};
-}
-async function openProviderAlternative(i,t){
-  const alts=Array.isArray(i?.alternatives)?i.alternatives:[];if(!alts.length)return false;
-  const [alt,...rest]=alts;const nextItem={...hydrate(alt),type:t,alternatives:rest,canonicalKey:i.canonicalKey||key(i)};
-  await openItem(nextItem,t,true);return true;
-}
-async function openItem(i,t,preserveQueue=false,sourceQueue=null){
-  state.openController?.abort();state.openController=null;
-  i=hydrate({...i,type:t});const requestKey=key(i);state.pendingItem={key:requestKey,item:slim(i),type:t};
-  if(i.blob&&!i.url)i.url=fileUrl(i);
-  if(i.identifier&&!i.url){
-    const controller=new AbortController();state.openController=controller;
-    state.audioToken++;stopOther(t,i.provider);hideMini();
-    showPlayer({...i,loading:true,pending:true});
-    try{const r=await resolveArchive(i,t,controller.signal);if(!state.pendingItem||state.pendingItem.key!==requestKey)return;i={...i,...r};}
-    catch(e){
-      if(!state.pendingItem||state.pendingItem.key!==requestKey)return;
-      state.pendingItem=null;
-      if(controller.signal.aborted||e?.name==='AbortError')return;
-      if(await openProviderAlternative(i,t))return;
-      alert('Bu içerikte iPhone ile uyumlu oynatılabilir dosya bulunamadı.');closePlayer();return;
-    }finally{if(state.openController===controller)state.openController=null}
-  }
-  if(!state.pendingItem||state.pendingItem.key!==requestKey)return;state.pendingItem=null;
-  if(!preserveQueue){state.queueAutoExtend=sourceQueue===state.results.music;const src=(Array.isArray(sourceQueue)&&sourceQueue.length?sourceQueue:[i]).map(hydrate);const idx=src.findIndex(x=>key(x)===key(i));state.queue=src;state.queueIndex=idx>=0?idx:0;}
-  play(i,t);
-}
-window.openItem=openItem;
-function remember(i){const k=key(i);state.history=[slim(i),...state.history.filter(x=>key(x)!==k)].slice(0,80);save()}
-function ensureYouTubeApi(){
-  if(window.YT?.Player)return Promise.resolve(window.YT);if(state.youtubeApiPromise)return state.youtubeApiPromise;
-  state.youtubeApiPromise=new Promise((resolve,reject)=>{const old=window.onYouTubeIframeAPIReady,timer=setTimeout(()=>reject(new Error('youtube-api-timeout')),9000);window.onYouTubeIframeAPIReady=()=>{clearTimeout(timer);try{old?.()}catch{};resolve(window.YT)};let sc=document.querySelector('script[data-zazo-youtube-api]');if(!sc){sc=document.createElement('script');sc.dataset.zazoYoutubeApi='1';sc.src='https://www.youtube.com/iframe_api';sc.onerror=()=>{clearTimeout(timer);reject(new Error('youtube-api-network'))};document.head.appendChild(sc)}}).catch(e=>{state.youtubeApiPromise=null;throw e});return state.youtubeApiPromise;
-}
-function stopYoutube(){try{state.youtubePlayer?.destroy?.()}catch{}state.youtubePlayer=null;for(const id of ['youtubeFrame','youtubeFrameInline']){const f=document.getElementById(id);if(f)f.replaceChildren()}state.youtubeActive=false}
-async function mountYouTube(i,hostId='youtubeFrame'){
-  const host=document.getElementById(hostId);if(!host||!i?.youtubeId)return;state.youtubeActive=true;
-  try{
-    const YT=await ensureYouTubeApi();if(!document.getElementById(hostId)||state.now?.youtubeId!==i.youtubeId)return;
-    try{state.youtubePlayer?.destroy?.()}catch{};
-    const origin=location.origin&&location.origin!=='null'?location.origin:undefined;
-    state.youtubePlayer=new YT.Player(hostId,{videoId:i.youtubeId,playerVars:{autoplay:1,playsinline:1,controls:1,rel:0,...(origin?{origin}:{})},events:{onReady:e=>{try{e.target.playVideo()}catch{}bindMini();updateMediaSession()},onStateChange:e=>{if(!state.youtubeActive||state.now?.youtubeId!==i.youtubeId)return;if(e.data===YT.PlayerState.ENDED){next(1);return}bindMini()},onError:()=>{if(state.youtubeActive&&state.now?.youtubeId===i.youtubeId)mediaPlaybackFailed(i.type||'music')}}});
-  }catch{
-    const h=document.getElementById(hostId);if(h){const origin=location.origin&&location.origin!=='null'?`&origin=${encodeURIComponent(location.origin)}`:'';h.innerHTML=`<iframe class="youtube-frame" src="https://www.youtube.com/embed/${encodeURIComponent(i.youtubeId)}?autoplay=1&playsinline=1&controls=1${origin}" title="${esc(i.title)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`}
-  }
-}
-function stopOther(type,provider=''){if(state.youtubeActive||state.youtubePlayer)stopYoutube();if(state.video){state.video.onerror=null;state.video.pause();state.video.removeAttribute('src');try{state.video.load()}catch{}state.video=null}try{state.audio.pause()}catch{}}
-function tryMediaFallback(type){
-  if(!state.now||state.now.type!==type||!Array.isArray(state.now.fallbacks)||!state.now.fallbacks.length)return false;
-  const nextFile=state.now.fallbacks[0],rest=state.now.fallbacks.slice(1),pos=state.positions[key(state.now)]||0;state.now={...state.now,...nextFile,fallbacks:rest,verifiedPlayable:true,archiveUnverified:false};
-  if(type==='music'){state.audio.src=state.now.url;state.positions[key(state.now)]=pos;applyResume(state.audio,state.now);showPlayer(state.now);state.audio.play().catch(()=>syncMainPlayButton())}else{if(state.video){state.video.onerror=null;state.video.pause();state.video.removeAttribute('src');try{state.video.load()}catch{}state.video=null}showPlayer(state.now)};bindMini();updateMediaSession();return true;
-}
-async function mediaPlaybackFailed(type){
-  if(state.fallbackBusy)return;state.fallbackBusy=true;
-  try{if(tryMediaFallback(type))return;const current=state.now?{...state.now}:null;if(current&&await openProviderAlternative(current,type))return;alert('Bu kaynak oynatılamadı ve aynı içerik için uygun alternatif bulunamadı.');}
-  finally{state.fallbackBusy=false}
-}
-function applyResume(el,item){
-  const pos=Number(state.positions[key(item)]||0);if(!(pos>0))return;
-  const set=()=>{try{if(Number.isFinite(el.duration)&&el.duration>0&&pos<el.duration-1)el.currentTime=pos}catch{}};
-  if(el.readyState>=1)set();else el.addEventListener('loadedmetadata',set,{once:true});
-}
-function syncMainPlayButton(){const b=$('#mainPlay');if(!b||!state.now||state.now.type!=='music'||state.now.provider==='youtube')return;b.textContent=state.audio.paused?'▶':'❚❚'}
-function openQueueIndex(index){if(!Number.isInteger(index)||index<0||index>=state.queue.length)return;state.queueIndex=index;const target=hydrate(state.queue[index]);openItem(target,target.type||state.now?.type||'music',true)}window.openQueueIndex=openQueueIndex;
-function play(i,t){
-  const audioToken=++state.audioToken;stopOther(t,i.provider);state.now={...i,type:t};remember(state.now);
-  if(i.provider==='youtube'){showPlayer(state.now)}
-  else if(t==='music'){state.audio.preload=state.lowPower?'metadata':'auto';state.audio.onerror=()=>{if(audioToken!==state.audioToken||state.now?.type!=='music'||state.now.provider==='youtube')return;mediaPlaybackFailed('music')};state.audio.onended=()=>{if(audioToken!==state.audioToken)return;if(state.now){state.positions[key(state.now)]=0;save()}next(1)};state.audio.src=i.url;applyResume(state.audio,state.now);showPlayer(state.now);state.audio.play().catch(()=>{syncMainPlayButton();bindMini()})}
-  else showPlayer(state.now);bindMini();updateMediaSession();
-}
-async function extendMusicQueue(){if(!state.queueAutoExtend||!state.now||state.now.type!=='music'||navigator.onLine===false)return false;const creator=String(state.now.creator||'').trim(),title=String(state.now.title||'').trim();const q=(creator&&!/^(internet archive|jamendo|youtube|dosyalarım|telefon)$/i.test(creator)?creator:title).trim();if(!q)return false;try{const c=new AbortController(),timer=setTimeout(()=>c.abort(),6500);const {results}=await runSearchJobs('music',q,c.signal);clearTimeout(timer);const currentTitle=normalizeWords(state.now.title),ranked=rankMusicResults(results,q).filter(x=>normalizeWords(x.title)!==currentTitle&&key(x)!==key(state.now)&&!state.queue.some(y=>key(y)===key(x)));if(ranked.length){state.queue.push(...ranked.slice(0,8));return true}}catch{}return false}
-async function next(delta=1){if(!state.queue.length)return;if(delta>0&&state.queueIndex>=state.queue.length-1&&state.now?.type==='music'&&state.queueAutoExtend){const added=await extendMusicQueue();if(added){state.queueIndex++;const target=hydrate(state.queue[state.queueIndex]);openItem(target,target.type||'music',true);return}}state.queueIndex=(state.queueIndex+delta+state.queue.length)%state.queue.length;const target=hydrate(state.queue[state.queueIndex]);openItem(target,target.type||state.now?.type||'music',true)}window.next=next;
-function downloadExists(i){return state.downloads.some(x=>x.originalKey===key(i)||x.id===i.id)}
-async function playSearchUi(id){
-  const x=state.uiItems.get(id);if(!x)return;
-  state.inlineSearchPlayer=true;
-  await openItem(x.item,'music',false,x.queue);
-  const sheet=$('#playerSheet');if(sheet)sheet.classList.add('hidden');
-  if(state.tab==='music'&&state.now?.type==='music')showInlineSearchPlayer(state.now);
-}
-window.playSearchUi=playSearchUi;
-function showFullPlayer(i){state.inlineSearchPlayer=false;showPlayer(i)}window.showFullPlayer=showFullPlayer;
-function closeInlineSearchPlayer(){
-  state.inlineSearchPlayer=false;
-  if(state.now?.provider==='youtube')stopYoutube();
-  else if(state.now?.type==='music'){try{state.audio.pause()}catch{}}
-  const host=$('#inlineSearchPlayer');if(host)host.innerHTML='';bindMini();
-}
-window.closeInlineSearchPlayer=closeInlineSearchPlayer;
-function inlineTogglePlay(){
-  if(!state.now)return;
-  if(state.now.provider==='youtube'){
-    if(state.youtubePlayer){try{youtubePlaying()?state.youtubePlayer.pauseVideo():state.youtubePlayer.playVideo()}catch{}}
-    else showInlineSearchPlayer(state.now);
-  }else state.audio.paused?state.audio.play().catch(()=>{}):state.audio.pause();
-  setTimeout(()=>showInlineSearchPlayer(state.now),80);
-}
-window.inlineTogglePlay=inlineTogglePlay;
-function showInlineSearchPlayer(i){
-  if(!state.inlineSearchPlayer||state.tab!=='music'||i?.type!=='music')return;
-  const host=$('#inlineSearchPlayer');if(!host)return;
-  const yt=i.provider==='youtube',fav=state.favorites.some(x=>key(x)===key(i));
-  const playing=yt?youtubePlaying():!state.audio.paused;
-  host.innerHTML=`<section class="inline-now-playing"><div class="inline-np-head"><span>ŞİMDİ ÇALIYOR</span><div><button class="icon-btn ghost" onclick="showFullPlayer(state.now)" aria-label="Genişlet">⌃</button><button class="icon-btn ghost" onclick="closeInlineSearchPlayer()" aria-label="Kapat">✕</button></div></div><div class="inline-np-main"><div class="inline-np-art">${i.thumb?`<img src="${esc(i.thumb)}" alt="">`:'♫'}</div><div class="inline-np-meta"><strong>${esc(i.title)}</strong><small>${esc(i.creator||providerLabel(i))}</small>${sourcePill(i)}</div></div>${yt?'<div id="youtubeFrameInline" class="youtube-frame-host inline-youtube"></div>':`<input id="inlineSeek" class="progress" type="range" min="0" max="100" value="0"><div class="time-row"><span id="inlineElapsed">${fmt(state.audio.currentTime||0)}</span><span id="inlineDuration">${fmt(state.audio.duration||0)}</span></div>`}<div class="inline-np-controls"><button onclick="next(-1)" aria-label="Önceki">⏮</button><button id="inlinePlay" class="main" onclick="inlineTogglePlay()">${playing?'❚❚':'▶'}</button><button onclick="next(1)" aria-label="Sonraki">⏭</button></div><div class="inline-np-actions"><button onclick="toggleFav();showInlineSearchPlayer(state.now)">${fav?'♥ Favoride':'♡ Favori'}</button><button onclick="addToPlaylistPrompt()">＋ Liste</button><button onclick="showFullPlayer(state.now)">Tam ekran</button></div></section>`;
-  if(yt){setTimeout(()=>mountYouTube(i,'youtubeFrameInline'),0)}
-  else{
-    const seek=$('#inlineSeek');
-    if(seek){seek.value=state.audio.duration?state.audio.currentTime/state.audio.duration*100:0;seek.oninput=e=>{if(state.audio.duration)state.audio.currentTime=state.audio.duration*(Number(e.target.value)/100)}}
-  }
-}
-function refreshInlinePlayback(){
-  if(!state.inlineSearchPlayer||state.tab!=='music'||!state.now||state.now.type!=='music')return;
-  const seek=$('#inlineSeek'),e=$('#inlineElapsed'),d=$('#inlineDuration'),p=$('#inlinePlay');
-  if(seek&&state.audio.duration)seek.value=state.audio.currentTime/state.audio.duration*100;
-  if(e)e.textContent=fmt(state.audio.currentTime||0);if(d)d.textContent=fmt(state.audio.duration||0);
-  if(p)p.textContent=state.now.provider==='youtube'?(youtubePlaying()?'❚❚':'▶'):(state.audio.paused?'▶':'❚❚');
-}
-function showPlayer(i){
-  if(state.inlineSearchPlayer&&state.tab==='music'&&i?.type==='music'){
-    const s=$('#playerSheet');if(s)s.classList.add('hidden');showInlineSearchPlayer(i);return;
-  }
-  const s=$('#playerSheet');s.classList.remove('hidden');const v=i.type==='video',yt=i.provider==='youtube',visualVideo=v||yt,fav=state.favorites.some(x=>key(x)===key(i)),canDl=!i.loading&&!i.local&&!i.downloaded&&!!i.identifier&&!yt,actionsDisabled=i.loading?'disabled aria-disabled="true"':'';
-  const visual=i.loading?'Yükleniyor…':yt?'<div id="youtubeFrame" class="youtube-frame-host"></div>':v?`<video id="videoEl" src="${esc(i.url)}" poster="${esc(i.thumb||'')}" controls playsinline preload="${state.lowPower?'metadata':'auto'}"></video>`:i.thumb?`<img src="${esc(i.thumb)}" alt="">`:'♫';
-  const actions=[`<button class="action" ${actionsDisabled} onclick="toggleFav()">${fav?'♥':'♡'} Favori</button>`,`<button class="action" ${actionsDisabled} onclick="addToPlaylistPrompt()">＋ Liste</button>`,canDl?`<button class="action" id="downloadAction" onclick="downloadNow()">${downloadExists(i)?'✓ İndirildi':'⇩ İndir'}</button>`:'',!i.loading?'<button class="action" onclick="shareNow()">↗ Paylaş</button>':'',i.local||i.downloaded?`<button class="action danger" onclick="deleteStored('${esc(i.id)}','${i.downloaded?'downloads':'media'}')">⌫ Sil</button>`:''].filter(Boolean).join('');
-  const upNext=state.queue.map((x,index)=>({x:hydrate(x),index})).filter(({x})=>(v?x.type==='video':true)&&key(x)!==key(i)).slice(0,4);
-  const queueBox=(v||yt)?`<div class="up-next"><h3>Sıradaki ${v?'videolar':'içerikler'}</h3>${upNext.map(({x,index})=>`<div class="row" onclick="openQueueIndex(${index})">${art(x,x.type||i.type)}<div class="meta"><strong>${esc(x.title)}</strong><small>${esc(x.creator||x.source||'ZAZO')}</small></div><button type="button" aria-label="Aç">›</button></div>`).join('')||'<div class="muted">Sırada içerik yok.</div>'}</div>`:'';
-  s.innerHTML=`<div class="player"><div class="player-top"><button class="icon-btn ghost" onclick="closePlayer()">⌄</button><strong>${yt?'YouTube':v?'Video':'Müzik'} Oynatıcı</strong><button class="icon-btn ghost" ${actionsDisabled} onclick="addToPlaylistPrompt()">＋</button></div><div class="player-art ${visualVideo?'video':''}">${visual}</div><div class="player-source">${sourcePill(i)}</div><h2>${esc(i.title)}</h2><p>${esc(i.creator||i.source||'')}</p>${!v&&!yt&&!i.loading?`<input id="seek" class="progress" type="range" min="0" max="100" value="0"><div class="time-row"><span id="elapsed">0:00</span><span id="duration">0:00</span></div><div class="controls"><button onclick="next(-1)">⏮</button><button id="mainPlay" class="main">❚❚</button><button onclick="next(1)">⏭</button></div>`:''}${yt?'<div class="preview-note">YouTube oynatma resmi gömülü oynatıcıyla yapılır. Ön planda parça bittiğinde ZAZO sıradaki içeriğe geçer; iPhone ekran kilidi davranışı YouTube/iOS tarafından sınırlandırılabilir.</div>':''}<div class="actions">${actions}</div>${queueBox}</div>`;
-  state.youtubeActive=yt;if(yt&&!i.loading)setTimeout(()=>mountYouTube(i),0);
-  if(state.downloadTask?.key===key(i))setTimeout(()=>updateDownloadUi(state.downloadTask.text,state.downloadTask.percent,state.downloadTask.key),0);
-  s.onclick=e=>{if(e.target===s)closePlayer()};
-  if(v&&!yt&&!i.loading){const el=$('#videoEl');state.video=el;applyResume(el,i);el.play().catch(()=>bindMini());el.ontimeupdate=()=>{state.positions[key(i)]=el.currentTime||0};el.onpause=()=>{save();bindMini()};el.onplay=bindMini;el.onerror=()=>{if(state.video===el&&state.now?.type==='video')mediaPlaybackFailed('video')};el.onended=()=>{state.positions[key(i)]=0;save();next(1)}}
-  else if(!yt&&!i.loading){const p=$('#mainPlay'),seek=$('#seek');p.onclick=()=>state.audio.paused?state.audio.play().catch(()=>syncMainPlayButton()):state.audio.pause();state.audio.ontimeupdate=()=>{if(state.audio.duration&&seek){seek.value=state.audio.currentTime/state.audio.duration*100;const e=$('#elapsed'),d=$('#duration');if(e)e.textContent=fmt(state.audio.currentTime);if(d)d.textContent=fmt(state.audio.duration);state.positions[key(i)]=state.audio.currentTime}refreshInlinePlayback()};seek.oninput=e=>{if(state.audio.duration)state.audio.currentTime=state.audio.duration*(e.target.value/100)};syncMainPlayButton()}
-}
-function closePlayer(){state.pendingItem=null;state.openController?.abort();state.openController=null;if(state.now?.provider==='youtube'){stopYoutube();bindMini()}if(state.now?.type==='video'&&state.video){state.positions[key(state.now)]=state.video.currentTime||state.positions[key(state.now)]||0;state.video.onerror=null;state.video.pause();state.video.removeAttribute('src');try{state.video.load()}catch{}state.video=null;bindMini()}$('#playerSheet').classList.add('hidden');save()}window.closePlayer=closePlayer;
-function fmt(s){if(!isFinite(s))return'0:00';return`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`}
-function youtubePlaying(){try{return !!(window.YT&&state.youtubePlayer&&state.youtubePlayer.getPlayerState?.()===window.YT.PlayerState.PLAYING)}catch{return false}}
-function bindMini(){const m=$('#miniPlayer');if(!state.now){hideMini();return;}m.classList.remove('hidden');$('#miniTitle').textContent=state.now.title;$('#miniType').textContent=state.now.provider==='youtube'?'YouTube':state.now.type==='music'?'Müzik':'Video';if(state.now.provider==='youtube'){const playing=youtubePlaying();$('#miniPlay').textContent=playing?'❚❚':'▶';$('#miniPlay').onclick=e=>{e.stopPropagation();if(state.youtubePlayer){try{playing?state.youtubePlayer.pauseVideo():state.youtubePlayer.playVideo()}catch{showPlayer(state.now)}}else showPlayer(state.now);setTimeout(bindMini,80)};m.onclick=()=>showFullPlayer(state.now);return}const paused=state.now.type==='music'?state.audio.paused:(state.video?.paused??true);$('#miniPlay').textContent=paused?'▶':'❚❚';$('#miniPlay').onclick=e=>{e.stopPropagation();if(state.now.type==='music'){state.audio.paused?state.audio.play():state.audio.pause()}else if(state.video){state.video.paused?state.video.play():state.video.pause()}else{showPlayer(state.now)}bindMini()};m.onclick=()=>showFullPlayer(state.now)}
-state.audio.onplay=()=>{bindMini();syncMainPlayButton();refreshInlinePlayback()};state.audio.onpause=()=>{save();bindMini();syncMainPlayButton();refreshInlinePlayback()};
-function updateMediaSession(){if(!('mediaSession'in navigator))return;try{if(!state.now){navigator.mediaSession.metadata=null;return}navigator.mediaSession.metadata=new MediaMetadata({title:state.now.title,artist:state.now.creator||state.now.source||'ZAZO PLAYER',artwork:state.now.thumb?[{src:state.now.thumb,sizes:'512x512'}]:[]});navigator.mediaSession.setActionHandler('play',()=>{if(state.now.provider==='youtube'){if(state.youtubePlayer){try{state.youtubePlayer.playVideo?.()}catch{}}else showPlayer(hydrate(state.now));return}if(state.now.type==='music')return state.audio.play();if(state.video)return state.video.play();showPlayer(hydrate(state.now))});navigator.mediaSession.setActionHandler('pause',()=>{if(state.now.provider==='youtube'){try{state.youtubePlayer?.pauseVideo?.()}catch{};return}return state.now.type==='music'?state.audio.pause():state.video?.pause()});navigator.mediaSession.setActionHandler('previoustrack',()=>next(-1));navigator.mediaSession.setActionHandler('nexttrack',()=>next(1));try{navigator.mediaSession.setActionHandler('seekto',e=>{const m=state.now?.type==='music'?state.audio:state.video;if(m&&Number.isFinite(e.seekTime)){m.currentTime=Math.max(0,Math.min(e.seekTime,m.duration||e.seekTime));}})}catch{};}catch{}}
-
-function toggleFavoriteItem(item){if(!item)return;const k=key(item),idx=state.favorites.findIndex(x=>key(x)===k);if(idx>=0)state.favorites.splice(idx,1);else state.favorites.unshift(slim(item));save();if(state.tab==='library')drawLibrary(state.libraryMode||'fav');}
-function addItemToPlaylistPrompt(item){if(!item)return;let name=prompt('Çalma listesi adı','Favori Liste');if(!name?.trim())return;name=name.trim();let p=state.playlists.find(x=>x.name.toLowerCase()===name.toLowerCase());if(!p){p={id:uid(),name,items:[]};state.playlists.unshift(p)}if(!p.items.some(x=>key(x)===key(item)))p.items.push(slim(item));save();if(state.tab==='library')drawLibrary(state.libraryMode||'lists');}
-function closeQuickMenu(){document.getElementById('quickMenu')?.remove()}window.closeQuickMenu=closeQuickMenu;
-function quickMenuUi(id){const x=state.uiItems.get(id);if(!x)return;closeQuickMenu();const item=hydrate(x.item),fav=state.favorites.some(f=>key(f)===key(item));const wrap=document.createElement('div');wrap.id='quickMenu';wrap.className='quick-menu-backdrop';wrap.innerHTML=`<div class="quick-menu"><div class="quick-menu-head"><div><strong>${esc(item.title)}</strong><small>${esc(item.creator||providerLabel(item))}</small></div><button onclick="closeQuickMenu()">✕</button></div><button id="qmPlay">▶ Oynat</button><button id="qmFav">${fav?'♥ Favoriden çıkar':'♡ Favoriye ekle'}</button><button id="qmList">＋ Çalma listesine ekle</button><button id="qmShare">↗ Paylaş</button></div>`;document.body.appendChild(wrap);wrap.onclick=e=>{if(e.target===wrap)closeQuickMenu()};wrap.querySelector('#qmPlay').onclick=()=>{closeQuickMenu();if(item.type==='music'&&state.tab==='music'){state.inlineSearchPlayer=true;openItem(item,'music',false,x.queue)}else openItem(item,item.type,false,x.queue)};wrap.querySelector('#qmFav').onclick=()=>{toggleFavoriteItem(item);closeQuickMenu()};wrap.querySelector('#qmList').onclick=()=>{addItemToPlaylistPrompt(item);closeQuickMenu()};wrap.querySelector('#qmShare').onclick=()=>{const u=item.shareUrl||item.url||location.href;if(navigator.share)navigator.share({title:item.title,url:u}).catch(()=>{});else navigator.clipboard?.writeText(u);closeQuickMenu()};}
-window.quickMenuUi=quickMenuUi;
-function toggleFav(){if(!state.now)return;const k=key(state.now),idx=state.favorites.findIndex(x=>key(x)===k);if(idx>=0)state.favorites.splice(idx,1);else state.favorites.unshift(slim(state.now));save();const b=document.querySelector('#playerSheet .actions .action');if(b)b.textContent=`${state.favorites.some(x=>key(x)===k)?'♥':'♡'} Favori`;if(state.now.provider!=='youtube'&&!state.video&&state.now.type==='video')showPlayer(state.now)}window.toggleFav=toggleFav;
-function shareNow(){if(!state.now)return;const shareUrl=state.now.local||state.now.downloaded?location.href:(state.now.shareUrl||state.now.url||location.href);if(navigator.share)navigator.share({title:state.now.title,url:shareUrl}).catch(()=>{});else navigator.clipboard?.writeText(shareUrl)}window.shareNow=shareNow;
-function addToPlaylistPrompt(){if(!state.now)return;let name=prompt('Çalma listesi adı','Favori Liste');if(!name?.trim())return;name=name.trim();let p=state.playlists.find(x=>x.name.toLowerCase()===name.toLowerCase());if(!p){p={id:uid(),name,items:[]};state.playlists.unshift(p)}if(!p.items.some(x=>key(x)===key(state.now)))p.items.push(slim(state.now));save();alert('Çalma listesine eklendi.')}window.addToPlaylistPrompt=addToPlaylistPrompt;
-
-async function storageRoom(required){
-  if(!navigator.storage?.estimate)return {ok:true,free:null};
-  try{const e=await navigator.storage.estimate(),free=Math.max(0,(e.quota||0)-(e.usage||0));return {ok:!required||free>required*1.15,free}}catch{return {ok:true,free:null}}
-}
-function isDownloadUiTarget(targetKey){return !!(targetKey&&state.now&&key(state.now)===targetKey)}
-function updateDownloadUi(text,percent=null,targetKey=state.downloadTask?.key){
-  if(state.downloadTask&&targetKey===state.downloadTask.key){state.downloadTask.text=text;state.downloadTask.percent=percent;}
-  if(!isDownloadUiTarget(targetKey))return;
-  const btn=$('#downloadAction');if(btn){btn.disabled=true;btn.textContent=percent==null?text:`${text} %${percent}`}
-  let box=$('#downloadProgress');
-  if(!box&&$('#playerSheet .actions')){$('#playerSheet .actions').insertAdjacentHTML('afterend','<div id="downloadProgress" class="download-progress"><div class="download-track"><span id="downloadBar"></span></div><div class="download-meta"><span id="downloadText">Hazırlanıyor…</span><button type="button" onclick="cancelDownload()">İptal</button></div></div>');box=$('#downloadProgress')}
-  if(box){const bar=$('#downloadBar'),txt=$('#downloadText');if(bar&&percent!=null)bar.style.width=`${percent}%`;if(txt)txt.textContent=percent==null?text:`${text} %${percent}`}
-}
-function clearDownloadUi(targetKey){if(!isDownloadUiTarget(targetKey))return;const box=$('#downloadProgress');if(box)box.remove();const btn=$('#downloadAction');if(btn){btn.disabled=false;btn.textContent=state.now&&downloadExists(state.now)?'✓ İndirildi':'⇩ İndir'}}
-function cancelDownload(){state.downloadController?.abort()}window.cancelDownload=cancelDownload;
-async function fetchThumbBlob(url,signal){if(!url)return null;try{const r=await fetchWithTimeout(url,{signal,timeout:6000});if(!r.ok)return null;const b=await r.blob();return b.size<=4*1024*1024?b:null}catch{return null}}
-async function writeDownloadToOpfs(response,name,total,hardLimit,targetKey){
-  const dir=await opfsDir(true);if(!dir)throw Error('opfs-unavailable');
-  const h=await dir.getFileHandle(name,{create:true}),w=await h.createWritable();let received=0,lastPct=-1;
-  try{
-    if(response.body?.getReader){
-      const reader=response.body.getReader();
-      while(true){const {done,value}=await reader.read();if(done)break;received+=value.byteLength;if(received>hardLimit)throw Error('too-large');await w.write(value);if(total){const pct=Math.min(99,Math.floor(received/total*100));if(pct!==lastPct){lastPct=pct;updateDownloadUi('İndiriliyor',pct,targetKey)}}}
-    }else{
-      const memorySafe=48*1024*1024;if(!total||total>memorySafe)throw Error('stream-unavailable');
-      const b=await response.blob();received=b.size;if(received>hardLimit||received>memorySafe)throw Error('too-large');await w.write(b);
-    }
-    await w.close();return received;
-  }catch(e){try{await w.abort()}catch{};try{await dir.removeEntry(name)}catch{};throw e;}
-}
-async function downloadNow(){
-  if(!state.now?.identifier)return;if(state.downloadBusy){alert('Başka bir içerik indiriliyor. Önce onu tamamla veya iptal et.');return;}
-  const target={...state.now},targetKey=key(target);
-  if(downloadExists(target)){alert('Bu içerik zaten İndirilenler bölümünde.');return;}
-  const useOPFS=!!navigator.storage?.getDirectory;
-  state.downloadBusy=true;state.downloadController=new AbortController();state.downloadTask={key:targetKey,text:'Hazırlanıyor…',percent:null};updateDownloadUi('Hazırlanıyor…',null,targetKey);
-  let opfsName=null;
-  try{
-    let info={url:target.url,filename:target.filename,size:target.size};if(!info.url)info=await resolveArchive(target,target.type,state.downloadController.signal);
-    const hardLimit=useOPFS?(target.type==='video'?500*1024*1024:120*1024*1024):(target.type==='video'?64*1024*1024:32*1024*1024);
-    if(info.size&&info.size>hardLimit)throw new Error('too-large');
-    const room=await storageRoom(info.size||0);if(!room.ok)throw new Error('no-space');
-    const r=await fetch(info.url,{signal:state.downloadController.signal});if(!r.ok)throw new Error('network');
-    const total=Number(r.headers.get('content-length'))||info.size||0;if(total&&total>hardLimit)throw new Error('too-large');
-    const room2=await storageRoom(total);if(!room2.ok)throw new Error('no-space');
-    const id=`download:${uid()}`;let blob=null,size=0;
-    if(useOPFS){
-      const ext=(String(info.filename||'').match(/\.[a-z0-9]{2,5}$/i)||[target.type==='video'?'.mp4':'.m4a'])[0];opfsName=`${id.replace(/[^a-z0-9_-]/gi,'_')}${ext}`;size=await writeDownloadToOpfs(r,opfsName,total,hardLimit,targetKey);
-    }else{
-      updateDownloadUi('İndiriliyor',0,targetKey);blob=await r.blob();size=blob.size;if(size>hardLimit)throw new Error('too-large');updateDownloadUi('İndiriliyor',99,targetKey);
-    }
-    updateDownloadUi('Kaydediliyor',100,targetKey);
-    const thumbBlob=await fetchThumbBlob(target.thumb,state.downloadController.signal);
-    const obj={...slim(target),id,originalKey:targetKey,downloaded:true,local:false,source:'İndirilenler',blob,opfsName,size:size||total||0,mime:r.headers.get('content-type')||target.mime||'',thumb:target.thumb||'',remoteThumb:target.thumb||'',thumbBlob,savedAt:Date.now()};
-    await dbPut('downloads',obj);await refreshStored();if($('#playerSheet').classList.contains('hidden'))render();else if(state.now&&key(state.now)===targetKey)showPlayer(hydrate(state.now));alert('İndirme tamamlandı. Çevrimdışı oynatabilirsin.');
-  }catch(e){
-    if(opfsName)await opfsDelete(opfsName);
-    if(e?.name==='AbortError')alert('İndirme iptal edildi.');
-    else if(e?.message==='too-large')alert(useOPFS?'Bu dosya güvenli indirme sınırının üzerinde.':'Bu cihazda büyük dosyalar belleğe yüklenmeden saklanamıyor; daha küçük bir dosya seç.');
-    else if(e?.message==='no-space')alert('Cihazda/PWA depolama alanında bu indirme için yeterli boş alan yok.');
-    else if(e?.message==='stream-unavailable')alert('Bu cihaz büyük dosyayı güvenli biçimde parça parça kaydedemiyor. İçeriği internetten oynatabilirsin.');
-    else alert('İndirme tamamlanamadı. Bağlantıyı veya içerik kaynağını kontrol et.');
-  }finally{
-    state.downloadBusy=false;state.downloadController=null;clearDownloadUi(targetKey);state.downloadTask=null;
-  }
-}
-window.downloadNow=downloadNow;
-
-function listRows(items,hydrateFirst=false){const arr=hydrateFirst?items.map(hydrate):items;const music=arr.filter(x=>x.type!=='video'),video=arr.filter(x=>x.type==='video');return arr.map(x=>rowItem(x,x.type,x.type==='video'?video:music)).join('')}
-function renderLibrary(mode='files'){
-  resetUiRegistry();state.libraryMode=mode;
-  const pageTitle=mode==='downloads'?'İndirilenler':mode==='lists'?'Listelerim':'Kütüphanem';
-  view.innerHTML=`<div class="section-head"><h2>${pageTitle}</h2><button id="addFileBtn" class="${mode==='files'?'':'hidden'}">＋ Dosya Ekle</button></div><div class="library-tabs four"><button class="libtab ${mode==='files'?'active':''}" data-lib="files">Kütüphane</button><button class="libtab ${mode==='downloads'?'active':''}" data-lib="downloads">İndirilenler</button><button class="libtab ${mode==='fav'?'active':''}" data-lib="fav">Favoriler</button><button class="libtab ${mode==='lists'?'active':''}" data-lib="lists">Listeler</button></div><div id="libBody"></div>`;
-  drawLibrary(mode);syncNav();document.querySelectorAll('.libtab').forEach(b=>b.onclick=()=>{state.libraryMode=b.dataset.lib;syncNav();drawLibrary(b.dataset.lib)});$('#addFileBtn').onclick=()=>$('#fileInput').click();
-}
-function drawLibrary(mode){
-  resetUiRegistry();
-  const addBtn=$('#addFileBtn');if(addBtn)addBtn.classList.toggle('hidden',mode!=='files');
-  document.querySelectorAll('.libtab').forEach(b=>b.classList.toggle('active',b.dataset.lib===mode));const b=$('#libBody');
-  if(mode==='files'){
-    const g=libraryGroups(),cat=state.libraryCategory||'songs';
-    const catTabs=`<div class="library-category-tabs"><button class="${cat==='songs'?'active':''}" onclick="setLibraryCategory('songs')">Şarkılar</button><button class="${cat==='artists'?'active':''}" onclick="setLibraryCategory('artists')">Sanatçılar</button><button class="${cat==='albums'?'active':''}" onclick="setLibraryCategory('albums')">Albümler</button><button class="${cat==='files'?'active':''}" onclick="setLibraryCategory('files')">Dosyalar</button></div>`;
-    if(cat==='artists')b.innerHTML=catTabs+(g.artists.length?`<div class="group-grid">${g.artists.map(([name,items])=>`<button class="group-card" onclick="browseArtist(decodeURIComponent('${encArg(name)}'))"><span>♪</span><strong>${esc(name)}</strong><small>${items.length} parça</small></button>`).join('')}</div>`:'<div class="empty">Henüz sanatçı yok. Şarkı dinledikçe, favoriye aldıkça veya listelere ekledikçe burada oluşur.</div>');
-    else if(cat==='albums')b.innerHTML=catTabs+(g.albums.length?`<div class="group-grid">${g.albums.map(a=>`<button class="group-card" onclick="browseAlbum(decodeURIComponent('${encArg(a.name)}'),decodeURIComponent('${encArg(a.artist)}'))"><span>▣</span><strong>${esc(a.name)}</strong><small>${esc(a.artist)} · ${a.items.length} parça</small></button>`).join('')}</div>`:'<div class="empty">Albüm bilgisi bulunan içerik henüz yok.</div>');
-    else if(cat==='files')b.innerHTML=catTabs+(state.localMedia.length?`<div class="list">${listRows(state.localMedia)}</div>`:'<div class="empty">Henüz kendi dosyan yok. “Dosya Ekle” ile MP3 veya video ekleyebilirsin.</div>');
-    else b.innerHTML=catTabs+(g.items.length?`<div class="list">${listRows(g.items,true)}</div>`:'<div class="empty">Kütüphanen boş. Dinlediğin, favoriye aldığın veya listene eklediğin şarkılar burada görünür.</div>');
-  }
-  if(mode==='downloads')b.innerHTML=state.downloads.length?`<div class="list">${listRows(state.downloads)}</div>`:'<div class="empty">Çevrimdışı içerik yok. İnternette bir içerik açıp “İndir”e bas.</div>';
-  if(mode==='fav')b.innerHTML=state.favorites.length?`<div class="list">${listRows(state.favorites,true)}</div>`:'<div class="empty">Favori içerik yok.</div>';
-  if(mode==='lists')b.innerHTML=state.playlists.length?state.playlists.map(p=>`<section class="playlist-card"><button class="playlist-open" onclick="openPlaylist('${p.id}')"><strong>${esc(p.name)}</strong><small>${p.items.length} içerik</small></button><div class="playlist-actions"><button onclick="playPlaylist('${p.id}')" aria-label="Oynat">▶</button><button onclick="renamePlaylist('${p.id}')" aria-label="Ad değiştir">✎</button><button class="danger-round" onclick="deletePlaylist('${p.id}')" aria-label="Sil">⌫</button></div></section>`).join(''):'<div class="empty">Henüz çalma listen yok.</div>';
-}
-function setLibraryCategory(cat){state.libraryCategory=cat;drawLibrary('files')}window.setLibraryCategory=setLibraryCategory;
-function openLibrary(mode){state.tab='library';state.libraryMode=mode||'files';syncNav();renderLibrary(state.libraryMode);scrollTo({top:0,behavior:'auto'})}window.openLibrary=openLibrary;
-function playPlaylist(id){const p=state.playlists.find(x=>x.id===id);if(!p?.items.length)return;state.queueAutoExtend=false;state.queue=p.items.map(hydrate);state.queueIndex=0;openItem(state.queue[0],state.queue[0].type,true)}window.playPlaylist=playPlaylist;
-function openPlaylist(id){
-  resetUiRegistry();
-  const p=state.playlists.find(x=>x.id===id),b=$('#libBody');if(!p||!b)return;const queue=p.items.map(hydrate);
-  b.innerHTML=`<div class="playlist-detail-head"><button onclick="drawLibrary('lists')">‹ Listeler</button><div><h3>${esc(p.name)}</h3><small>${p.items.length} içerik</small></div><button onclick="playPlaylist('${p.id}')">▶ Tümünü çal</button></div>${p.items.length?`<div class="list">${queue.map((item,n)=>{const uiid=registerUi(item,item.type,queue);return `<div class="row" onclick="openUi('${uiid}')">${art(item,item.type)}<div class="meta"><strong>${esc(item.title)}</strong><small>${esc(item.creator||item.source||'ZAZO')}</small></div><div class="row-actions"><button class="move-row" ${n===0?'disabled':''} onclick="event.stopPropagation();movePlaylistItem('${p.id}',${n},-1)" aria-label="Yukarı taşı">↑</button><button class="move-row" ${n===p.items.length-1?'disabled':''} onclick="event.stopPropagation();movePlaylistItem('${p.id}',${n},1)" aria-label="Aşağı taşı">↓</button><button class="remove-row" onclick="event.stopPropagation();removeFromPlaylist('${p.id}',${n})" aria-label="Listeden çıkar">⌫</button></div></div>`}).join('')}</div>`:'<div class="empty">Bu liste boş.</div>'}`;
-}window.openPlaylist=openPlaylist;
-function renamePlaylist(id){const p=state.playlists.find(x=>x.id===id);if(!p)return;const name=prompt('Yeni liste adı',p.name);if(!name?.trim())return;p.name=name.trim();save();drawLibrary('lists')}window.renamePlaylist=renamePlaylist;
-function deletePlaylist(id){const p=state.playlists.find(x=>x.id===id);if(!p||!confirm(`“${p.name}” listesi silinsin mi?`))return;state.playlists=state.playlists.filter(x=>x.id!==id);save();drawLibrary('lists')}window.deletePlaylist=deletePlaylist;
-function removeFromPlaylist(id,index){const p=state.playlists.find(x=>x.id===id);if(!p||!p.items[index])return;p.items.splice(index,1);save();openPlaylist(id)}window.removeFromPlaylist=removeFromPlaylist;
-function movePlaylistItem(id,index,delta){const p=state.playlists.find(x=>x.id===id),to=index+delta;if(!p||index<0||to<0||index>=p.items.length||to>=p.items.length)return;[p.items[index],p.items[to]]=[p.items[to],p.items[index]];save();openPlaylist(id)}window.movePlaylistItem=movePlaylistItem;
-function detectMediaType(f){
-  const mime=String(f.type||'').toLowerCase(),name=String(f.name||'').toLowerCase();
-  if(mime.startsWith('video/'))return 'video';if(mime.startsWith('audio/'))return 'music';
-  if(/\.(mp4|m4v|mov|webm)$/i.test(name))return 'video';if(/\.(mp3|m4a|aac|wav|flac|ogg)$/i.test(name))return 'music';return null;
-}
-function guessedMime(f,type){const n=String(f.name||'').toLowerCase();if(f.type)return f.type;if(type==='video'){if(n.endsWith('.mp4')||n.endsWith('.m4v'))return'video/mp4';if(n.endsWith('.mov'))return'video/quicktime';if(n.endsWith('.webm'))return'video/webm'}else{if(n.endsWith('.mp3'))return'audio/mpeg';if(n.endsWith('.m4a'))return'audio/mp4';if(n.endsWith('.aac'))return'audio/aac';if(n.endsWith('.wav'))return'audio/wav';if(n.endsWith('.ogg'))return'audio/ogg';if(n.endsWith('.flac'))return'audio/flac'}return''}
-async function probeLocalFile(f,type){
-  const tag=type==='video'?'video':'audio',el=document.createElement(tag),mime=guessedMime(f,type);if(mime&&el.canPlayType&&el.canPlayType(mime)==='')return false;
-  const url=URL.createObjectURL(f);el.preload='metadata';if(type==='video'){el.muted=true;el.playsInline=true}
-  return await new Promise(resolve=>{let done=false;const finish=v=>{if(done)return;done=true;clearTimeout(timer);el.removeAttribute('src');try{el.load()}catch{};URL.revokeObjectURL(url);resolve(v)};const timer=setTimeout(()=>finish(false),6500);el.onloadedmetadata=()=>finish(true);el.onerror=()=>finish(false);el.src=url});
-}
-$('#fileInput').onchange=async e=>{
-  const rejected=[],noSpace=[],codec=[];
-  for(const f of [...e.target.files]){
-    const type=detectMediaType(f);if(!type){rejected.push(f.name);continue;}
-    const room=await storageRoom(f.size||0);if(!room.ok){noSpace.push(f.name);continue;}
-    if(!(await probeLocalFile(f,type))){codec.push(f.name);continue;}
-    const id=`local:${uid()}`,obj={id,title:f.name.replace(/\.[^.]+$/,''),creator:'Dosyalarım',source:'Telefon',type,local:true,mime:guessedMime(f,type),size:f.size,blob:f};
-    try{await dbPut('media',obj)}catch{noSpace.push(f.name)}
-  }
-  await refreshStored();e.target.value='';openLibrary('files');
-  const msgs=[];if(rejected.length)msgs.push(`Desteklenmeyen tür: ${rejected.slice(0,3).join(', ')}${rejected.length>3?'…':''}`);if(codec.length)msgs.push(`iPhone oynatamadı: ${codec.slice(0,3).join(', ')}${codec.length>3?'…':''}`);if(noSpace.length)msgs.push(`Yeterli depolama yok: ${noSpace.slice(0,3).join(', ')}${noSpace.length>3?'…':''}`);if(msgs.length)alert(msgs.join('\n'));
+const defaults={
+ profile:{name:'ZAZOHAN',motto:'KÜÇÜK ADIMLAR, BÜYÜK ÖZGÜRLÜKLER GETİRİR.',photo:''},
+ settings:{dailyRate:1250,hourlyRate:200,overtimeRate:250,pin:'',lock:true,securityVersion:2,reminders:true,reminderDays:2,morningReminder:true,morningReminderTime:'07:00',nightReminder:true,nightReminderTime:'22:00',appearance:'dark',theme:{bg:'#000000',panel:'#000000',gold:'#d7b45c',green:'#22c55e',red:'#ff4d5a',blue:'#3b82f6'}},
+ work:[],expenses:[],incomes:[],notes:[],investments:[],
+ cards:[],
+ flexAccounts:[],
+ accounts:{cash:{name:'NAKİT',balance:0}},
+ categories:['YOL','YEMEK','MARKET','FATURA','KİRA','SAĞLIK','ULAŞIM','EĞLENCE','YAKIT','GİYİM','DİĞER']
 };
-function hideMini(){const m=$('#miniPlayer');if(m)m.classList.add('hidden');$('#miniTitle').textContent='—';$('#miniType').textContent='—'}
-function stopStoredIfCurrent(old){
-  if(!old||!state.now)return false;
-  const sameId=state.now.id===old.id;
-  if(!sameId)return false;
-  state.pendingItem=null;state.openController?.abort();state.openController=null;state.audioToken++;
-  if(state.now.type==='music'){state.audio.pause();state.audio.removeAttribute('src');try{state.audio.load()}catch{}}
-  if(state.video){state.video.onerror=null;state.video.pause();state.video.removeAttribute('src');try{state.video.load()}catch{}state.video=null}
-  state.now=null;hideMini();$('#playerSheet').classList.add('hidden');
-  return true;
+const STORAGE_KEY='rutin-main';
+function loadRutinState(){
+  for(const k of [STORAGE_KEY,'rutin-v4','rutin-v3','rutin-v2','rutin-v1']){
+    try{
+      const raw=localStorage.getItem(k);
+      if(raw){
+        const parsed=JSON.parse(raw);
+        if(parsed && typeof parsed==='object')return parsed;
+      }
+    }catch(e){}
+  }
+  return structuredClone(defaults);
 }
-async function deleteStored(id,store){
-  if(!confirm('Bu içerik ZAZO PLAYER’dan silinsin mi?'))return;
-  const arr=store==='downloads'?state.downloads:state.localMedia,old=arr.find(x=>x.id===id);if(!old)return;
-  const oldUrl=old.url,canonical=key(old),wasCurrent=stopStoredIfCurrent(old);
-  await dbDel(store,id);if(store==='downloads'&&old.opfsName)await opfsDelete(old.opfsName);
-  if(store==='media'){state.favorites=state.favorites.filter(x=>x.id!==id);state.history=state.history.filter(x=>x.id!==id);state.playlists.forEach(p=>p.items=p.items.filter(x=>x.id!==id));}
-  else{state.history=state.history.filter(x=>x.id!==id);}
-  state.queue=state.queue.filter(x=>x.id!==id);if(state.queueIndex>=state.queue.length)state.queueIndex=Math.max(0,state.queue.length-1);
-  delete state.positions[canonical];delete state.positions[id];
-  if(oldUrl?.startsWith('blob:')){try{URL.revokeObjectURL(oldUrl)}catch{}}if(old.thumb?.startsWith('blob:')){try{URL.revokeObjectURL(old.thumb)}catch{}}
-  save();await refreshStored();render();if(wasCurrent)updateMediaSession();
-}window.deleteStored=deleteStored;
+let state=loadRutinState();
+state.profile={...defaults.profile,...(state.profile||{})};
 
-function openExternalYouTubeSearch(){if(!state.musicQuery)return;window.open(youtubeSearchUrl(state.musicQuery),'_blank','noopener,noreferrer')}window.openExternalYouTubeSearch=openExternalYouTubeSearch;
-function connectMusicCatalog(){
-  const current=state.youtubeKey||'';
-  const v=prompt('YouTube müzik kataloğu için API anahtarını bir kez yapıştır. Bu cihazda saklanır.',current);
-  if(v===null)return;
-  const key=String(v).trim();
-  if(!key){if(confirm('Kayıtlı katalog bağlantısı kaldırılsın mı?')){state.youtubeKey='';localStorage.removeItem('zazo.youtubeKey');renderSettings()}return;}
-  state.youtubeKey=key;localSet('zazo.youtubeKey',key);
-  alert('Müzik kataloğu bağlandı. Artık arama ekranından şarkını yazabilirsin.');
-  renderSettings();
-}window.connectMusicCatalog=connectMusicCatalog;
-function renderSettings(){
-  const total=[...state.localMedia,...state.downloads].reduce((a,x)=>a+(x.size||0),0),online=navigator.onLine!==false;
-  view.innerHTML=`<div class="section-head"><h2>Ayarlar</h2></div>
-  <div class="setting"><div><strong>Düşük Güç Modu</strong><div class="muted">Animasyonları ve arka plan ağ kullanımını azaltır</div></div><button id="lpSwitch" class="switch ${state.lowPower?'on':''}" aria-label="Düşük güç modu"></button></div>
-  <div class="setting"><div><strong>Bağlantı</strong><div class="muted">Arama için internet bağlantısı gerekir</div></div><span>${online?'✓ Çevrimiçi':'Çevrimdışı'}</span></div>
-  <div class="setting"><div><strong>Müzik kataloğu</strong><div class="muted">${musicCatalogConnected()?'Popüler şarkı araması hazır':'Bir kez bağla; sonra yalnızca şarkını ara'}</div></div><button id="catalogConnectBtn" class="text-btn">${musicCatalogConnected()?'✓ Bağlı':'Bağla'}</button></div>
-  <div class="setting"><div><strong>Kendi müzik ve videoların</strong><div class="muted">Telefonundaki uyumlu dosyaları Kütüphane’ye ekleyebilirsin</div></div><button id="settingsAddFile" class="text-btn">Dosya Ekle</button></div>
-  <div class="setting"><div><strong>Çevrimdışı depolama</strong><div class="muted">${state.downloads.length} indirme · ${formatBytes(total)}</div></div><button id="clearDownloadsBtn" class="text-btn danger-text" ${state.downloads.length?'':'disabled'}>Temizle</button></div>
-  <div class="setting"><div><strong>Depolama koruması</strong><div class="muted">Çevrimdışı dosyaların sistem tarafından temizlenme riskini azaltır</div></div><span>${state.storagePersistent===true?'✓ Kalıcı':state.storagePersistent===false?'Sistem yönetiyor':'Kontrol ediliyor'}</span></div>
-  <div class="setting"><div><strong>Kaldığın yerden devam</strong><div class="muted">Müzik ve video konumu otomatik kaydedilir</div></div><span>✓</span></div>
-  <div class="setting"><div><strong>Kilit ekranı kontrolleri</strong><div class="muted">Desteklenen ses akışlarında iPhone medya kontrolleri</div></div><span>✓</span></div>
-  <div class="setting"><div><strong>Sürüm</strong><div class="muted">ZAZO PLAYER V1.3.6 INLINE PLAY</div></div><span>1.3.6</span></div>`;
-  $('#lpSwitch').onclick=()=>$('#powerBtn').click();
-  const clear=$('#clearDownloadsBtn');if(clear)clear.onclick=clearAllDownloads;
-  const add=$('#settingsAddFile');if(add)add.onclick=()=>$('#fileInput').click();
-  const cat=$('#catalogConnectBtn');if(cat)cat.onclick=connectMusicCatalog;
+state.settings={...defaults.settings,...(state.settings||{}),theme:{...defaults.settings.theme,...(state.settings?.theme||{})}};
+if((state.settings.securityBootstrapVersion||0)<1){
+  state.settings.lock=true;
+  state.settings.securityBootstrapVersion=1;
 }
-async function clearAllDownloads(){if(!state.downloads.length||!confirm('Tüm indirilen içerikler silinsin mi?'))return;const ids=new Set(state.downloads.map(x=>x.id));for(const x of [...state.downloads]){stopStoredIfCurrent(x);try{await dbDel('downloads',x.id)}catch{}if(x.opfsName)await opfsDelete(x.opfsName);if(x.url?.startsWith('blob:'))try{URL.revokeObjectURL(x.url)}catch{};if(x.thumb?.startsWith('blob:'))try{URL.revokeObjectURL(x.thumb)}catch{};delete state.positions[x.id];if(x.originalKey)delete state.positions[x.originalKey];}state.queue=state.queue.filter(x=>!ids.has(x.id));state.queueIndex=Math.min(state.queueIndex,state.queue.length-1);state.downloads=[];save();await refreshStored();renderSettings()}window.clearAllDownloads=clearAllDownloads;
-function formatBytes(n){if(!n)return'0 MB';if(n<1024*1024)return`${Math.round(n/1024)} KB`;return`${(n/1024/1024).toFixed(n>100*1024*1024?0:1)} MB`}
-function render(){resetUiRegistry();if(state.tab==='home')renderHome();else if(state.tab==='music')renderMusic();else if(state.tab==='video')renderVideo();else if(state.tab==='library')renderLibrary(state.libraryMode||'files');else renderSettings()}
 
-(async()=>{await refreshStored();syncNav();render();setTimeout(()=>$('#splash')?.classList.add('hide'),650);if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});let refreshed=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(refreshed)return;refreshed=true;location.reload();});}try{if(navigator.storage?.persisted)state.storagePersistent=await navigator.storage.persisted();if(state.storagePersistent!==true&&navigator.storage?.persist)state.storagePersistent=await navigator.storage.persist();}catch{state.storagePersistent=false}if(state.tab==='settings')renderSettings();})();
-window.addEventListener('pagehide',save);window.addEventListener('beforeunload',()=>{for(const x of [...state.localMedia,...state.downloads]){if(x?.url?.startsWith('blob:'))try{URL.revokeObjectURL(x.url)}catch{};if(x?.thumb?.startsWith('blob:'))try{URL.revokeObjectURL(x.thumb)}catch{}}});document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+state.cards=Array.isArray(state.cards)?state.cards:[];
+state.flexAccounts=Array.isArray(state.flexAccounts)?state.flexAccounts:[];
+if(state.accounts?.card && !state.cards.length){
+  state.cards.push({id:uid(),name:state.accounts.card.name||'KREDİ KARTI',balance:+state.accounts.card.balance||0,limit:+state.accounts.card.limit||0,dueDate:''});
+}
+if(state.accounts?.flex && !state.flexAccounts.length){
+  state.flexAccounts.push({id:uid(),name:state.accounts.flex.name||'ESNEK HESAP',balance:+state.accounts.flex.balance||0,limit:+state.accounts.flex.limit||0,dueDate:''});
+}
+state.accounts={cash:{name:'NAKİT',balance:+(state.accounts?.cash?.balance||0)}};
+save();
+let screen='home', modal=null, reportPeriod='month', unlocked=false, calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 
-window.addEventListener('online',()=>{if(state.searchError.music?.startsWith('İnternet bağlantısı yok'))state.searchError.music='';if(state.searchError.video?.startsWith('İnternet bağlantısı yok'))state.searchError.video='';if(state.tab==='music')renderMusic();else if(state.tab==='video')renderVideo()});
+
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function applyTheme(){const t=state.settings.theme||defaults.settings.theme,r=document.documentElement.style;r.setProperty('--bg',t.bg);r.setProperty('--panel',t.panel);r.setProperty('--gold',t.gold);r.setProperty('--gold2',t.gold);r.setProperty('--green',t.green);r.setProperty('--red',t.red);r.setProperty('--blue',t.blue)}
+function monthItems(a){return a.filter(x=>x.date?.startsWith(ym()))}
+function dateRangeForPeriod(period=reportPeriod){
+ const now=new Date();
+ if(period==='day'){
+  const d=iso(now); return {start:d,end:d,label:'BUGÜN'};
+ }
+ if(period==='week'){
+  const x=new Date(now),n=(x.getDay()+6)%7,start=new Date(x);start.setDate(x.getDate()-n);
+  const end=new Date(start);end.setDate(start.getDate()+6);
+  return{start:iso(start),end:iso(end),label:'BU HAFTA'};
+ }
+ if(period==='year'){
+  const y=now.getFullYear();return{start:`${y}-01-01`,end:`${y}-12-31`,label:String(y)};
+ }
+ const y=now.getFullYear(),m=now.getMonth()+1,last=new Date(y,m,0).getDate();
+ return{start:`${y}-${String(m).padStart(2,'0')}-01`,end:`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`,label:now.toLocaleDateString('tr-TR',{month:'long',year:'numeric'}).toUpperCase()};
+}
+function filterByPeriod(a,period=reportPeriod){
+ const r=dateRangeForPeriod(period);
+ return a.filter(x=>x.date>=r.start&&x.date<=r.end);
+}
+
+function isWorkRoadExpense(x){
+ return !!x && (
+  !!x.workId ||
+  x.sourceType==='workRoad' ||
+  (x.category==='YOL' && (x.title==='YOL' || String(x.note||'').includes('ÇALIŞMA YOL')))
+ );
+}
+function totalsForPeriod(period=reportPeriod){
+ const inc=filterByPeriod(state.incomes,period).reduce((a,x)=>a+(+x.amount||0),0);
+ let workInc=0;
+ for(const w of filterByPeriod(state.work,period)){
+   workInc+=w.type==='daily'?(+w.amount||state.settings.dailyRate):(+w.hours||0)*(+w.rate||0);
+ }
+ const exp=filterByPeriod(state.expenses,period).reduce((a,x)=>a+(+x.amount||0),0);
+ const road=filterByPeriod(state.expenses,period).filter(isWorkRoadExpense).reduce((a,x)=>a+(+x.amount||0),0);
+ return{income:inc+workInc,expense:exp,net:inc+workInc-exp,road};
+}
+function workSummaryForPeriod(period=reportPeriod){
+ const a=filterByPeriod(state.work,period);
+ return{
+  daily:new Set(a.filter(x=>x.type==='daily').map(x=>x.date)).size,
+  hourlyDays:new Set(a.filter(x=>x.type==='hourly').map(x=>x.date)).size,
+  hourlyHours:a.filter(x=>x.type==='hourly').reduce((n,x)=>n+(+x.hours||0),0),
+  overtimeDays:new Set(a.filter(x=>x.type==='overtime').map(x=>x.date)).size,
+  overtimeHours:a.filter(x=>x.type==='overtime').reduce((n,x)=>n+(+x.hours||0),0)
+ }
+}
+function monthlyTotals(){
+ let income=monthItems(state.incomes).reduce((a,x)=>a+x.amount,0);
+ for(const w of monthItems(state.work)){
+   if(w.type==='daily') income+=w.amount||state.settings.dailyRate;
+   if(w.type==='hourly') income+=(w.hours||0)*(w.rate||state.settings.hourlyRate);
+   if(w.type==='overtime') income+=(w.hours||0)*(w.rate||state.settings.overtimeRate);
+ }
+ const expense=monthItems(state.expenses).reduce((a,x)=>a+x.amount,0);
+ const road=monthItems(state.expenses).filter(isWorkRoadExpense).reduce((a,x)=>a+x.amount,0);
+ return{income,expense,net:income-expense,road};
+}
+function workSummary(items=monthItems(state.work)){
+ return{
+  daily:items.filter(x=>x.type==='daily').length,
+  hourlyDays:new Set(items.filter(x=>x.type==='hourly').map(x=>x.date)).size,
+  hourlyHours:items.filter(x=>x.type==='hourly').reduce((a,x)=>a+(x.hours||0),0),
+  overtimeDays:new Set(items.filter(x=>x.type==='overtime').map(x=>x.date)).size,
+  overtimeHours:items.filter(x=>x.type==='overtime').reduce((a,x)=>a+(x.hours||0),0),
+ };
+}
+
+function rutinLogo(size=34){
+  return `<img class="rutinLogoImage" src="rutin-mark.png?v=v43.18.1" style="--logoSize:${size}px" width="${size}" height="${size}" alt="RUTİN">`;
+}
+
+function header(title='RUTİN',back=false){
+ return `<div class="topbar">
+   <button class="iconBtn luxuryIconBtn" onclick="${back?"go('home')":"openModal('menu')"}">${back?'‹':'☰'}</button>
+   <div class="title brandTitle">${title==='RUTİN'?`${rutinLogo(30)}<span>RUTİN</span>`:title}</div>
+   <button class="iconBtn luxuryIconBtn settingsOnly" onclick="go('settings')" aria-label="Ayarlar"><span class="settingsGearV27">⚙</span></button>
+ </div>`;
+}
+function profileLine(){
+ return `<div class="profileLine"><div class="avatar homeProfileAvatar" onclick="go('profile')">${state.profile.photo?`<img src="${state.profile.photo}">`:(state.profile.name||'R')[0]}</div><div><small>MERHABA</small><b>${state.profile.name}</b><div class="dateLine">${new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div>`;
+}
+function reminderBanner(){
+ const a=reminderItems();if(!a.length)return'';
+ return `<div class="reminderBanner"><b>◔ ÖDEME HATIRLATMASI</b>${a.map(x=>`<span>${x.type} · ${x.name} · ${x.date}</span>`).join('')}</div>`
+}
+function greetingByTime(){
+ const h=new Date().getHours();
+ if(h>=5 && h<12)return 'GÜNAYDIN';
+ if(h>=12 && h<17)return 'TÜNAYDIN';
+ if(h>=17 && h<23)return 'İYİ AKŞAMLAR';
+ return 'İYİ GECELER';
+}
+function dailyQuote(){
+ const quotes=[
+  'BUGÜNÜ DÜZENLE, YARINI KOLAYLAŞTIR.',
+  'KÜÇÜK ADIMLAR, BÜYÜK SONUÇLAR GETİRİR.',
+  'DİSİPLİN, HEDEFİNE GİDEN EN KISA YOLDUR.',
+  'KAZANDIĞINI BİL, HARCADIĞINI KONTROL ET.',
+  'DÜZEN, ZAMANI VE PARAYI GÜÇLENDİRİR.',
+  'HER GÜN BİR ADIM, HER AY BİR SONUÇ.',
+  'PLANLI OL, KENDİNE DAHA ÇOK ZAMAN KAZANDIR.'
+ ];
+ const d=new Date(),seed=Math.floor(new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime()/86400000);
+ return quotes[seed%quotes.length];
+}
+function applyAppearance(){
+ const mode=state.settings.appearance||'dark';
+ document.documentElement.dataset.appearance=mode;
+}
+function home(){
+ const T=monthlyTotals(),W=workSummary();
+ return `${header()}${profileLine()}${dailyReminderBanner()}${reminderBanner()}
+ <div class="heroMsg"><b>${greetingByTime()}!</b><br>${dailyQuote()}</div>
+ <div class="stats">
+   <div class="stat"><small>BUGÜNKÜ GELİR</small><strong class="green">${money(todayIncome())}</strong></div>
+   <div class="stat"><small>BUGÜNKÜ HARCAMA</small><strong class="red">${money(todayExpense())}</strong></div>
+   <div class="stat"><small>BU AY GELİR</small><strong class="green">${money(T.income)}</strong></div>
+   <div class="stat"><small>BU AY HARCAMA</small><strong class="red">${money(T.expense)}</strong></div>
+ </div>
+ <div class="section"><b>HIZLI İŞLEMLER</b></div>
+ <div class="quick quickPremium quickSix">
+   <button onclick="openModal('income')"><i class="luxGlyph quickLux">＋</i><span>GELİR EKLE</span></button>
+   <button onclick="openModal('expense')"><i class="luxGlyph quickLux">▤</i><span>HARCAMA</span></button>
+   <button onclick="openModal('daily')"><i class="luxGlyph">✓</i><span>ÇALIŞTIM</span></button>
+   <button onclick="go('notes')"><i class="luxGlyph">✦</i><span>NOTLAR</span></button>
+   <button onclick="go('investments')"><i class="luxGlyph">◇</i><span>YATIRIM</span></button>
+   <button onclick="go('finance')"><i class="luxGlyph">▣</i><span>FİNANS</span></button>
+ </div>
+ <div class="heroMsg" style="margin-top:10px">“DİSİPLİN, HAYAL ETTİĞİN HAYATIN KÖPRÜSÜDÜR.”</div>
+ <div class="section"><b>BUGÜNÜN ÖZETİ</b><span onclick="go('reports')">DETAY ›</span></div>
+ <div class="summaryBox">
+   <div class="summaryRow"><div><b>ÇALIŞMA</b><small>GÜNLÜK</small></div><strong>${state.work.filter(x=>x.date===iso()&&x.type==='daily').length?'1 GÜN':'0 GÜN'}</strong></div>
+   <div class="summaryRow"><div><b>SAATLİK</b><small>BUGÜN</small></div><strong>${state.work.filter(x=>x.date===iso()&&x.type==='hourly').reduce((a,x)=>a+(x.hours||0),0)} SAAT</strong></div>
+   <div class="summaryRow"><div><b>MESAİ</b><small>BUGÜN</small></div><strong>${state.work.filter(x=>x.date===iso()&&x.type==='overtime').reduce((a,x)=>a+(x.hours||0),0)} SAAT</strong></div>
+   <div class="summaryRow"><div><b>TOPLAM KAZANÇ</b><small>BUGÜN</small></div><strong class="green">${money(todayIncome())}</strong></div>
+   <div class="summaryRow"><div><b>TOPLAM HARCAMA</b><small>BUGÜN</small></div><strong class="red">${money(todayExpense())}</strong></div>
+ </div>`;
+}
+function todayIncome(){
+ let x=state.incomes.filter(i=>i.date===iso()).reduce((a,b)=>a+b.amount,0);
+ for(const w of state.work.filter(i=>i.date===iso())){
+  if(w.type==='daily')x+=w.amount||state.settings.dailyRate;
+  else x+=(w.hours||0)*(w.rate||0);
+ }
+ return x;
+}
+function todayExpense(){return state.expenses.filter(i=>i.date===iso()).reduce((a,b)=>a+b.amount,0)}
+function workScreen(type='daily'){
+ const title=type==='daily'?'GÜNLÜK ÇALIŞMA':type==='hourly'?'SAATLİK ÇALIŞMA':'MESAİ';
+ return `${header('ÇALIŞMA',true)}
+ <div class="workChoice">
+  <button class="${type==='daily'?'active':''}" onclick="go('daily')">GÜNLÜK</button>
+  <button class="${type==='hourly'?'active':''}" onclick="go('hourly')">SAATLİK</button>
+  <button class="${type==='overtime'?'active':''}" onclick="go('overtime')">MESAİ</button>
+ </div>
+ ${type==='daily'?dailyForm():type==='hourly'?hourlyForm():overtimeForm()}
+ <div class="section"><b>SON KAYITLAR</b></div><div class="card list">${workRows(type)}</div>`;
+}
+function dailyForm(){return `<form onsubmit="submitDaily(event)">
+ ${field('date','TARİH',iso(),'date')}
+ ${field('title','İŞ / PROJE','ANA İŞ')}
+ ${field('amount','GÜNLÜK ÜCRET',state.settings.dailyRate,'number')}
+ <div class="field"><label>YOL PARASI</label><div class="choiceRow"><label><input type="radio" name="road" value="yes">ÖDEDİM</label><label><input type="radio" name="road" value="no" checked>ÖDEMEDİM</label></div></div>
+ ${field('roadAmount','YOL TUTARI (OPSİYONEL)',0,'number')}
+ ${textarea('note','NOT')}
+ <button class="primary">BUGÜN ÇALIŞTIM</button></form>`}
+function hourlyForm(){return `<form onsubmit="submitHourly(event)">
+ ${field('date','TARİH',iso(),'date')}
+ ${field('title','İŞ / PROJE','EK İŞ')}
+ ${field('hours','KAÇ SAAT ÇALIŞTIN?',0,'number')}
+ ${field('rate','SAATLİK ÜCRET',state.settings.hourlyRate,'number')}
+ <div class="notice">SÜRE SAYACI YOK. O GÜN KAÇ SAAT ÇALIŞTIYSAN ELLE GİR.</div>
+ <div class="field"><label>YOL PARASI</label><div class="choiceRow"><label><input type="radio" name="road" value="yes">ÖDEDİM</label><label><input type="radio" name="road" value="no" checked>ÖDEMEDİM</label></div></div>
+ ${field('roadAmount','YOL TUTARI (OPSİYONEL)',0,'number')}
+ ${textarea('note','NOT')}
+ <button class="primary">KAYDET</button></form>`}
+function overtimeForm(){return `<form onsubmit="submitOvertime(event)">
+ ${field('date','TARİH',iso(),'date')}
+ ${field('title','İŞ / PROJE','ANA İŞ')}
+ ${field('hours','MESAİ SÜRESİ',0,'number')}
+ ${field('rate','MESAİ SAATLİK ÜCRET',state.settings.overtimeRate,'number')}
+ ${textarea('note','NOT')}
+ <button class="primary">KAYDET</button></form>`}
+function workRows(type){
+ const a=state.work.filter(x=>x.type===type).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+ return a.length?a.map(x=>`<div class="item"><div class="ico">${type==='daily'?'✓':type==='hourly'?'◷':'★'}</div><div><b>${x.title}</b><small>${x.date}${x.hours?' · '+x.hours+' SAAT':''}</small></div><div class="amt gold">${money(x.amount||((x.hours||0)*(x.rate||0)))}</div></div>`).join(''):'<div class="notice">HENÜZ KAYIT YOK.</div>';
+}
+function finance(){
+ return `${header('HESAPLARIM',true)}
+ <div class="section"><b>KREDİ KARTLARIM</b><span onclick="openModal('addCard')">+ KART EKLE</span></div>
+ ${state.cards.length?state.cards.map(c=>`<div class="account goldBorder"><div class="accountHead"><b>${c.name}</b><span onclick="openModal('editCard:${c.id}')">⋯</span></div><strong>${money(c.balance)}</strong><small>LİMİT: ${money(c.limit)}${c.dueDate?` · SON ÖDEME ${c.dueDate}`:''}</small></div>`).join(''):'<div class="notice">HENÜZ KREDİ KARTI EKLENMEDİ.</div>'}
+ <div class="section"><b>ESNEK HESAPLARIM</b><span onclick="openModal('addFlex')">+ HESAP EKLE</span></div>
+ ${state.flexAccounts.length?state.flexAccounts.map(c=>`<div class="account"><div class="accountHead"><b>${c.name}</b><span onclick="openModal('editFlex:${c.id}')">⋯</span></div><strong>${money(c.balance)}</strong><small>LİMİT: ${money(c.limit)} · KULLANILABİLİR ${money(Math.max(0,c.limit-c.balance))}${c.dueDate?` · ÖDEME ${c.dueDate}`:''}</small></div>`).join(''):'<div class="notice">HENÜZ ESNEK HESAP EKLENMEDİ.</div>'}
+ <div class="account"><div class="accountHead"><b>NAKİT</b><span>›</span></div><strong>${money(state.accounts.cash.balance)}</strong></div>
+ <div class="account"><div class="accountHead"><b>YATIRIMLAR</b><span onclick="go('investments')">›</span></div><strong class="green">${money(state.investments.reduce((a,x)=>a+x.amount,0))}</strong><small>TOPLAM DEĞER</small></div>
+ <div class="section"><b>HIZLI İŞLEMLER</b></div><div class="quick" style="grid-template-columns:repeat(4,1fr)">
+ <button onclick="openModal('expense')"><i class="luxGlyph">▤</i>HARCAMA</button><button onclick="openModal('income')"><i class="luxGlyph">＋</i>GELİR</button><button onclick="openModal('cash')"><i>₺</i>NAKİT</button><button onclick="go('investments')"><i>◆</i>YATIRIM</button>
+ </div>`;
+}
+function calendarScreen(){
+ const d=new Date(calendarCursor),y=d.getFullYear(),m=d.getMonth(),days=new Date(y,m+1,0).getDate(),offset=(new Date(y,m,1).getDay()+6)%7;
+ let cells='';for(let i=0;i<offset;i++)cells+='<div class="daySpacer"></div>';
+ for(let n=1;n<=days;n++){
+  const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`;
+  const w=state.work.filter(x=>x.date===ds),ex=state.expenses.filter(x=>x.date===ds);
+  const hasDaily=w.some(x=>x.type==='daily'),hasHourly=w.some(x=>x.type==='hourly'),hasOvertime=w.some(x=>x.type==='overtime');
+  const hasRoad=ex.some(isWorkRoadExpense),hasExpense=ex.some(x=>!isWorkRoadExpense(x));
+  const dots=[hasDaily?'daily':'',hasHourly?'hourly':'',hasOvertime?'overtime':'',hasRoad?'road':'',hasExpense?'expense':''].filter(Boolean);
+  const isToday=ds===iso()?' today':'';
+  cells+=`<button class="day calendarMultiDay${isToday}" onclick="openModal('day:${ds}')"><span class="calendarDayNo">${n}</span><span class="calendarDots">${dots.map(k=>`<i class="dot-${k}"></i>`).join('')}</span></button>`;
+ }
+ const prefix=`${y}-${String(m+1).padStart(2,'0')}`;
+ const monthWork=state.work.filter(x=>x.date?.startsWith(prefix));
+ const monthExpenses=state.expenses.filter(x=>x.date?.startsWith(prefix));
+ const monthIncomes=state.incomes.filter(x=>x.date?.startsWith(prefix));
+ const workedDates=new Set(monthWork.map(x=>x.date)).size;
+ const hourlyHours=monthWork.filter(x=>x.type==='hourly').reduce((a,x)=>a+(+x.hours||0),0);
+ const overtimeHours=monthWork.filter(x=>x.type==='overtime').reduce((a,x)=>a+(+x.hours||0),0);
+ const workIncome=monthWork.reduce((a,x)=>a+(x.type==='daily'?(+x.amount||state.settings.dailyRate):((+x.hours||0)*(+x.rate||0))),0);
+ const otherIncome=monthIncomes.reduce((a,x)=>a+(+x.amount||0),0);
+ const totalIncome=workIncome+otherIncome,totalExpense=monthExpenses.reduce((a,x)=>a+(+x.amount||0),0);
+ return `${header('TAKVİM',true)}
+ <div class="calendarTitleRow" id="calendarSwipeArea">
+   <button class="calendarArrow" onclick="moveCalendar(-1)" aria-label="Önceki ay">‹</button>
+   <button class="calendarMonthPick" onclick="openModal('calendarPick')"><b>${d.toLocaleDateString('tr-TR',{month:'long',year:'numeric'}).toUpperCase()}</b><small>AY / YIL SEÇMEK İÇİN DOKUN</small></button>
+   <button class="calendarArrow" onclick="moveCalendar(1)" aria-label="Sonraki ay">›</button>
+ </div>
+ <div class="card compactCalendar referenceCalendar" ontouchstart="calendarTouchStart(event)" ontouchend="calendarTouchEnd(event)">
+   <div class="calendarHead">${['PZT','SAL','ÇAR','PER','CUM','CMT','PAZ'].map(x=>`<div>${x}</div>`).join('')}</div>
+   <div class="calendar">${cells}</div>
+   <div class="calendarLegend multiLegend"><span><i class="dot-daily"></i>GÜNLÜK</span><span><i class="dot-hourly"></i>SAATLİK</span><span><i class="dot-overtime"></i>MESAİ</span><span><i class="dot-road"></i>YOL</span><span><i class="dot-expense"></i>HARCAMA</span></div>
+ </div>
+ <div class="goldMonthSummary"><div class="goldSummaryTitle">✦ AY ÖZETİ ✦</div>
+  <div class="goldSummaryGrid">
+   ${goldMonthItem('TOPLAM ÇALIŞILAN GÜN',workedDates+' GÜN')}
+   ${goldMonthItem('SAATLİK ÇALIŞMA',hourlyHours+' SAAT')}
+   ${goldMonthItem('TOPLAM MESAİ',overtimeHours+' SAAT')}
+   ${goldMonthItem('TOPLAM GELİR',money(totalIncome))}
+   ${goldMonthItem('TOPLAM HARCAMA',money(totalExpense))}
+   ${goldMonthItem('KALAN',money(totalIncome-totalExpense))}
+  </div>
+ </div>`;
+}
+function goldMonthItem(label,value){return `<div class="goldSummaryItem"><small>${label}</small><strong>${value}</strong></div>`}
+function moveCalendar(delta){calendarCursor=new Date(calendarCursor.getFullYear(),calendarCursor.getMonth()+delta,1);render()}
+let calendarTouchX=0;
+function calendarTouchStart(e){calendarTouchX=e.changedTouches?.[0]?.clientX||0}
+function calendarTouchEnd(e){const x=e.changedTouches?.[0]?.clientX||0,d=x-calendarTouchX;if(Math.abs(d)>55)moveCalendar(d<0?1:-1)}
+function shiftDayModal(ds,delta){const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+delta);openModal('day:'+iso(d))}
+function calendarPickGo(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());calendarCursor=new Date(+d.year,+d.month,1);modal=null;render()}
+function reports(){
+ const T=totalsForPeriod(reportPeriod),W=workSummaryForPeriod(reportPeriod),R=dateRangeForPeriod(reportPeriod);
+ const B=(k,l)=>`<button class="${reportPeriod===k?'active':''}" onclick="reportPeriod='${k}';render()">${l}</button>`;
+ const max=Math.max(1,T.income,T.expense);
+ const incomePct=Math.round((T.income/max)*100);
+ const expensePct=Math.round((T.expense/max)*100);
+ return `${header('RAPORLAR',true)}
+ <div class="tabs">${B('day','GÜNLÜK')}${B('week','HAFTALIK')}${B('month','AYLIK')}${B('year','YILLIK')}<button onclick="openModal('range')">TARİH ARALIĞI</button></div>
+ <div class="section"><b>${R.label}</b><span onclick="go('detail')">DETAYLI RAPOR ›</span></div>
+ <div class="reportGrid"><div class="reportBox"><small>TOPLAM GELİR</small><strong class="green">${money(T.income)}</strong></div><div class="reportBox"><small>TOPLAM HARCAMA</small><strong class="red">${money(T.expense)}</strong></div><div class="reportBox"><small>NET KAZANÇ</small><strong>${money(T.net)}</strong></div></div>
+
+ <div class="section"><b>GELİR / HARCAMA DAĞILIMI</b><span>GRAFİĞE DOKUN</span></div>
+ <div class="dualDonutWrap clickableChart" onclick="go('detail')">
+   <div class="donutCard">
+     <div class="donutRing incomeRing" style="--pct:${incomePct}">
+       <div class="donutCenter"><small>GELİR</small><strong class="green">${money(T.income)}</strong></div>
+     </div>
+     <div class="donutLegend"><i class="incomeDot"></i><span>TOPLAM GELİR</span></div>
+   </div>
+   <div class="donutCard">
+     <div class="donutRing expenseRing" style="--pct:${expensePct}">
+       <div class="donutCenter"><small>HARCAMA</small><strong class="red">${money(T.expense)}</strong></div>
+     </div>
+     <div class="donutLegend"><i class="expenseDot"></i><span>TOPLAM HARCAMA</span></div>
+   </div>
+ </div>
+
+ <div class="section"><b>ÇALIŞMA ÖZETİ</b></div>
+ <div class="summaryBox">${sumRow('GÜNLÜK ÇALIŞILAN',W.daily+' GÜN')}${sumRow('SAATLİK ÇALIŞMA',W.hourlyDays+' GÜN / '+W.hourlyHours+' SAAT')}${sumRow('MESAİ',W.overtimeDays+' GÜN / '+W.overtimeHours+' SAAT')}${sumRow('YOL MASRAFI',money(T.road))}</div>
+ <div class="chartTap" onclick="go('detail')">AYRINTILI RAPORU AÇ ›</div>`;
+}
+function detailReport(){
+ const T=totalsForPeriod(reportPeriod),W=workSummaryForPeriod(reportPeriod),R=dateRangeForPeriod(reportPeriod);
+ return `${header('DETAYLI RAPOR',true)}
+ <div class="tabs">
+  <button class="${reportPeriod==='day'?'active':''}" onclick="reportPeriod='day';render()">GÜNLÜK</button>
+  <button class="${reportPeriod==='week'?'active':''}" onclick="reportPeriod='week';render()">HAFTALIK</button>
+  <button class="${reportPeriod==='month'?'active':''}" onclick="reportPeriod='month';render()">AYLIK</button>
+  <button class="${reportPeriod==='year'?'active':''}" onclick="reportPeriod='year';render()">YILLIK</button>
+  <button onclick="openModal('range')">TARİH ARALIĞI</button>
+ </div>
+ <div class="section"><b>${R.label}</b></div>
+ <div class="detailHero">
+   <div><small>NET KAZANÇ</small><strong class="${T.net>=0?'green':'red'}">${money(T.net)}</strong></div>
+   <div><small>TOPLAM ÇALIŞMA</small><strong>${W.daily+W.hourlyDays+W.overtimeDays} KAYIT GÜNÜ</strong></div>
+ </div>
+ <div class="section"><b>GELİR / HARCAMA</b></div>
+ <div class="dualDonutWrap">
+   <div class="donutCard"><div class="donutRing incomeRing" style="--pct:${Math.round((T.income/Math.max(1,T.income,T.expense))*100)}"><div class="donutCenter"><small>GELİR</small><strong class="green">${money(T.income)}</strong></div></div></div>
+   <div class="donutCard"><div class="donutRing expenseRing" style="--pct:${Math.round((T.expense/Math.max(1,T.income,T.expense))*100)}"><div class="donutCenter"><small>HARCAMA</small><strong class="red">${money(T.expense)}</strong></div></div></div>
+ </div>
+ <div class="section"><b>ÇALIŞMA ÖZETİ</b></div>
+ <div class="summaryBox">
+   ${sumRow('GÜNLÜK ÇALIŞILAN GÜN',W.daily+'')}
+   ${sumRow('SAATLİK ÇALIŞILAN GÜN',W.hourlyDays+'')}
+   ${sumRow('TOPLAM SAATLİK ÇALIŞMA',W.hourlyHours+' SAAT')}
+   ${sumRow('MESAİ YAPILAN GÜN',W.overtimeDays+'')}
+   ${sumRow('TOPLAM MESAİ',W.overtimeHours+' SAAT')}
+ </div>
+ <div class="section"><b>FİNANSAL ÖZET</b></div>
+ <div class="summaryBox">
+   ${sumRow('TOPLAM GELİR',money(T.income))}
+   ${sumRow('TOPLAM HARCAMA',money(T.expense))}
+   ${sumRow('YOL GİDERİ',money(T.road))}
+   ${sumRow('NET KAZANÇ',money(T.net))}
+ </div>
+ <div class="section"><b>AYRINTILI GRAFİK</b></div>
+ <div class="card"><div class="chartBars">
+   <div class="bar g" style="height:${Math.max(8,Math.min(100,T.income/Math.max(1,T.income,T.expense)*100))}%"></div>
+   <div class="bar r" style="height:${Math.max(8,Math.min(100,T.expense/Math.max(1,T.income,T.expense)*100))}%"></div>
+   <div class="bar o" style="height:${Math.max(8,Math.min(100,W.overtimeHours*8))}%"></div>
+ </div><div class="legend"><span><i style="background:#4bb874"></i>GELİR</span><span><i style="background:#d8575c"></i>HARCAMA</span><span><i style="background:#c08c38"></i>MESAİ</span></div></div>
+ <div class="section"><b>HAREKETLER</b></div>
+ <div class="card list">${detailRows(reportPeriod)}</div>`;
+}
+function detailRows(period){
+ const a=[
+  ...filterByPeriod(state.incomes,period).map(x=>({...x,k:'income'})),
+  ...filterByPeriod(state.expenses,period).map(x=>({...x,k:'expense'})),
+  ...filterByPeriod(state.work,period).map(x=>({...x,k:'work'}))
+ ].sort((a,b)=>b.date.localeCompare(a.date));
+ return a.length?a.slice(0,30).map(x=>`<div class="item"><div class="ico">${x.k==='income'?'＋':x.k==='expense'?'−':'⌁'}</div><div><b>${x.title||x.type}</b><small>${x.date}${x.hours?` · ${x.hours} SAAT`:''}</small></div><div class="amt ${x.k==='income'?'green':x.k==='expense'?'red':'gold'}">${x.k==='expense'?'-':x.k==='income'?'+':''}${money(x.amount||((x.hours||0)*(x.rate||0)))}</div></div>`).join(''):'<div class="notice">BU DÖNEMDE KAYIT YOK.</div>';
+}
+function investments(){
+ return `${header('YATIRIMLAR',true)}
+ <div class="section"><b>TOPLAM DEĞER</b><span onclick="openModal('investment')">+ EKLE</span></div>
+ <div class="stat"><small>TOPLAM YATIRIM</small><strong class="green">${money(state.investments.reduce((a,x)=>a+x.amount,0))}</strong></div>
+ <div class="section"><b>YATIRIMLARIM</b></div><div class="card list">${state.investments.length?state.investments.map(x=>`<div class="item"><div class="ico">↗</div><div><b>${x.title}</b><small>${x.date}</small></div><div class="amt green">${money(x.amount)}</div></div>`).join(''):'<div class="notice">HENÜZ YATIRIM KAYDI YOK.</div>'}</div>`;
+}
+function notes(){
+ return `${header('NOTLAR',true)}<div class="section"><b>NOTLARIM</b><span onclick="openModal('note')">+ NOT EKLE</span></div>${state.notes.length?state.notes.slice().reverse().map(n=>`<div class="note"><b>${n.title}</b><p>${n.text}</p><small>${n.date}</small></div>`).join(''):'<div class="notice">HENÜZ NOT YOK.</div>'}`;
+}
+function profile(){
+ return `${header('PROFİL',true)}
+ <div class="profileShowcase">
+   <div class="profileRing clickableAvatar" onclick="openModal('profile')"><div class="avatar">${state.profile.photo?`<img src="${state.profile.photo}">`:(state.profile.name||'R')[0]}</div><span class="avatarEditBadge">✎</span></div>
+   <h2>${state.profile.name}</h2>
+   <p>${state.profile.motto}</p>
+   <div class="profileBadge">${rutinLogo(22)}<span>RUTİN · KİŞİSEL PANEL</span></div>
+ </div>
+ <div class="card">
+   <div class="profileInfoRow"><span>VARSAYILAN GÜNLÜK ÜCRET</span><b>${money(state.settings.dailyRate)}</b></div>
+   <div class="profileInfoRow"><span>SAATLİK ÜCRET</span><b>${money(state.settings.hourlyRate)}</b></div>
+   <div class="profileInfoRow"><span>MESAİ ÜCRETİ</span><b>${money(state.settings.overtimeRate)}</b></div>
+ </div>
+ <div class="card">
+   <div class="setting clickable" onclick="openModal('profile')"><div>●</div><b>PROFİLİ DÜZENLE</b><span>›</span></div>
+   <div class="setting clickable" onclick="openModal('security')"><div>⌾</div><b>UYGULAMA KİLİDİ / PIN</b><span>${state.settings.lock?'AÇIK':'KAPALI'} ›</span></div>
+   <div class="setting clickable" onclick="openModal('reminders')"><div>◔</div><b>HATIRLATICILAR</b><span>${state.settings.reminders?'AÇIK':'KAPALI'} ›</span></div>
+   <div class="setting clickable" onclick="openModal('backup')"><div>⇩</div><b>YEDEKLEME</b><span>›</span></div>
+   <div class="setting clickable" onclick="go('settings')"><div>⚙</div><b>AYARLAR</b><span>›</span></div>
+ </div>`;
+}
+function settings(){
+ return `${header('AYARLAR',true)}<div class="card settingsCard">
+ <div class="setting clickable premiumSetting" onclick="go('profile')"><div class="settingIcon">●</div><b>PROFİL</b><span>›</span></div>
+ <div class="setting clickable premiumSetting" onclick="openModal('categories')"><div class="settingIcon">▦</div><b>KATEGORİLER</b><span>›</span></div>
+ <div class="setting clickable premiumSetting" onclick="go('finance')"><div class="settingIcon">▣</div><b>HESAPLAR</b><span>›</span></div>
+ <div class="setting clickable premiumSetting" onclick="openModal('backup')"><div class="settingIcon">⇩</div><b>YEDEKLEME</b><span>›</span></div>
+ <div class="setting clickable premiumSetting" onclick="openModal('theme')"><div class="settingIcon">✧</div><b>TEMA STÜDYOSU</b><span>›</span></div>
+ <div class="setting clickable premiumSetting" onclick="toggleAppearance()"><div class="settingIcon">◐</div><b>GÖRÜNÜM</b><span>${(state.settings.appearance||'dark')==='dark'?'KARANLIK MOD':'AÇIK MOD'} ›</span></div>
+ <div class="setting clickable premiumSetting" onclick="openModal('reminders')"><div class="settingIcon">◔</div><b>HATIRLATICILAR</b><span>›</span></div>
+ <div class="setting clickable premiumSetting" onclick="openModal('security')"><div class="settingIcon">⌾</div><b>UYGULAMA KİLİDİ</b><span>${state.settings.lock?'AÇIK':'KAPALI'} ›</span></div>
+ <div class="setting premiumSetting"><div class="settingIcon">i</div><b>HAKKINDA</b><span>RUTİN V43.18.6</span></div>
+ </div>`;
+}
+function setting(a,b){return `<div class="setting"><div>•</div><b>${a}</b><span>${b}</span></div>`}
+function sumRow(a,b){return `<div class="summaryRow"><div><b>${a}</b></div><strong>${b}</strong></div>`}
+function colorField(n,l,v){return `<div class="field colorField"><label>${l}</label><div class="colorRow"><input name="${n}" type="color" value="${v}" oninput="previewTheme(event)"><span>${v}</span></div></div>`}
+function field(n,l,v='',t='text'){return `<div class="field"><label>${l}</label><input name="${n}" type="${t}" value="${v}"></div>`}
+function textarea(n,l){return `<div class="field"><label>${l}</label><textarea name="${n}"></textarea></div>`}
+function expenseScreen(){
+ return `${header('KAYIT EKLE',true)}
+ <div class="recordHero"><div class="recordIcon">✦</div><div><b>YENİ KAYIT</b><small>GELİRİNİ VE HARCAMANI HIZLICA EKLE</small></div></div>
+ <div class="workChoice"><button class="active">HARCAMA</button><button onclick="openModal('income')">GELİR</button></div>${expenseForm()}`;
+}
+function expenseForm(){return `<form onsubmit="submitExpense(event)">
+ ${field('amount','TUTAR',0,'number')}
+ <div class="field"><label>KATEGORİ</label>
+   <div class="categoryIcons">
+   ${[
+    ['YOL','⌁'],['YEMEK','◉'],['MARKET','▣'],['FATURA','▤'],['KİRA','⌂'],['SAĞLIK','♡'],['ULAŞIM','◈'],['EĞLENCE','★'],['YAKIT','◒'],['GİYİM','♢'],['DİĞER','•••']
+   ].map(([c,i],n)=>`<label class="catChip"><input type="radio" name="category" value="${c}" ${n===0?'checked':''}><i>${i}</i><span>${c}</span></label>`).join('')}
+   </div>
+ </div>
+ <div class="field"><label>HESAPTAN</label>
+  <div class="payIcons">
+    <label><input type="radio" name="method" value="NAKİT" checked><i>₺</i><span>NAKİT</span></label>
+    <label><input type="radio" name="method" value="KREDİ KARTI"><i>▣</i><span>KREDİ KARTI</span></label>
+    <label><input type="radio" name="method" value="ESNEK HESAP"><i class="luxGlyph">▥</i><span>ESNEK HESAP</span></label>
+  </div>
+ </div>
+ ${field('date','TARİH',iso(),'date')}
+ ${textarea('note','NOT (İSTEĞE BAĞLI)')}
+ <button class="primary">KAYDET</button></form>`}
+function nav(){
+ const items=[
+  ['home','⌂','ANA SAYFA'],
+  ['work','◈','İŞ'],
+  ['calendar','◉','TAKVİM'],
+  ['reports','▥','RAPOR'],
+  ['investments','◆','YATIRIM'],
+  ['more','⋯','DAHA FAZLA']
+ ];
+ return `<div class="nav navSix">${items.map(x=>`<button class="${screen===x[0]?'active':''}" onclick="go('${x[0]}')"><i class="luxGlyph navLux">${x[1]}</i><span>${x[2]}</span></button>`).join('')}</div>`;
+}
+
+let cleanPin = {
+  mode: null,   // login | create | confirm
+  buffer: '',
+  first: ''
+};
+
+function initCleanPinMode(){
+  if(cleanPin.mode===null){
+    cleanPin.mode = state.settings.pin ? 'login' : 'create';
+    cleanPin.buffer = '';
+    cleanPin.first = '';
+  }
+}
+
+function cleanPinInstruction(){
+  if(cleanPin.mode==='create') return 'YENİ 4 HANELİ PINİNİ GİR';
+  if(cleanPin.mode==='confirm') return 'PINİ TEKRAR GİR';
+  return 'ŞİFRENİZİ GİRİN';
+}
+
+function cleanPinScreen(){
+  initCleanPinMode();
+
+  const name = state.profile?.name || 'RUTİN';
+  const photo = state.profile?.photo || '';
+  const profileVisual = photo
+    ? `<img src="${photo}" alt="${esc(name)}">`
+    : `<div class="lockAvatarMinimal" aria-hidden="true"><i></i><b></b></div>`;
+
+  return `<div class="premiumLock cleanPinScreen lockV43181">
+    <div class="lockV43181Shell">
+      <main class="lockV43181Main">
+        <div class="lockV43181Brand"><img src="rutin-logo.png?v=v43.18.1" alt="RUTİN"></div>
+
+        <div class="lockProfile lockProfile43181">${profileVisual}</div>
+        <div class="lockProfileName43181">${esc(name)}</div>
+        <div class="cleanPinInstruction">${cleanPinInstruction()}</div>
+
+        <div class="pinDots cleanPinDots lockPinDots43181">
+          ${[0,1,2,3].map((_,i)=>`<i class="${cleanPin.buffer.length>i?'filled':''}"></i>`).join('')}
+        </div>
+
+        <div class="pinPad cleanPinPad lockPad43181">
+          ${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" class="cleanPinBtn lockKey43181" data-pin="${n}">${n}</button>`).join('')}
+          <button type="button" class="cleanPinBtn lockKey43181 lockKeyUtility43181" data-pin="clear" aria-label="Temizle">×</button>
+          <button type="button" class="cleanPinBtn lockKey43181" data-pin="0">0</button>
+          <button type="button" class="cleanPinBtn lockKey43181 lockKeyUtility43181" data-pin="del" aria-label="Sil">⌫</button>
+        </div>
+
+        ${cleanPin.mode==='login'
+          ? `<button type="button" class="forgotPinBtn cleanForgotBtn lockForgot43181">PAROLAMI UNUTTUM</button>`
+          : `<div class="cleanPinHelp lockHelp43181">${cleanPin.mode==='confirm'?'PINİ TEKRAR GİR':'4 HANELİ PIN OLUŞTUR'}</div>`
+        }
+        <div class="lockV43181Tagline">PLANLA, UYGULA, BAŞAR</div>
+      </main>
+
+      <aside class="lockV43181Quote" aria-label="Motivasyon">
+        <div class="lockQuoteTop43181">HEDEFİNE<br>ODAKLAN</div>
+        <div class="lockMountain43181"></div>
+        <div class="lockQuoteBottom43181">DAHA İYİ<br>BİR SEN<br>MÜMKÜN</div>
+      </aside>
+    </div>
+  </div>`;
+}
+
+function updateCleanPinUI(){
+  const dots = document.querySelectorAll('.cleanPinDots i');
+  dots.forEach((dot,i)=>dot.classList.toggle('filled', cleanPin.buffer.length>i));
+
+  const inst = document.querySelector('.cleanPinInstruction');
+  if(inst) inst.textContent = cleanPinInstruction();
+}
+
+function cleanPinKey(v){
+  const val = String(v);
+
+  if(val==='clear'){
+    cleanPin.buffer = '';
+    updateCleanPinUI();
+    return;
+  }
+
+  if(val==='del'){
+    cleanPin.buffer = cleanPin.buffer.slice(0,-1);
+    updateCleanPinUI();
+    return;
+  }
+
+  if(!/^\d$/.test(val) || cleanPin.buffer.length>=4) return;
+
+  cleanPin.buffer += val;
+  updateCleanPinUI();
+  if(cleanPin.buffer.length===4){
+    setTimeout(()=>confirmCleanPin(),90);
+  }
+}
+
+function confirmCleanPin(){
+  if(cleanPin.buffer.length!==4){
+    alert('LÜTFEN 4 HANELİ PIN GİR.');
+    return;
+  }
+
+  if(cleanPin.mode==='create'){
+    cleanPin.first = cleanPin.buffer;
+    cleanPin.buffer = '';
+    cleanPin.mode = 'confirm';
+    updateCleanPinUI();
+    return;
+  }
+
+  if(cleanPin.mode==='confirm'){
+    if(cleanPin.buffer!==cleanPin.first){
+      cleanPin = {mode:'create',buffer:'',first:''};
+      updateCleanPinUI();
+      alert('PINLER AYNI DEĞİL. TEKRAR DENE.');
+      return;
+    }
+
+    state.settings.lock = true;
+    state.settings.pin = cleanPin.buffer;
+    save();
+
+    cleanPin = {mode:'login',buffer:'',first:''};
+    unlocked = true;
+    render();
+    return;
+  }
+
+  if(cleanPin.buffer===String(state.settings.pin||'')){
+    cleanPin.buffer = '';
+    unlocked = true;
+    render();
+    return;
+  }
+
+  cleanPin.buffer = '';
+  updateCleanPinUI();
+  alert('PIN HATALI.');
+}
+
+function resetRutinPin(){
+  const ok = confirm("RUTİN PIN'İ SIFIRLANSIN MI?");
+  if(!ok) return;
+
+  state.settings.lock = true;
+  state.settings.pin = '';
+  save();
+
+  unlocked = false;
+  cleanPin = {mode:'create',buffer:'',first:''};
+  render();
+}
+
+function bindCleanPinControls(){
+  document.querySelectorAll('.cleanPinBtn').forEach(btn=>{
+    btn.onclick = (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      cleanPinKey(btn.dataset.pin);
+    };
+  });
+
+  const ok = document.querySelector('.cleanPinOk');
+  if(ok){
+    ok.onclick = (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      confirmCleanPin();
+    };
+  }
+
+  const forgot = document.querySelector('.cleanForgotBtn');
+  if(forgot){
+    forgot.onclick = (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      resetRutinPin();
+    };
+  }
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(!state.settings.lock || unlocked) return;
+
+  if(/^\d$/.test(e.key)){
+    e.preventDefault();
+    cleanPinKey(e.key);
+    return;
+  }
+
+  if(e.key==='Backspace' || e.key==='Delete'){
+    e.preventDefault();
+    cleanPinKey('del');
+    return;
+  }
+
+  if(e.key==='Enter'){
+    e.preventDefault();
+    confirmCleanPin();
+  }
+});
+function render(){
+ if(state.settings.lock && !unlocked){
+   $('#app').innerHTML=cleanPinScreen();
+   requestAnimationFrame(()=>bindCleanPinControls());
+   return;
+ }
+ let content='';
+ if(screen==='home')content=home();
+ else if(screen==='daily')content=workScreen('daily');
+ else if(screen==='hourly')content=workScreen('hourly');
+ else if(screen==='overtime')content=workScreen('overtime');
+ else if(screen==='work')content=workScreen('daily');
+ else if(screen==='finance')content=finance();
+ else if(screen==='calendar')content=calendarScreen();
+ else if(screen==='reports')content=reports();
+ else if(screen==='detail')content=detailReport();
+ else if(screen==='investments')content=investments();
+ else if(screen==='notes')content=notes();
+ else if(screen==='profile')content=profile();
+ else if(screen==='settings')content=settings();
+ else if(screen==='expense')content=expenseScreen();
+ else if(screen==='more')content=`${header('DAHA FAZLA',true)}
+ <div class="moreGrid">
+   <button onclick="go('finance')"><i>▣</i><b>FİNANS / HESAPLAR</b><span>KARTLAR VE ESNEK HESAPLAR</span></button>
+   <button onclick="go('investments')"><i>◆</i><b>YATIRIMLAR</b><span>KÜÇÜK YATIRIMLARINI TAKİP ET</span></button>
+   <button onclick="go('notes')"><i>✎</i><b>NOTLAR</b><span>KİŞİSEL VE İŞ NOTLARI</span></button>
+   <button onclick="go('profile')"><i>●</i><b>PROFİL</b><span>ÜCRET VE KİŞİSEL AYARLAR</span></button>
+   <button onclick="go('settings')"><i>⚙</i><b>AYARLAR</b><span>PIN, YEDEKLEME, HATIRLATMA</span></button><button onclick="openModal('theme')"><i>✧</i><b>TEMA STÜDYOSU</b><span>RENKLERİ KENDİN AYARLA</span></button>
+   <button onclick="openModal('expense')"><i class="luxGlyph">▤</i><b>KAYIT EKLE</b><span>GELİR / HARCAMA</span></button>
+ </div>`;
+ $('#app').innerHTML=`<main class="phone">${content}${nav()}</main>${modal?modalHtml(modal):''}`;
+}
+function go(s){screen=s;modal=null;render()}
+function safeBackdropClose(e){
+ if(e.target!==e.currentTarget)return;
+ const active=document.activeElement;
+ if(active && ['INPUT','TEXTAREA','SELECT'].includes(active.tagName))return;
+ closeModal();
+}
+function openModal(k){modal=k;render()}
+function closeModal(){modal=null;const m=document.querySelector('.modal');if(m)m.remove();try{render()}catch(e){console.error('MODAL CLOSE RENDER',e)}}
+
+function modalHtml(k){
+ let title='',body='';
+ if(k==='income'){title='GELİR EKLE';body=`<form onsubmit="submitIncome(event)">${field('title','AÇIKLAMA','GELİR')}${field('amount','TUTAR',0,'number')}${field('date','TARİH',iso(),'date')}<button class="primary">KAYDET</button></form>`}
+ if(k==='expense'){title='HARCAMA EKLE';body=expenseForm()}
+ if(k==='daily'){title='GÜNLÜK ÇALIŞMA';body=dailyForm()}
+ if(k==='hourly'){title='SAATLİK ÇALIŞMA';body=hourlyForm()}
+ if(k==='overtime'){title='MESAİ';body=overtimeForm()}
+ if(k==='note'){title='NOT EKLE';body=`<form onsubmit="submitNote(event)">${field('title','BAŞLIK','NOT')}${textarea('text','NOT') }<button class="primary">KAYDET</button></form>`}
+ if(k==='investment'){title='YATIRIM EKLE';body=`<form onsubmit="submitInvestment(event)">${field('title','YATIRIM ADI','YATIRIM')}${field('amount','TUTAR',0,'number')}${field('date','TARİH',iso(),'date')}<button class="primary">KAYDET</button></form>`}
+ if(k==='accounts'){title='HESAPLAR';body=`<form onsubmit="submitAccounts(event)">${field('cardBalance','KREDİ KARTI BORCU',state.accounts.card.balance,'number')}${field('cardLimit','KREDİ KARTI LİMİTİ',state.accounts.card.limit,'number')}${field('flexBalance','ESNEK HESAP BORCU',state.accounts.flex.balance,'number')}${field('flexLimit','ESNEK HESAP LİMİTİ',state.accounts.flex.limit,'number')}${field('cash','NAKİT',state.accounts.cash.balance,'number')}<button class="primary">KAYDET</button></form>`}
+ if(k.startsWith('day:')){
+  const ds=k.split(':')[1],items=state.work.filter(x=>x.date===ds),expenses=state.expenses.filter(x=>x.date===ds),roads=expenses.filter(isWorkRoadExpense),normalExpenses=expenses.filter(x=>!isWorkRoadExpense(x));
+  const workRows=items.map(x=>`<div class="item"><div class="ico">${x.type==='daily'?'✓':x.type==='hourly'?'◷':'✦'}</div><div><b>${x.type==='daily'?'GÜNLÜK ÇALIŞMA':x.type==='hourly'?'SAATLİK ÇALIŞMA':'MESAİ'} · ${x.title||''}</b><small>${x.hours?x.hours+' SAAT · ':''}${money(x.amount||((x.hours||0)*(x.rate||0)))}</small></div><div class="dayItemActions"><button class="miniEdit" onclick="openModal('editWork:${x.id}:${ds}')">DÜZENLE</button><button class="miniDelete" onclick="deleteWork('${x.id}','${ds}')">SİL</button></div></div>`).join('');
+  const expenseRows=expenses.map(x=>`<div class="item"><div class="ico">${isWorkRoadExpense(x)?'⌁':'▤'}</div><div><b>${isWorkRoadExpense(x)?'YOL GİDERİ':(x.category||x.title||'HARCAMA')}</b><small>${money(+x.amount||0)} · ${x.method||'BELİRTİLMEDİ'}${x.person?' · '+x.person:''}${x.note?' · '+x.note:''}</small></div><div class="dayItemActions"><button class="miniEdit" onclick="openModal('editExpense:${x.id}:${ds}')">DÜZENLE</button><button class="miniDelete" onclick="deleteExpense('${x.id}','${ds}')">SİL</button></div></div>`).join('');
+  title=`${ds} · GÜN DETAYI`;
+  body=`<div class="daySwipeNav" ontouchstart="dayTouchStart(event)" ontouchend="dayTouchEnd(event,'${ds}')"><button onclick="shiftDayModal('${ds}',-1)">‹ ÖNCEKİ</button><b>${new Date(ds+'T12:00:00').toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</b><button onclick="shiftDayModal('${ds}',1)">SONRAKİ ›</button></div>
+  <div class="quick" style="grid-template-columns:repeat(4,1fr)"><button onclick="openModal('dailyDate:${ds}')"><i>✓</i>GÜNLÜK</button><button onclick="openModal('hourlyDate:${ds}')"><i>◷</i>SAATLİK</button><button onclick="openModal('overtimeDate:${ds}')"><i>✦</i>MESAİ</button><button onclick="openModal('expenseDate:${ds}')"><i>▤</i>HARCAMA</button></div>
+  <div class="dayDetailSection"><b>ÇALIŞMA / MESAİ</b>${workRows||'<div class="notice">ÇALIŞMA KAYDI YOK.</div>'}</div>
+  <div class="dayDetailSection"><b>YOL GİDERİ VE HARCAMALAR</b>${expenseRows||'<div class="notice">HARCAMA KAYDI YOK.</div>'}</div>`;
+ }
+ if(k.startsWith('dailyDate:')){const ds=k.split(':')[1];title='GÜNLÜK ÇALIŞMA';body=dailyForm().replace(`value="${iso()}"`,`value="${ds}"`)}
+ if(k.startsWith('hourlyDate:')){const ds=k.split(':')[1];title='SAATLİK ÇALIŞMA';body=hourlyForm().replace(`value="${iso()}"`,`value="${ds}"`)}
+ if(k.startsWith('overtimeDate:')){const ds=k.split(':')[1];title='MESAİ';body=overtimeForm().replace(`value="${iso()}"`,`value="${ds}"`)}
+ if(k.startsWith('expenseDate:')){const ds=k.split(':')[1];title='HARCAMA';body=expenseForm().replace(`value="${iso()}"`,`value="${ds}"`)}
+ if(k.startsWith('editExpense:')){
+  const parts=k.split(':'),id=parts[1],ds=parts[2],x=state.expenses.find(z=>z.id===id);
+  if(x){title='HARCAMAYI DÜZENLE';body=`<form onsubmit="submitEditExpense(event,'${x.id}','${ds}')">${field('amount','TUTAR',x.amount||0,'number')}${field('category','KATEGORİ',x.category||x.title||'DİĞER')}${field('method','ÖDEME YÖNTEMİ',x.method||'NAKİT')}${field('person','KİŞİ ADI (GEREKİYORSA)',x.person||'')}${field('date','TARİH',x.date,'date')}<div class="field"><label>NOT</label><textarea name="note">${x.note||''}</textarea></div><button class="primary">DEĞİŞİKLİĞİ KAYDET</button></form>`}
+ }
+ if(k==='calendarPick'){
+  const nowY=calendarCursor.getFullYear(),optsM=['OCAK','ŞUBAT','MART','NİSAN','MAYIS','HAZİRAN','TEMMUZ','AĞUSTOS','EYLÜL','EKİM','KASIM','ARALIK'].map((x,i)=>`<option value="${i}" ${i===calendarCursor.getMonth()?'selected':''}>${x}</option>`).join('');
+  let optsY='';for(let yy=nowY-20;yy<=nowY+10;yy++)optsY+=`<option value="${yy}" ${yy===nowY?'selected':''}>${yy}</option>`;
+  title='AY / YIL SEÇ';body=`<form onsubmit="calendarPickGo(event)"><div class="field"><label>AY</label><select name="month">${optsM}</select></div><div class="field"><label>YIL</label><select name="year">${optsY}</select></div><button class="primary">TAKVİME GİT</button></form>`
+ }
+ if(k.startsWith('editWork:')){
+   const parts=k.split(':'),id=parts[1],ds=parts[2],x=state.work.find(z=>z.id===id);
+   if(x){
+     title='ÇALIŞMA KAYDINI DÜZENLE';
+     body=`<form onsubmit="submitEditWork(event,'${x.id}','${ds}')">
+       ${field('date','TARİH',x.date,'date')}
+       ${field('title','İŞ / PROJE',x.title||'')}
+       ${x.type==='daily'
+         ? `${field('amount','GÜNLÜK ÜCRET',x.amount||state.settings.dailyRate,'number')}`
+         : `${field('hours',x.type==='hourly'?'ÇALIŞILAN SAAT':'MESAİ SAATİ',x.hours||0,'number')}${field('rate','SAATLİK ÜCRET',x.rate||(x.type==='hourly'?state.settings.hourlyRate:state.settings.overtimeRate),'number')}`
+       }
+       ${textarea('note','NOT').replace('</textarea>',`${x.note||''}</textarea>`)}
+       <button class="primary">DEĞİŞİKLİĞİ KAYDET</button>
+     </form>`;
+   }
+ }
+ if(k==='addCard'){title='KREDİ KARTI EKLE';body=`<form onsubmit="submitCard(event)">${field('name','KART ADI','ANA KART')}${field('balance','GÜNCEL BORÇ',0,'number')}${field('limit','LİMİT',0,'number')}${field('dueDate','SON ÖDEME TARİHİ','','date')}<button class="primary">KARTI EKLE</button></form>`}
+ if(k.startsWith('editCard:')){const c=state.cards.find(x=>x.id===k.split(':')[1]);title='KREDİ KARTI';body=`<form onsubmit="submitCard(event,'${c.id}')">${field('name','KART ADI',c.name)}${field('balance','GÜNCEL BORÇ',c.balance,'number')}${field('limit','LİMİT',c.limit,'number')}${field('dueDate','SON ÖDEME TARİHİ',c.dueDate||'','date')}<button class="primary">KAYDET</button><button type="button" class="secondary dangerBtn" onclick="deleteCard('${c.id}')">KARTI SİL</button></form>`}
+ if(k==='addFlex'){title='ESNEK HESAP EKLE';body=`<form onsubmit="submitFlex(event)">${field('name','HESAP ADI','ESNEK HESAP')}${field('balance','KULLANILAN',0,'number')}${field('limit','LİMİT',0,'number')}${field('dueDate','ÖDEME TARİHİ','','date')}<button class="primary">HESABI EKLE</button></form>`}
+ if(k.startsWith('editFlex:')){const c=state.flexAccounts.find(x=>x.id===k.split(':')[1]);title='ESNEK HESAP';body=`<form onsubmit="submitFlex(event,'${c.id}')">${field('name','HESAP ADI',c.name)}${field('balance','KULLANILAN',c.balance,'number')}${field('limit','LİMİT',c.limit,'number')}${field('dueDate','ÖDEME TARİHİ',c.dueDate||'','date')}<button class="primary">KAYDET</button><button type="button" class="secondary dangerBtn" onclick="deleteFlex('${c.id}')">HESABI SİL</button></form>`}
+ if(k==='cash'){title='NAKİT';body=`<form onsubmit="submitCash(event)">${field('cash','NAKİT BAKİYE',state.accounts.cash.balance,'number')}<button class="primary">KAYDET</button></form>`}
+ if(k==='security'){title='UYGULAMA KİLİDİ';body=`<form onsubmit="submitSecurity(event)">
+<div class="field"><label>KİLİT</label><select name="lock"><option value="0" ${!state.settings.lock?'selected':''}>KAPALI</option><option value="1" ${state.settings.lock?'selected':''}>AÇIK</option></select></div>
+<div class="field"><label>4 HANELİ PIN</label><input name="pin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" value="${state.settings.pin||''}" placeholder="••••"></div>
+<div class="notice">KİLİDİ AÇIK SEÇİP 4 HANELİ PIN GİR. SONRA KAYDET.</div>
+<button class="primary" type="submit">KAYDET</button></form>`}
+ if(k==='reminders'){title='HATIRLATICILAR';body=`<form onsubmit="submitReminders(event)">
+      <div class="field"><label>ÖDEME HATIRLATMALARI</label><select name="reminders"><option value="1" ${state.settings.reminders?'selected':''}>AÇIK</option><option value="0" ${!state.settings.reminders?'selected':''}>KAPALI</option></select></div>
+      ${field('reminderDays','ÖDEMEDEN KAÇ GÜN ÖNCE?',state.settings.reminderDays,'number')}
+      <div class="field"><label>SABAH HATIRLATMASI</label><select name="morningReminder"><option value="1" ${state.settings.morningReminder?'selected':''}>AÇIK</option><option value="0" ${!state.settings.morningReminder?'selected':''}>KAPALI</option></select></div>
+      ${field('morningReminderTime','SABAH SAATİ',state.settings.morningReminderTime||'07:00','time')}
+      <div class="field"><label>GECE HATIRLATMASI</label><select name="nightReminder"><option value="1" ${state.settings.nightReminder?'selected':''}>AÇIK</option><option value="0" ${!state.settings.nightReminder?'selected':''}>KAPALI</option></select></div>
+      ${field('nightReminderTime','GECE SAATİ',state.settings.nightReminderTime||'22:00','time')}
+      <div class="notice">VARSAYILAN: SABAH 07:00 · GECE 22:00. UYGULAMA AÇILDIĞINDA GÜNLÜK KAYITLARINI HATIRLATIR.</div>
+      <button class="primary">KAYDET</button></form>`}
+ if(k==='backup'){title='YEDEKLEME';body=`<button class="primary" onclick="downloadBackup()">YEDEK DOSYASI OLUŞTUR</button><div class="notice">RUTİN VERİLERİNİ CİHAZIN DIŞINA YEDEKLEMEN ÖNERİLİR. YEDEK DOSYASI TÜM MEVCUT VERİLERİ VE AYARLARI İÇERİR.</div>`}
+ if(k==='categories'){title='KATEGORİLER';body=`<div class="card list">${state.categories.map(c=>`<div class="item"><div class="ico">•</div><div><b>${c}</b></div></div>`).join('')}</div>`}
+ if(k==='theme'){const t=state.settings.theme||defaults.settings.theme;title='TEMA STÜDYOSU';body=`<form onsubmit="submitTheme(event)"><div class="themePreview"><div class="themePreviewTop">RUTİN</div><div class="themePreviewCard"><b>ÖNİZLEME</b><span>RENKLERİ KAYDETMEDEN DEĞİŞTİR</span></div></div><div class="themeGrid">${colorField('bg','ARKA PLAN',t.bg)}${colorField('panel','KART / PANEL',t.panel)}${colorField('gold','VURGU / GOLD',t.gold)}${colorField('green','GELİR',t.green)}${colorField('red','HARCAMA',t.red)}${colorField('blue','SAATLİK',t.blue)}</div><div class="appearanceSwitch">
+     <button type="button" class="${(state.settings.appearance||'dark')==='dark'?'active':''}" onclick="setAppearance('dark')">KARANLIK MOD</button>
+     <button type="button" class="${(state.settings.appearance||'dark')==='light'?'active':''}" onclick="setAppearance('light')">AÇIK MOD</button>
+   </div>
+   <button class="primary">TEMAYI KAYDET</button><button type="button" class="secondary" onclick="resetTheme()">VARSAYILANA DÖN</button></form>`}
+ if(k==='profile'){title='PROFİL';body=`<form onsubmit="submitProfile(event)">
+<div class="profilePhotoEditor">
+  <div class="profilePhotoPreview">${state.profile.photo?`<img id="profilePhotoPreviewImg" src="${state.profile.photo}" alt="">`:`<div id="profilePhotoPreviewFallback">${(state.profile.name||'R')[0]}</div>`}</div>
+  <div class="profilePhotoActions">
+    <button type="button" class="secondary" onclick="document.getElementById('profilePhotoInput').click()">FOTOĞRAF SEÇ</button>
+    ${state.profile.photo?`<button type="button" class="secondary dangerBtn" onclick="removeProfilePhoto()">FOTOĞRAFI KALDIR</button>`:''}
+  </div>
+  <input id="profilePhotoInput" type="file" accept="image/*" hidden onchange="previewProfilePhoto(event)">
+</div>
+${field('name','AD',state.profile.name)}
+${field('motto','MOTTO',state.profile.motto)}
+${field('dailyRate','GÜNLÜK ÜCRET',state.settings.dailyRate,'number')}
+${field('hourlyRate','SAATLİK ÜCRET',state.settings.hourlyRate,'number')}
+${field('overtimeRate','MESAİ SAATLİK ÜCRET',state.settings.overtimeRate,'number')}
+<input type="hidden" name="photo" id="profilePhotoData" value="${state.profile.photo||''}">
+<button class="primary">KAYDET</button></form>`}
+ if(k==='range'){title='TARİH ARALIĞI';body=`${field('start','BAŞLANGIÇ',iso(new Date(new Date().getFullYear(),new Date().getMonth(),1)),'date')}${field('end','BİTİŞ',iso(),'date')}<button class="primary" onclick="closeModal()">UYGULA</button>`}
+ if(k==='menu'){title='MENÜ';body=`<div class="quick" style="grid-template-columns:repeat(2,1fr)"><button onclick="go('calendar')"><i>▦</i>TAKVİM</button><button onclick="go('investments')"><i>↗</i>YATIRIM</button><button onclick="go('notes')"><i>✎</i>NOTLAR</button><button onclick="go('settings')"><i>⚙</i>AYARLAR</button></div>`}
+ return `<div class="modal" onclick="safeBackdropClose(event)"><div class="sheet" onclick="event.stopPropagation()"><div class="sheetHead"><b>${title}</b><button class="close" type="button" onclick="event.preventDefault();event.stopPropagation();closeModal();return false">×</button></div>${body}</div></div>`;
+}
+
+function submitDaily(e){
+ e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+ state.work.push({id:uid(),type:'daily',date:d.date,title:upper(d.title||'ANA İŞ'),amount:+d.amount||0,note:d.note||''});
+ if(d.road==='yes'&&+d.roadAmount>0)state.expenses.push({id:uid(),date:d.date,title:'YOL',amount:+d.roadAmount,category:'YOL',method:'NAKİT',note:'ÇALIŞMA YOL MASRAFI'});
+ save();closeModal();render()
+}
+function submitHourly(e){
+ e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+ state.work.push({id:uid(),type:'hourly',date:d.date,title:upper(d.title||'EK İŞ'),hours:+d.hours||0,rate:+d.rate||0,amount:(+d.hours||0)*(+d.rate||0),note:d.note||''});
+ if(d.road==='yes'&&+d.roadAmount>0)state.expenses.push({id:uid(),date:d.date,title:'YOL',amount:+d.roadAmount,category:'YOL',method:'NAKİT',note:'ÇALIŞMA YOL MASRAFI'});
+ save();closeModal();render()
+}
+function submitOvertime(e){
+ e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+ state.work.push({id:uid(),type:'overtime',date:d.date,title:upper(d.title||'MESAİ'),hours:+d.hours||0,rate:+d.rate||0,amount:(+d.hours||0)*(+d.rate||0),note:d.note||''});
+ save();closeModal();render()
+}
+function submitExpense(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());state.expenses.push({id:uid(),date:d.date,title:upper(d.category),amount:+d.amount||0,category:d.category,method:d.method,note:d.note||''});save();modal=null;screen='finance';render()}
+function submitIncome(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());state.incomes.push({id:uid(),date:d.date,title:upper(d.title||'GELİR'),amount:+d.amount||0});save();closeModal();render()}
+function submitNote(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());state.notes.push({id:uid(),date:iso(),title:upper(d.title||'NOT'),text:d.text||''});save();closeModal();render()}
+function submitInvestment(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());state.investments.push({id:uid(),date:d.date,title:upper(d.title||'YATIRIM'),amount:+d.amount||0});save();closeModal();render()}
+let cropState={src:'',zoom:1,x:0,y:0,dragging:false,startX:0,startY:0,lastX:0,lastY:0};
+
+function previewProfilePhoto(e){
+ const f=e.target.files?.[0];if(!f)return;
+ if(!f.type.startsWith('image/')){alert('LÜTFEN BİR RESİM DOSYASI SEÇ.');return;}
+ const reader=new FileReader();
+ reader.onload=()=>{
+   cropState={src:reader.result,zoom:1,x:0,y:0,dragging:false,startX:0,startY:0,lastX:0,lastY:0};
+   openCropEditor();
+ };
+ reader.readAsDataURL(f);
+}
+
+function openCropEditor(){
+ const overlay=document.createElement('div');
+ overlay.id='cropOverlay';
+ overlay.className='cropOverlay';
+ overlay.innerHTML=`
+   <div class="cropSheet">
+     <div class="cropHead"><b>PROFİL FOTOĞRAFINI AYARLA</b><button type="button" onclick="closeCropEditor()">×</button></div>
+     <div class="cropStageWrap">
+       <canvas id="cropCanvas" width="320" height="320"></canvas>
+       <div class="cropCircleGuide"></div>
+     </div>
+     <div class="cropControls">
+       <label>YAKINLAŞTIR</label>
+       <input id="cropZoom" type="range" min="1" max="3.5" step="0.01" value="1" oninput="setCropZoom(this.value)">
+     </div>
+     <div class="cropHint">RESMİ PARMAĞINLA / MOUSE İLE TAŞI · İSTEDİĞİN KAREYİ ORTALA</div>
+     <div class="cropActions">
+       <button type="button" class="secondary" onclick="closeCropEditor()">İPTAL</button>
+       <button type="button" class="primary" onclick="useCrop()">KADRAJI KULLAN</button>
+     </div>
+   </div>`;
+ document.body.appendChild(overlay);
+ initCropCanvas();
+}
+
+function closeCropEditor(){
+ document.getElementById('cropOverlay')?.remove();
+ const input=$('#profilePhotoInput'); if(input)input.value='';
+}
+
+function initCropCanvas(){
+ const canvas=document.getElementById('cropCanvas');
+ if(!canvas)return;
+ const img=new Image();
+ img.onload=()=>{
+   cropState.img=img;
+   cropState.x=0;cropState.y=0;cropState.zoom=1;
+   drawCrop();
+ };
+ img.src=cropState.src;
+
+ const pos=(ev)=>{
+   const r=canvas.getBoundingClientRect();
+   const p=ev.touches?.[0]||ev.changedTouches?.[0]||ev;
+   return {x:(p.clientX-r.left)*(canvas.width/r.width),y:(p.clientY-r.top)*(canvas.height/r.height)};
+ };
+ const down=(ev)=>{
+   ev.preventDefault();
+   const p=pos(ev);
+   cropState.dragging=true;cropState.startX=p.x;cropState.startY=p.y;cropState.lastX=cropState.x;cropState.lastY=cropState.y;
+ };
+ const move=(ev)=>{
+   if(!cropState.dragging)return;
+   ev.preventDefault();
+   const p=pos(ev);
+   cropState.x=cropState.lastX+(p.x-cropState.startX);
+   cropState.y=cropState.lastY+(p.y-cropState.startY);
+   clampCrop();
+   drawCrop();
+ };
+ const up=()=>{cropState.dragging=false};
+
+ canvas.addEventListener('mousedown',down);
+ canvas.addEventListener('mousemove',move);
+ window.addEventListener('mouseup',up,{once:false});
+ canvas.addEventListener('touchstart',down,{passive:false});
+ canvas.addEventListener('touchmove',move,{passive:false});
+ canvas.addEventListener('touchend',up,{passive:true});
+}
+
+function setCropZoom(v){
+ cropState.zoom=+v||1;
+ clampCrop();
+ drawCrop();
+}
+
+function cropGeometry(){
+ const c=320,img=cropState.img;
+ if(!img)return null;
+ const base=Math.max(c/img.width,c/img.height);
+ const scale=base*cropState.zoom;
+ const w=img.width*scale,h=img.height*scale;
+ return {c,scale,w,h};
+}
+
+function clampCrop(){
+ const g=cropGeometry();if(!g)return;
+ const maxX=Math.max(0,(g.w-g.c)/2),maxY=Math.max(0,(g.h-g.c)/2);
+ cropState.x=Math.max(-maxX,Math.min(maxX,cropState.x));
+ cropState.y=Math.max(-maxY,Math.min(maxY,cropState.y));
+}
+
+function drawCrop(){
+ const canvas=document.getElementById('cropCanvas'),img=cropState.img;if(!canvas||!img)return;
+ const ctx=canvas.getContext('2d'),g=cropGeometry();
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+ const dx=(g.c-g.w)/2+cropState.x,dy=(g.c-g.h)/2+cropState.y;
+ ctx.drawImage(img,dx,dy,g.w,g.h);
+
+ // dim outside circular crop
+ ctx.save();
+ ctx.fillStyle='rgba(0,0,0,.52)';
+ ctx.beginPath();ctx.rect(0,0,g.c,g.c);
+ ctx.arc(g.c/2,g.c/2,g.c*.40,0,Math.PI*2,true);
+ ctx.fill('evenodd');
+ ctx.restore();
+
+ ctx.beginPath();
+ ctx.arc(g.c/2,g.c/2,g.c*.40,0,Math.PI*2);
+ ctx.strokeStyle='#d7b45c';
+ ctx.lineWidth=3;
+ ctx.stroke();
+}
+
+function useCrop(){
+ const srcCanvas=document.getElementById('cropCanvas');if(!srcCanvas||!cropState.img)return;
+ const out=document.createElement('canvas');
+ out.width=512;out.height=512;
+ const ctx=out.getContext('2d');
+
+ // reproduce image transform into a square, without dark mask
+ const g=cropGeometry();
+ const cropR=g.c*.40, cropSize=cropR*2;
+ const sourceX=g.c/2-cropR,sourceY=g.c/2-cropR;
+
+ const temp=document.createElement('canvas');
+ temp.width=g.c;temp.height=g.c;
+ const tctx=temp.getContext('2d');
+ const dx=(g.c-g.w)/2+cropState.x,dy=(g.c-g.h)/2+cropState.y;
+ tctx.drawImage(cropState.img,dx,dy,g.w,g.h);
+
+ ctx.drawImage(temp,sourceX,sourceY,cropSize,cropSize,0,0,512,512);
+
+ const data=out.toDataURL('image/jpeg',0.9);
+ const hidden=$('#profilePhotoData');
+ if(hidden)hidden.value=data;
+ const wrap=document.querySelector('.profilePhotoPreview');
+ if(wrap)wrap.innerHTML=`<img id="profilePhotoPreviewImg" src="${data}" alt="">`;
+ closeCropEditor();
+}
+
+function removeProfilePhoto(){
+ const hidden=$('#profilePhotoData');
+ if(hidden)hidden.value='';
+ const wrap=document.querySelector('.profilePhotoPreview');
+ if(wrap)wrap.innerHTML=`<div id="profilePhotoPreviewFallback">${(state.profile.name||'R')[0]}</div>`;
+}
+function submitProfile(e){
+ e.preventDefault();
+ const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+ state.profile.name=upper(d.name||'ZAZOHAN');
+ state.profile.motto=upper(d.motto||'');
+ state.profile.photo=d.photo||'';
+ state.settings.dailyRate=+d.dailyRate||0;
+ state.settings.hourlyRate=+d.hourlyRate||0;
+ state.settings.overtimeRate=+d.overtimeRate||0;
+ save();
+ closeModal();
+ render();
+}
+let dayTouchX=0;
+function dayTouchStart(e){dayTouchX=e.changedTouches?.[0]?.clientX||0}
+function dayTouchEnd(e,ds){const x=e.changedTouches?.[0]?.clientX||0,d=x-dayTouchX;if(Math.abs(d)>55)shiftDayModal(ds,d<0?1:-1)}
+function submitEditWork(e,id,oldDs){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries()),x=state.work.find(z=>z.id===id);if(!x)return; x.date=d.date;x.title=upper(d.title||x.title||'');x.note=d.note||'';if(x.type==='daily'){x.amount=+d.amount||0}else{x.hours=+d.hours||0;x.rate=+d.rate||0;x.amount=x.hours*x.rate}save();modal='day:'+x.date;render()}
+function submitEditExpense(e,id,oldDs){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries()),x=state.expenses.find(z=>z.id===id);if(!x)return;x.amount=+d.amount||0;x.category=upper(d.category||x.category||'DİĞER');x.title=x.category;x.method=upper(d.method||x.method||'NAKİT');x.person=d.person||'';x.date=d.date;x.note=d.note||'';save();modal='day:'+x.date;render()}
+function deleteExpense(id,ds){state.expenses=state.expenses.filter(x=>x.id!==id);save();modal='day:'+ds;render()}
+function deleteWork(id,ds){state.work=state.work.filter(x=>x.id!==id);save();modal=`day:${ds}`;render()}
+function previewTheme(e){const f=e.currentTarget.form;if(!f)return;const d=Object.fromEntries(new FormData(f).entries()),r=document.documentElement.style;for(const k of ['bg','panel','gold','green','red','blue'])if(d[k])r.setProperty(`--${k}`,d[k]);r.setProperty('--gold2',d.gold||state.settings.theme.gold)}
+function setAppearance(mode){
+ state.settings.appearance=mode==='light'?'light':'dark';
+ save();applyAppearance();render();
+}
+function toggleAppearance(){
+ setAppearance((state.settings.appearance||'dark')==='dark'?'light':'dark');
+}
+function submitTheme(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());state.settings.theme={bg:d.bg,panel:d.panel,gold:d.gold,green:d.green,red:d.red,blue:d.blue};save();applyTheme();closeModal();render()}
+function resetTheme(){state.settings.theme=structuredClone(defaults.settings.theme);save();applyTheme();closeModal();render()}
+function submitCard(e,editId=''){
+ e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+ const x={id:editId||uid(),name:upper(d.name||'KREDİ KARTI'),balance:+d.balance||0,limit:+d.limit||0,dueDate:d.dueDate||''};
+ if(editId){const i=state.cards.findIndex(z=>z.id===editId);state.cards[i]=x}else state.cards.push(x);
+ save();closeModal();render()
+}
+function deleteCard(id){state.cards=state.cards.filter(x=>x.id!==id);save();closeModal();render()}
+function submitFlex(e,editId=''){
+ e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+ const x={id:editId||uid(),name:upper(d.name||'ESNEK HESAP'),balance:+d.balance||0,limit:+d.limit||0,dueDate:d.dueDate||''};
+ if(editId){const i=state.flexAccounts.findIndex(z=>z.id===editId);state.flexAccounts[i]=x}else state.flexAccounts.push(x);
+ save();closeModal();render()
+}
+function deleteFlex(id){state.flexAccounts=state.flexAccounts.filter(x=>x.id!==id);save();closeModal();render()}
+function submitCash(e){e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());state.accounts.cash.balance=+d.cash||0;save();closeModal();render()}
+function submitSecurity(e){
+ e.preventDefault();
+ const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+ const wantLock=d.lock==='1';
+
+ if(!wantLock){
+   state.settings.lock=false;
+   state.settings.pin='';
+   save();
+
+   unlocked=true;
+   modal=null;
+   cleanPin={mode:null,buffer:'',first:''};
+
+   alert('UYGULAMA KİLİDİ KAPATILDI.');
+   render();
+   return;
+ }
+
+ state.settings.lock=true;
+ save();
+
+ modal=null;
+ unlocked=false;
+ cleanPin={mode:state.settings.pin?'login':'create',buffer:'',first:''};
+ render();
+}
+function submitReminders(e){
+ e.preventDefault();
+ const d=Object.fromEntries(new FormData(e.currentTarget).entries());
+ state.settings.reminders=d.reminders==='1';
+ state.settings.reminderDays=Math.max(0,+d.reminderDays||0);
+ state.settings.morningReminder=d.morningReminder==='1';
+ state.settings.morningReminderTime=d.morningReminderTime||'07:00';
+ state.settings.nightReminder=d.nightReminder==='1';
+ state.settings.nightReminderTime=d.nightReminderTime||'22:00';
+ save();closeModal();render();
+}
+
+
+function downloadBackup(){
+ const blob=new Blob([JSON.stringify({format:'RUTIN-BACKUP-V3',created:new Date().toISOString(),state},null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`RUTIN-YEDEK-${iso()}.rutin`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+}
+function exportData(){
+ const payload={format:'RUTIN-DATA-V6',created:new Date().toISOString(),state};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download=`RUTIN-VERI-${iso()}.json`;
+ a.click();
+ setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function dailyReminderMessageRaw(){
+ const now=new Date();
+ const hh=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+ const today=iso();
+ const todaysWork=state.work.some(x=>x.date===today);
+ const todaysExpense=state.expenses.some(x=>x.date===today);
+ const msgs=[];
+ if(state.settings.morningReminder && hh>=state.settings.morningReminderTime && hh<'12:00'){
+   msgs.push('BUGÜNKÜ ÇALIŞMA VE HARCAMA KAYITLARINI EKLEMEYİ UNUTMA.');
+ }
+ if(state.settings.nightReminder && hh>=state.settings.nightReminderTime){
+   if(!(todaysWork && todaysExpense)){
+     msgs.push('BUGÜNÜ KAPATMADAN ÇALIŞMA, MESAİ VE HARCAMALARINI KONTROL ET.');
+   }
+ }
+ return msgs;
+}
+function dailyReminderMessage(){return dailyReminderMessageRaw()}
+function reminderItems(){return reminderItemsRaw()}
+function dailyReminderBanner(){
+ const a=dailyReminderMessage();if(!a.length)return'';
+ return `<div class="reminderBanner dailyReminder"><b>◔ GÜNLÜK HATIRLATMA</b>${a.map(x=>`<span>${x}</span>`).join('')}</div>`;
+}
+function reminderItemsRaw(){
+ if(!state.settings.reminders)return[];
+ const today=new Date(iso()+'T12:00:00'),days=state.settings.reminderDays||0,all=[
+  ...state.cards.filter(x=>x.dueDate).map(x=>({name:x.name,date:x.dueDate,type:'KART'})),
+  ...state.flexAccounts.filter(x=>x.dueDate).map(x=>({name:x.name,date:x.dueDate,type:'ESNEK HESAP'}))
+ ];
+ return all.filter(x=>{const d=new Date(x.date+'T12:00:00'),diff=Math.ceil((d-today)/86400000);return diff>=0&&diff<=days})
+}
+
+let hiddenAt=0;
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){
+    hiddenAt=Date.now();
+    return;
+  }
+  if(document.visibilityState==='visible'){
+    if(state.settings.lock && hiddenAt && (Date.now()-hiddenAt)>=15000){
+      unlocked=false;
+      modal=null;
+      render();
+    }
+    hiddenAt=0;
+  }
+});
+window.addEventListener('pagehide',()=>{
+  cropState.dragging=false;
+},{passive:true});
+applyTheme();
+applyAppearance();
+render();
+if('serviceWorker' in navigator){
+  let swRefreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(swRefreshing) return;
+    swRefreshing=true;
+    location.reload();
+  });
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js?v=43.18.0-clean-stable',{updateViaCache:'none'}).then(reg=>{
+      const activateWaiting=()=>{
+        if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+      };
+      activateWaiting();
+      reg.addEventListener('updatefound',()=>{
+        const worker=reg.installing;
+        if(!worker) return;
+        worker.addEventListener('statechange',()=>{
+          if(worker.state==='installed' && navigator.serviceWorker.controller){
+            worker.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+      reg.update().catch(()=>{});
+    }).catch(()=>{});
+  });
+}

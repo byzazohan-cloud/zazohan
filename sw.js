@@ -1,26 +1,15 @@
-const CACHE='zazo-player-v1-3-6';
-const APP=['./','index.html','styles.css','config.js','app.js','manifest.webmanifest','icon.svg','icon-180.png','icon-192.png','icon-512.png'];
-const APP_URLS=new Set(APP.map(x=>new URL(x,self.registration.scope).href));
-const INDEX_URL=new URL('index.html',self.registration.scope).href;
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('zazo-player-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',e=>{
-  if(e.request.method!=='GET')return;
-  const u=new URL(e.request.url);
-  if(u.origin!==location.origin)return;
-  u.hash='';u.search='';
-  const normalized=u.href;
-  const isAppShell=APP_URLS.has(normalized);
-  if(isAppShell){
-    e.respondWith((async()=>{
-      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),3500);
-      try{const r=await fetch(e.request,{signal:controller.signal});if(!r||!r.ok)throw new Error('network');const copy=r.clone();caches.open(CACHE).then(c=>c.put(normalized,copy));return r}
-      catch{const c=await caches.open(CACHE),hit=await c.match(normalized);return hit||(await caches.match(INDEX_URL))}
-      finally{clearTimeout(timer)}
-    })());
-  }else if(e.request.mode==='navigate'){
-    e.respondWith(fetch(e.request).catch(async()=>{const c=await caches.open(CACHE);return (await c.match(INDEX_URL))||Response.error()}));
-  }else{
-    e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
-  }
-});
+const CACHE='rutin-v43.18.7-z-preview-1';
+const CORE=['./','./index.html','./styles.css','./z-design.css','./app.js','./legacy.js','./calendar.js','./records.js','./work.js','./finance.js','./ui.js','./accounting.js','./v43165_cards_allowance.js','./v431651_integrity_fix.js','./v43166_calendar_categories.js','./v43167_report_quickfix.js','./v43168_navigation_interaction.js','./v43169_report_road_fix.js','./v431691_stable_fix.js','./v4317_standard_migration.js','./v43171_quick_calendar_fix.js','./v43172_real_quick_calendar_fix.js','./v43173_calendar_restore.js','./v43174_integrity_reports.js','./v43175_finance_edit_reminders.js','./v43176_finance_details_reports.js','./manifest.json','./icon-180.png','./icon-512.png','./rutin-logo.png','./rutin-mark.png','./lock-mountain.jpg',
+  'v43177_card_statement_design.js',
+  "v43178_flex_finance_standard.js",
+  "v43179_final_integrity.js",
+  "v43182_finance_platinum_cards.js",
+  "v43183_vertical_card_statement_fix.js",
+  "v43184_card_info_design.js",
+  "v43185_backup_restore.js",
+  "v43186_salary_compact_ui.js",
+  "v43187_premium_cleanup.js"
+];
+self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE);await Promise.allSettled(CORE.map(url=>cache.add(url)));await self.skipWaiting();})());});
+self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim();})());});
+self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.origin!==self.location.origin)return;event.respondWith((async()=>{try{const fresh=await fetch(event.request,{cache:'no-store'});if(fresh&&fresh.ok){const cache=await caches.open(CACHE);cache.put(event.request,fresh.clone()).catch(()=>{});}return fresh;}catch(_){return(await caches.match(event.request))||(await caches.match('./index.html'));}})());});
