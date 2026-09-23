@@ -1,0 +1,8 @@
+ZAZOHAN V0.1.0 — CENTRAL BASE
+- Temel: kilit HANE S19 FIX7 kopyası; kaynak HANE ZIP değiştirilmedi.
+- ZAZOHAN merkezi veri namespace'i eklendi: ZAZOHAN_CENTRAL_V1.
+- Finans / iş / organizasyon / bağlantılar / HAN / import alanları tek merkezi şemada tanımlandı.
+- RUTIN-BACKUP-V3 ve HANE-state yedeklerini tanıyan güvenli staging katmanı eklendi.
+- İçe aktarma bu sürümde otomatik birleştirme yapmaz; kaynak snapshot korunur.
+- RUTİN work/accounting/finance/records/calendar modülleri kaynak olarak pakete alındı, henüz doğrudan çalıştırılmıyor.
+- Sonraki adım: merkezi şemayı mevcut HANE ekranlarına ve RUTİN çalışma ekranlarına bağlamak.

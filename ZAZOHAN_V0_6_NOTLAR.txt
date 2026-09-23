@@ -1,0 +1,8 @@
+ZAZOHAN V0.6.0 — HAN MUTABAKAT İNCELEME
+
+- HAN ekranına HANE ↔ RUTİN olası eşleşmeleri eklendi.
+- İncele ekranında HANE ve RUTİN kayıtları yan yana gösterilir.
+- AYNI KAYIT: merkezi eşdeğer bağlantısı oluşturur.
+- FARKLI KAYIT: çiftin ayrı kayıt olduğunu kalıcı olarak işaretler.
+- Karar verilen bulgu HAN listesinden çıkar ve reviewed geçmişine yazılır.
+- Hiçbir finans kaydı otomatik silinmez/değiştirilmez.

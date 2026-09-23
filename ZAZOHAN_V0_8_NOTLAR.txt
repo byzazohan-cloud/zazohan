@@ -1,0 +1,3 @@
+ZAZOHAN V0.8.0 - CENTRAL CALENDAR
+HANE finans hareketleri + çalışma + mesai + açık alacak + tahsilat + yol giderleri tek takvimde birleştirildi.
+Yol giderleri mevcut Ulaşım gideri üzerinden gösterilir; ikinci kez oluşturulmaz.

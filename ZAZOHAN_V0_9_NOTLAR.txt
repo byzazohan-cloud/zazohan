@@ -1,0 +1,6 @@
+ZAZOHAN V0.9.0 - CENTRAL FINANCE
+
+HANE finans katmani merkezi ZAZOHAN veri deposuna tam ayna olarak baglandi.
+Merkezde: gelirler, giderler, kartlar, kart islemleri, kart odemeleri, esnek hesaplar, esnek hesap islemleri, sabit gider odemeleri, ekstre importlari/kurallari, hesaplar, kategoriler, taksitler.
+Aylik hesap ve raporlar ayni state uzerinden hesaplandigi icin merkezi finans kaynagi ile tutarlidir.
+Kayit islemleri mevcut HANE save() akisi uzerinden her degisiklikte merkeze senkronlanir.

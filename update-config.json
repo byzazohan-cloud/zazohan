@@ -1,0 +1,9 @@
+{
+  "latestVersion": "0.12.0",
+  "minimumVersion": "0.12.0",
+  "force": true,
+  "message": "ZAZOHAN V0.12.0: genel fonksiyon taraması, PWA cache/build uyumu ve çalışma zamanı düzeltmeleri.",
+  "updateUrl": "",
+  "build": "20260924-ZAZOHAN-V0.12.0",
+  "version": "0.12.0"
+}

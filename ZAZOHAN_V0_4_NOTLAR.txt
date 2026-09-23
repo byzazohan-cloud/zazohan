@@ -1,0 +1,8 @@
+ZAZOHAN V0.4.0 - RUTIN IMPORT COMPLETE
+- RUTIN-BACKUP-V3 gerçek dosya seçimi
+- Merkezi veri deposuna güvenli import
+- Çalışma kayıtlarını görünür Çalışma Merkezi ile birleştirme
+- workId bağlı yol giderlerini Ulaşım olarak taşıma
+- Kaynak kimliğiyle tekrar importta mükerrer önleme
+- Eski RUTIN yedeğinde ödeme durumu yoksa gelir/alacak uydurmama
+- HANE ve RUTIN kaynak dosyalarına dokunulmaz

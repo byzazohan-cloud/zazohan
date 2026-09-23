@@ -1,0 +1,8 @@
+ZAZOHAN V0.11.0 — UI UNIFIED
+
+- Görünen ana uygulama kimliği ZAZOHAN altında birleştirildi.
+- Kurulum, kilit, kimlik, ekstre karşılaştırma ve hata ekranlarındaki eski HANE marka metinleri ZAZOHAN yapıldı.
+- HANE/RUTİN ifadeleri yalnız kaynak/migrasyon ayrımı gereken yerlerde korundu.
+- HANE üyeleri gibi işlevsel hane kavramları korunmuştur.
+- Legacy şifreleme anahtarları, storage keyleri ve HANE/RUTİN yedek formatları uyumluluk için değiştirilmedi.
+- Yedekleme sistemi bu aşamada değiştirilmedi.

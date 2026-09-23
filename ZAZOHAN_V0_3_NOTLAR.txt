@@ -1,0 +1,9 @@
+ZAZOHAN V0.3.0 — CENTRAL WORKFLOW
+- Ana sayfa Hızlı Erişim'e ÇALIŞMA eklendi.
+- Günlük / Saatlik / Mesai kayıt ekranı eklendi.
+- Ödeme alınmadı -> merkezi ALACAK kaydı.
+- Ödeme alındı -> merkezi GELİR kaydı.
+- Yol gideri -> merkezi ULAŞIM gideri ve çalışma bağlantısı.
+- Çalışma düzenleme/silme bağlı gelir, alacak ve yol kaydını birlikte günceller.
+- Merkezi çekirdek HANE/ZAZOHAN state içindeki work + receivables verisini senkronlar.
+- Kaynak HANE ve RUTIN paketleri değiştirilmedi.

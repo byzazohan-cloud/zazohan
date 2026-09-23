@@ -1,0 +1,9 @@
+ZAZOHAN V0.7.0 — CENTRAL WORK PAYMENT FLOW
+
+- Çalışma -> ödeme alınmadı -> açık alacak bağlantısı tamamlandı.
+- Açık alacak için ÖDEME ALINDI akışı eklendi.
+- Tahsil edilen alacak otomatik ve tekil olarak gelire bağlanır.
+- Çalışma kaydı düzenlenince bağlı gelir/alacak/yol kayıtları yeniden tutarlı kurulur.
+- Yol giderinde kredi kartı seçimi zorunlu ve kart bağlantısı korunur.
+- Çalışma silinince bağlı gelir/alacak/yol gideri birlikte temizlenir.
+- Merkezi save -> ZAZOHAN_CORE senkronu korunur.

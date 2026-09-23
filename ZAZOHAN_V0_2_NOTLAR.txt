@@ -1,0 +1,9 @@
+ZAZOHAN V0.2.0 — CENTRAL WORK DATA
+- HANE günlük kullanım verisi her save() işleminde merkezi ZAZOHAN modeline kopyalanır.
+- HANE'nin kendi şifreli kayıt sistemi değiştirilmez.
+- RUTIN-BACKUP-V3 için gerçek dönüştürücü eklendi.
+- RUTİN çalışma, yol, gider, gelir, kart, hesap, kategori, yatırım ve not verileri merkezi modele alınabilir.
+- Kaynak kimlikleri _source / _sourceId ile korunur; aynı yedek tekrar alınırsa kaynak kimliğine göre çoğaltma engellenir.
+- RUTİN yol kayıtları work.roadPayments altında da ilişkilendirilir.
+- Çalışma kayıtlarından merkezi takvim bağlantıları oluşturulur.
+- Bu sürüm veri entegrasyon aşamasıdır; RUTİN ekranları henüz HANE arayüzüne eklenmedi.

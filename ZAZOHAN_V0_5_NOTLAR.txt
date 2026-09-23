@@ -1,0 +1,5 @@
+ZAZOHAN V0.5.0 — HANE ↔ RUTİN FİNANS EŞLEŞTİRME
+- Merkezi HANE senkronu artık RUTİN kaynak kayıtlarını ezmez.
+- Aynı tarih + aynı tutar benzersiz çiftler kesin eşleşir ve bağlantı olarak saklanır.
+- Aynı tutar ±2 gün adayları olası eşleşme olarak HAN bulgularına yazılır.
+- Hiçbir finans kaydı otomatik silinmez/değiştirilmez.

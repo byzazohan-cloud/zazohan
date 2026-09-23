@@ -1,0 +1,4 @@
+ZAZOHAN V0.10.0 — HAN FULL AUDIT
+
+HAN artık finans + çalışma + alacak + gelir + yol + merkezi bağlantılar + merkez senkronu + RUTİN aktarım kayıtlarını tek taramada denetler.
+Finansal kayıtları otomatik değiştirmez.

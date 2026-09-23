@@ -1,0 +1,10 @@
+ZAZOHAN V0.12.0 – FUNCTION AUDIT FIX
+
+- Genel JS/JSON taraması yapıldı.
+- Kritik service-worker/app build el sıkışma uyuşmazlığı düzeltildi.
+- PWA cache adı güncel sürüme taşındı; eski cache zincirinin sürmesi engellendi.
+- manifest start_url/version güncellendi.
+- update-config ZAZOHAN sürümüyle hizalandı.
+- Kimlik ve veri silme ekranlarında kalan kullanıcıya görünen HANE ifadeleri ZAZOHAN yapıldı.
+- Legacy storage anahtarları, ekstre motoru yolları ve HANE/RUTIN kaynak kimlikleri uyumluluk için değiştirilmedi.
+- Yedekleme/geri yükleme sistemi bu aşamada değiştirilmedi.
