@@ -1,0 +1,9 @@
+ZAZOHAN V0.13.0 - HAN 2.0
+- Aynı gün + aynı kart/kaynak + aynı kategori + yakın tutar taraması eklendi.
+- Birebir mükerrer harcama taraması güçlendirildi.
+- 0,51 TL gibi küçük tutar farkları artık şüpheli çift olarak yakalanabilir.
+- Açıklama benzerliği neden metnine eklenir.
+- Eksik gider açıklaması/kategorisi ve gelecek tarihli gider denetimi eklendi.
+- Yeterli kategori geçmişi varsa olağandışı yüksek harcama kontrolü eklendi.
+- HAN otomatik silmez, birleştirmez veya finans kaydı değiştirmez.
+- Bunda Sıkıntı Yok kararı mevcut HAN karar hafızasıyla korunur.

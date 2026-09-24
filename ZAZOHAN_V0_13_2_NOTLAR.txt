@@ -1,0 +1,10 @@
+ZAZOHAN V0.13.2 – AUDIT + TASARIM DENGESİ
+
+- Uygulama JS/JSON ve sürüm zinciri tarandı.
+- Çalışma modülündeki yinelenen fonksiyon tanımları temizlendi.
+- manifest / index / service worker / update-config 0.13.2 ile hizalandı.
+- Ana sayfadaki eski HANE erişilebilirlik etiketi ZAZOHAN olarak düzeltildi.
+- Çalışma ücretinde 0 tutarlı hatalı kayıt engellendi; saatlik/mesai için saat ve ücret doğrulaması güçlendirildi.
+- Çalışma ekranı kart, boşluk, tipografi, filtre ve dar telefon görünümünde dengelendi.
+- Açık alacak başlığı aylık özetle karışmayacak biçimde netleştirildi.
+- Mevcut veri modeli ve finans bağlantıları korunmuştur.

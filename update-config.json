@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.12.0",
-  "minimumVersion": "0.12.0",
+  "latestVersion": "0.13.2",
+  "minimumVersion": "0.13.2",
   "force": true,
-  "message": "ZAZOHAN V0.12.0: genel fonksiyon taraması, PWA cache/build uyumu ve çalışma zamanı düzeltmeleri.",
+  "message": "ZAZOHAN V0.13.2: uygulama tarandı; Çalışma ekranı dengelendi ve sürüm tutarlılığı düzeltildi.",
   "updateUrl": "",
-  "build": "20260924-ZAZOHAN-V0.12.0",
-  "version": "0.12.0"
+  "build": "20260924-ZAZOHAN-V0.13.2",
+  "version": "0.13.2"
 }
