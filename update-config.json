@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.13.4",
-  "minimumVersion": "0.13.4",
+  "latestVersion": "0.13.6",
+  "minimumVersion": "0.13.6",
   "force": true,
-  "message": "ZAZOHAN V0.13.4: Ödeme Dağılımı yenilendi; nakit, kredi kartı ve esnek hesap dağılımı ile detay görünümü eklendi.",
+  "message": "ZAZOHAN V0.13.6: Çalışma kaydına birden fazla yol gideri, ayrı ödeme kaynağı ve kart seçimi eklendi.",
   "updateUrl": "",
-  "build": "20260924-ZAZOHAN-V0.13.4",
-  "version": "0.13.4"
+  "build": "20260924-ZAZOHAN-V0.13.6",
+  "version": "0.13.6"
 }
