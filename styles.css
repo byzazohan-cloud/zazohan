@@ -2568,3 +2568,8 @@ html,body,.phone,.content{overscroll-behavior-x:none!important}.content{touch-ac
 /* V0.13.2 · audit + visual balance */
 .zWorkHead{padding:6px 2px 10px}.zWorkHead h2{font-size:22px}.zWorkSummary{gap:8px;margin-bottom:9px}.zWorkSummary>div{min-width:0;padding:13px 12px;border-radius:16px}.zWorkSummary b{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.zWorkNew{min-height:48px;border-radius:14px}.zWorkFilters{margin:9px 0 2px}.zWorkSection{margin-top:15px}.zWorkList .item,.zReceivableList .item{min-width:0;padding:11px 10px;gap:9px}.zWorkList .item>div:nth-child(2),.zReceivableList .item>div:nth-child(2){min-width:0}.zWorkList .item b,.zReceivableList .item b{overflow:hidden;text-overflow:ellipsis}.zWorkList .right,.zReceivableList .right{min-width:88px;max-width:42%;text-align:right}.zReceivableList .miniAddBtn{white-space:normal;line-height:1.15;padding:7px 8px}.zWorkTypePicker button{min-height:70px;border-radius:15px}.zWorkTypePicker i{width:40px;height:40px}.modal .form .btn{min-height:46px}
 @media(max-width:360px){.zWorkSummary{grid-template-columns:1fr}.zWorkFilters{grid-template-columns:repeat(2,1fr)}.zWorkList .right,.zReceivableList .right{max-width:45%;min-width:78px}.zWorkHead h2{font-size:20px}}
+
+/* ZAZOHAN V0.13.3 — Hızlı erişim dengesi */
+.quick,.v1947Quick,.cleanQuick{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+.quick button{min-width:0!important}
+@media(max-width:390px){.quick,.v1947Quick,.cleanQuick{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}}

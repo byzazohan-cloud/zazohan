@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.13.2",
-  "minimumVersion": "0.13.2",
+  "latestVersion": "0.13.3",
+  "minimumVersion": "0.13.3",
   "force": true,
-  "message": "ZAZOHAN V0.13.2: uygulama tarandı; Çalışma ekranı dengelendi ve sürüm tutarlılığı düzeltildi.",
+  "message": "ZAZOHAN V0.13.3: uygulama tarandı; Çalışma ekranı dengelendi ve sürüm tutarlılığı düzeltildi.",
   "updateUrl": "",
-  "build": "20260924-ZAZOHAN-V0.13.2",
-  "version": "0.13.2"
+  "build": "20260924-ZAZOHAN-V0.13.3",
+  "version": "0.13.3"
 }
