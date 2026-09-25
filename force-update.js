@@ -13,5 +13,5 @@
       await Promise.all(ks.filter(k=>k.startsWith('hane-')).map(k=>caches.delete(k)));
     }
   }catch(e){}
-  location.replace('./?v=0.15.16-CENTRAL-AUDIT&fresh='+Date.now());
+  location.replace('./?v=0.15.16-DESIGN3&fresh='+Date.now());
 })();
