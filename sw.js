@@ -5,7 +5,7 @@
       credentials omitted and no referrer.
    3) Each package tarball is verified with pinned SHA-512 integrity BEFORE any executable
       engine file is extracted/cached.
-   4) Runtime is cache-only: no page/worker request is allowed to reach the network.
+   4) Runtime blocks unknown same-origin resources; mutable verified app-shell files use network-first with cache fallback for safe updates.
 */
 const SW_BUILD = '20260925-HANE-V0.15.16-CENTRAL-AUDIT';
 const CACHE_NAME='hane-0.15.16-central-audit';
@@ -13,8 +13,8 @@ const HANE_CACHE_PREFIX = 'hane-';
 
 
 const APP_SHELL=[
-  './','./index.html','./styles.css','./bootstrap-security.js','./central-core.js','./app-v19.js','./manifest.json','./update-config.json','./force-update.html','./force-update.js',
-  './icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png','./icons/hane-app-icon.png',
+  './','./index.html','./styles.css','./design-system.css','./bootstrap-security.js','./central-core.js','./central-integration.js','./app-v19.js','./manifest.json','./update-config.json','./force-update.html','./force-update.js',
+  './icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png','./icons/hane-app-icon.png','./icons/han-logo.png','./icons/hane-brand-full.jpg',
   './vendor/tesseract/lang/tur.traineddata.gz','./vendor/tesseract/lang/eng.traineddata.gz'
 ];
 

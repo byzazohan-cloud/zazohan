@@ -2643,3 +2643,45 @@ html[data-skin='z'].darkMode .homeTop .officialBrand{
   margin:0!important;
   align-self:auto!important;
 }
+
+/* V0.15.16 AUDIT FIX2 — MAIN LOGO GEOMETRY FIX
+   Header logo is a true square and is centered independently of side controls. */
+.top.homeTop>.brand.brandLogo.officialBrand{
+  width:54px!important;
+  height:54px!important;
+  min-width:54px!important;
+  min-height:54px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  line-height:0!important;
+  overflow:visible!important;
+}
+.top.homeTop>.brand.brandLogo.officialBrand:before{
+  inset:0!important;
+  width:54px!important;
+  height:54px!important;
+  transform:none!important;
+  border-radius:17px!important;
+}
+.top.homeTop>.brand.brandLogo.officialBrand .brandMark,
+html[data-skin='z'].darkMode .top.homeTop>.brand.brandLogo.officialBrand .brandMark{
+  position:relative!important;
+  left:auto!important;
+  top:auto!important;
+  width:40px!important;
+  height:40px!important;
+  min-width:40px!important;
+  min-height:40px!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  object-fit:contain!important;
+  object-position:50% 50%!important;
+  border-radius:12px!important;
+}
+@media(max-width:390px){
+  .top.homeTop>.brand.brandLogo.officialBrand{width:50px!important;height:50px!important;min-width:50px!important;min-height:50px!important}
+  .top.homeTop>.brand.brandLogo.officialBrand:before{width:50px!important;height:50px!important}
+  .top.homeTop>.brand.brandLogo.officialBrand .brandMark{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
+}
