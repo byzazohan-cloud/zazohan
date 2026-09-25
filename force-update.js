@@ -13,5 +13,5 @@
       await Promise.all(ks.filter(k=>(k.startsWith('zazohan-')||k.startsWith('hane-'))).map(k=>caches.delete(k)));
     }
   }catch(e){}
-  location.replace('./?v=0.15.11-NAKIT-PARA&fresh='+Date.now());
+  location.replace('./?v=0.15.12-NAKIT-CALISMA-UI&fresh='+Date.now());
 })();
