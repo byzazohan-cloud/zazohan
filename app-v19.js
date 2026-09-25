@@ -75,8 +75,8 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260925-ZAZOHAN-V0.13.8-LOGO9',
-  brand:Object.freeze({name:'ZAZOHAN',logo:'icons/hane-app-icon.png',logoVersion:'z09-v0138'}),
+  build:'20260925-ZAZOHAN-V0.14.2-KARA-KARTAL-LOGO',
+  brand:Object.freeze({name:'ZAZOHAN',logo:'icons/hane-app-icon.png',logoVersion:'kara-kartal-v0142'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
     Object.freeze({tab:'home',icon:'home',label:'ANA SAYFA'}),
@@ -289,7 +289,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,tara,profile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260925-ZAZOHAN-V0.13.8-LOGO9')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260925-ZAZOHAN-V0.13.8-LOGO9.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260925-ZAZOHAN-V0.14.2-KARA-KARTAL-LOGO')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260925-ZAZOHAN-V0.14.2-KARA-KARTAL-LOGO.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel ZAZOHAN veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -305,7 +305,20 @@ function hanAudit(){
     if(w.paymentStatus==='paid'&&wr.some(x=>x.status!=='paid'))add('bad','ÇALIŞMA','ÖDENMİŞ ÇALIŞMA HALA ALACAK',`${w.title||'Çalışma'} hem ödendi hem açık alacak görünüyor.`,'zWorkEdit',w.id);
     const expectedRoad=+(w.roadAmount||0),linkedRoad=wy.reduce((n,e)=>n+(+(e.actualAmount??e.amount)||0),0);if(expectedRoad>0&&!wy.length)add('warn','ÇALIŞMA','YOL GİDERİ BAĞLANTISI EKSİK',`${w.date||''} · ${w.title||'Çalışma'} · yol ${money(expectedRoad)} · bağlı gider yok`,'zWorkEdit',w.id);if(wy.length&&Math.abs(expectedRoad-linkedRoad)>.01)add('warn','ÇALIŞMA','YOL GİDERİ TOPLAMI UYUŞMUYOR',`${w.date||''} · ${w.title||'Çalışma'} · çalışma ${money(expectedRoad)} · bağlı ${money(linkedRoad)} · ${wy.length} ödeme`,'zWorkEdit',w.id);
    });
-   recvs.forEach(r=>{if(!(works||[]).some(w=>w.id===r.workId))add('bad','ÇALIŞMA','SAHİPSİZ ALACAK',`${r.title||'Alacak'} · bağlı çalışma bulunamadı.`);});
+   // HAN 3.0 · Hane üyesi / takvim / alacak denetimi. Otomatik düzeltme yapmaz; yalnızca şüpheli kayıtları listeler.
+   const members=state.members||[], memberIds=new Set(members.map(m=>String(m.id))), memberDay=new Map();
+   works.filter(w=>w.memberId).forEach(w=>{
+    const k=String(w.memberId)+'|'+String(w.date||''); const rows=memberDay.get(k)||[]; rows.push(w); memberDay.set(k,rows);
+    if(!memberIds.has(String(w.memberId)))add('bad','ÇALIŞMA','ÇALIŞMA ÜYESİ BULUNAMADI',`${w.date||'—'} · ${w.title||'Çalışma'} · bağlı hane üyesi silinmiş veya bulunamıyor.`,'zWorkEdit',w.id);
+    const mem=members.find(m=>String(m.id)===String(w.memberId));
+    if(mem?.startDate&&w.date&&w.date<mem.startDate)add('warn','ÇALIŞMA','İŞE BAŞLAMADAN ÖNCE ÇALIŞMA',`${mem.name||'Üye'} · ${w.date} · işe başlangıç ${mem.startDate}`,'zWorkEdit',w.id);
+    const open=recvs.filter(r=>r.workId===w.id&&r.status!=='paid');
+    if(w.dayStatus==='leave'&&open.length)add('bad','ÇALIŞMA','İZİN GÜNÜNDE ALACAK VAR',`${mem?.name||w.title||'Üye'} · ${w.date||'—'} · izin olarak işaretli ancak ${open.length} açık alacak bağlı.`,'zWorkEdit',w.id);
+    if(w.dayStatus!=='leave'&&w.paymentStatus!=='paid'&&open.length===1){const expected=zWorkAmount(w)+(w.dayStatus==='overtime'?(+mem?.dailyWage||0)/8*(+w.overtimeHours||0):0), actual=+open[0].amount||0;if(Math.abs(expected-actual)>.01)add('warn','ÇALIŞMA','ÇALIŞMA / ALACAK TUTARI UYUŞMUYOR',`${mem?.name||w.title||'Üye'} · ${w.date||'—'} · hesaplanan ${money(expected)}, alacak ${money(actual)}`,'zWorkEdit',w.id);}
+   });
+   memberDay.forEach((rows,k)=>{if(rows.length>1){const [mid,date]=k.split('|'),mem=members.find(m=>String(m.id)===mid);add('bad','ÇALIŞMA','AYNI GÜN MÜKERRER ÇALIŞMA',`${mem?.name||'Hane üyesi'} · ${date||'—'} · ${rows.length} çalışma kaydı var.`,'zWorkEdit',rows[0].id,rows[1]?.id||'')}});
+   recvs.forEach(r=>{const w=works.find(w=>w.id===r.workId);if(!w)add('bad','ÇALIŞMA','SAHİPSİZ ALACAK',`${r.title||'Alacak'} · bağlı çalışma bulunamadı.`);else{if(r.memberId&&w.memberId&&String(r.memberId)!==String(w.memberId))add('bad','ÇALIŞMA','ALACAK KİŞİSİ UYUŞMUYOR',`${r.title||'Alacak'} · alacak ile çalışma farklı hane üyelerine bağlı.`,'zWorkEdit',w.id);if(r.date&&w.date&&r.date!==w.date)add('warn','ÇALIŞMA','ALACAK TARİHİ UYUŞMUYOR',`${r.title||'Alacak'} · çalışma ${w.date}, alacak ${r.date}`,'zWorkEdit',w.id);}});
+   members.forEach(mem=>{if(!mem.startDate)add('warn','ÇALIŞMA','İŞE BAŞLAMA TARİHİ EKSİK',`${mem.name||'Hane üyesi'} için otomatik takvim başlangıcı belirlenemiyor.`);if(!(+mem.dailyWage>0))add('warn','ÇALIŞMA','GÜNLÜK ÜCRET EKSİK',`${mem.name||'Hane üyesi'} için otomatik hakediş hesaplanamıyor.`);if(!String(mem.color||'').trim())add('warn','ÇALIŞMA','ÜYE RENGİ EKSİK',`${mem.name||'Hane üyesi'} takvimde ayırt edilemiyor.`);});
    roads.forEach(r=>{if(!works.some(w=>w.id===r.workId))add('bad','ÇALIŞMA','SAHİPSİZ YOL GİDERİ',`${r.date||''} · ${r.title||'Yol'} · bağlı çalışma bulunamadı.`,'editExpense',r.id);});
    const links=zdb.links||[], lk=new Set();links.forEach(l=>{const k=[l.type,l.haneId||'',l.rutinId||'',l.workId||'',l.financeId||''].join('|');if(lk.has(k))add('warn','BAĞLANTILAR','MÜKERRER MERKEZİ BAĞLANTI',`${l.type||'BAĞLANTI'} · aynı bağlantı birden fazla kayıtlı.`);else lk.add(k)});
    if(!zdb.finance||!Array.isArray(zdb.finance.expenses)||!Array.isArray(zdb.work?.records))add('bad','MERKEZ','MERKEZİ ŞEMA EKSİK','Finans veya çalışma veri alanları beklenen yapıda değil.');

@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.14.0",
-  "minimumVersion": "0.14.0",
+  "latestVersion": "0.14.2",
+  "minimumVersion": "0.14.2",
   "force": true,
-  "message": "ZAZOHAN V0.14.0: Merkezi tasarım siyah/antrasit tabana ve kontrollü kırmızı detaylara geçirildi; buton ve kart geometrileri yenilendi.",
+  "message": "ZAZOHAN V0.14.2: Kara Kartal ana uygulama logosu eklendi; HAN 3.0 ve mevcut çalışma denetimleri korunur.",
   "updateUrl": "",
-  "build": "20260925-ZAZOHAN-V0.14.0",
-  "version": "0.14.0"
+  "build": "20260925-ZAZOHAN-V0.14.2-KARA-KARTAL-LOGO",
+  "version": "0.14.2"
 }
