@@ -2685,3 +2685,17 @@ html[data-skin='z'].darkMode .top.homeTop>.brand.brandLogo.officialBrand .brandM
   .top.homeTop>.brand.brandLogo.officialBrand:before{width:50px!important;height:50px!important}
   .top.homeTop>.brand.brandLogo.officialBrand .brandMark{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
 }
+
+/* V0.15.16 AUDIT FIX3 — SETUP MAIN LOGO VERTICAL POSITION
+   Keep horizontal centering unchanged; lift only the setup logo group. */
+.premiumSetup .setupOfficialLogo{
+  transform:translateY(-24px)!important;
+}
+.premiumSetup .setupBrandLine{
+  transform:translateY(-24px)!important;
+  margin-bottom:-6px!important;
+}
+@media(max-height:760px){
+  .premiumSetup .setupOfficialLogo{transform:translateY(-16px)!important}
+  .premiumSetup .setupBrandLine{transform:translateY(-16px)!important}
+}
