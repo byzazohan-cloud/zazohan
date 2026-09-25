@@ -1,15 +1,15 @@
-/* ZAZOHAN PWA - LOCAL DATA ONLY 35 read-fix verified lazy-engine service worker
+/* HANE PWA - LOCAL DATA ONLY 35 read-fix verified lazy-engine service worker
    SECURITY MODEL
-   1) Personal ZAZOHAN data/documents are never uploaded by this worker.
+   1) Personal HANE data/documents are never uploaded by this worker.
    2) OCR/PDF engine packages are fetched only on explicit PREPARE_ENGINES using fixed npm tarball URLs,
       credentials omitted and no referrer.
    3) Each package tarball is verified with pinned SHA-512 integrity BEFORE any executable
       engine file is extracted/cached.
    4) Runtime is cache-only: no page/worker request is allowed to reach the network.
 */
-const SW_BUILD = '20260925-HANE-V0.15.13-BRAND-CENTER';
-const CACHE_NAME='hane-0.15.13-nakit-calisma-ui';
-const HANE_CACHE_PREFIX = 'zazohan-';
+const SW_BUILD = '20260925-HANE-V0.15.15-CENTRAL-AUDIT';
+const CACHE_NAME='hane-0.15.15-central-audit';
+const HANE_CACHE_PREFIX = 'hane-';
 
 
 const APP_SHELL=[
@@ -152,9 +152,9 @@ self.addEventListener('install',event=>{
 
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
-    // Activation only occurs after a complete ZAZOHAN app shell install. Engines are verified on demand before statement selection.
+    // Activation only occurs after a complete HANE app shell install. Engines are verified on demand before statement selection.
     const current=await caches.open(CACHE_NAME);
-    for(const rel of APP_SHELL){if(!(await current.match(rel)))throw new Error('ZAZOHAN shell validation failed: '+rel)}
+    for(const rel of APP_SHELL){if(!(await current.match(rel)))throw new Error('HANE shell validation failed: '+rel)}
     const keys=await caches.keys();
     // Cache isolation: never delete caches owned by RUTIN, ZAZO TYCOON or another PWA on the same origin.
     await Promise.all(keys.filter(k=>k!==CACHE_NAME&&k.startsWith(HANE_CACHE_PREFIX)).map(k=>caches.delete(k)));
@@ -178,7 +178,7 @@ self.addEventListener('message',event=>{
   }
 });
 
-function blocked(status=403,msg='Blocked by ZAZOHAN local-data firewall'){
+function blocked(status=403,msg='Blocked by HANE local-data firewall'){
   return new Response(msg,{status,headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}});
 }
 
@@ -200,9 +200,9 @@ self.addEventListener('fetch',event=>{
 
   // Runtime firewall: all other cross-origin requests remain blocked.
   if(!sameOrigin){event.respondWith(blocked());return}
-  if(req.method!=='GET'){event.respondWith(blocked(405,'ZAZOHAN runtime network writes are disabled'));return}
+  if(req.method!=='GET'){event.respondWith(blocked(405,'HANE runtime network writes are disabled'));return}
 
-  // Only exact ZAZOHAN resources are addressable. Query strings cannot create an exfiltration channel.
+  // Only exact HANE resources are addressable. Query strings cannot create an exfiltration channel.
   const path=url.pathname;
   const virtualUrl=VIRTUAL_BY_PATH.get(path);
   const isVirtual=!!virtualUrl;
@@ -212,7 +212,7 @@ self.addEventListener('fetch',event=>{
 
   if(!isVirtual&&!appRel&&!isRootNav){event.respondWith(blocked(404,'Not an allowed HANE resource'));return}
 
-  // Runtime is local-first. Missing fixed ZAZOHAN shell files may self-repair from the SAME ORIGIN only.
+  // Runtime is local-first. Missing fixed HANE shell files may self-repair from the SAME ORIGIN only.
   // No user data, query string, request body, credentials or referrer are sent during repair.
   event.respondWith((async()=>{
     const cache=await caches.open(CACHE_NAME);
@@ -224,7 +224,7 @@ self.addEventListener('fetch',event=>{
         hit=await cache.match(virtualUrl);
         if(hit)return hit;
       }catch(_){ }
-      return blocked(503,'Verified ZAZOHAN engine is unavailable. Keep internet on and try Ekstre Okut again.');
+      return blocked(503,'Verified HANE engine is unavailable. Keep internet on and try Ekstre Okut again.');
     }
     const canonical=isRootNav?'./index.html':appRel;
 
@@ -241,10 +241,10 @@ self.addEventListener('fetch',event=>{
       }catch(_){ }
       const offline=await cache.match('./index.html');
       if(offline)return offline;
-      return blocked(503,'ZAZOHAN çevrimdışı kopyası bulunamadı. İnternete bağlanıp tekrar açın.');
+      return blocked(503,'HANE çevrimdışı kopyası bulunamadı. İnternete bağlanıp tekrar açın.');
     }
 
-    // Mutable app-shell files are network-first so a newly deployed ZAZOHAN build cannot
+    // Mutable app-shell files are network-first so a newly deployed HANE build cannot
     // remain stuck behind an older Service Worker cache. User finance data is not in
     // Cache Storage, so this refresh never clears localStorage/IndexedDB.
     try{
@@ -257,6 +257,6 @@ self.addEventListener('fetch',event=>{
     }catch(_){ }
     const hit=await cache.match(canonical);
     if(hit)return hit;
-    return blocked(503,'ZAZOHAN application cache could not be repaired. Reload once while online.');
+    return blocked(503,'HANE application cache could not be repaired. Reload once while online.');
   })());
 });

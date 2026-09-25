@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260925-HANE-V0.15.12-NAKIT-CALISMA-UI';
+  const BUILD='20260925-HANE-V0.15.15-CENTRAL-AUDIT';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
@@ -13,7 +13,7 @@
       await reg.update();
       const waiting=reg.waiting;
       if(waiting) waiting.postMessage({type:'SKIP_WAITING'});
-    }catch(e){ console.warn('ZAZOHAN update check:',e); }
+    }catch(e){ console.warn('HANE update check:',e); }
   }
 
   try{
@@ -47,10 +47,10 @@
         location.reload();
       });
 
-      // Açık kalan ZAZOHAN da yeni sürümü düzenli kontrol eder.
+      // Açık kalan HANE da yeni sürümü düzenli kontrol eder.
       setInterval(checkForUpdate,CHECK_MS);
       window.addEventListener('focus',checkForUpdate);
       document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForUpdate();});
-    }catch(e){console.warn('ZAZOHAN update worker:',e)}
+    }catch(e){console.warn('HANE update worker:',e)}
   });
 })();
