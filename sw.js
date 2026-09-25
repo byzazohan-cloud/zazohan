@@ -7,8 +7,8 @@
       engine file is extracted/cached.
    4) Runtime is cache-only: no page/worker request is allowed to reach the network.
 */
-const SW_BUILD = '20260925-HANE-V0.15.15-CENTRAL-AUDIT';
-const CACHE_NAME='hane-0.15.15-central-audit';
+const SW_BUILD = '20260925-HANE-V0.15.16-CENTRAL-AUDIT';
+const CACHE_NAME='hane-0.15.16-central-audit';
 const HANE_CACHE_PREFIX = 'hane-';
 
 

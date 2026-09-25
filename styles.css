@@ -2616,3 +2616,30 @@ html,body,.phone,.content{overscroll-behavior-x:none!important}.content{touch-ac
 .setupBrandLine{width:100%!important;text-align:center!important;margin:0 auto 18px!important;color:#cfd4d8!important;letter-spacing:.22em!important}
 .premiumSetup>.form{margin-left:auto!important;margin-right:auto!important}
 .premiumSetup .btn.gold{background:linear-gradient(90deg,#143d2e 0%,#1b2026 48%,#43191c 100%)!important;border-color:rgba(255,255,255,.13)!important;color:#fff!important}
+
+/* V0.15.16 — HOME HEADER LOGO TRUE VIEWPORT CENTER
+   Logo is removed from the asymmetric grid flow and anchored to the header's
+   geometric center. Left/right controls no longer influence its x-position. */
+.top.homeTop{
+  position:relative!important;
+  grid-template-columns:auto 1fr auto!important;
+}
+.top.homeTop>.brand.brandLogo.officialBrand{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  margin:0!important;
+  align-self:auto!important;
+  justify-self:auto!important;
+  transform:translate(-50%,-50%)!important;
+  z-index:4!important;
+}
+.top.homeTop>.menuBtn{position:relative!important;z-index:5!important;justify-self:start!important}
+.top.homeTop>.topRight{position:relative!important;z-index:5!important;justify-self:end!important}
+html[data-skin='z'].darkMode .homeTop .officialBrand{
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;
+  align-self:auto!important;
+}
