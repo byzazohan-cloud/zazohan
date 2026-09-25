@@ -7,8 +7,8 @@
       engine file is extracted/cached.
    4) Runtime is cache-only: no page/worker request is allowed to reach the network.
 */
-const SW_BUILD = '20260925-ZAZOHAN-V0.15.9-COMPACT-PREMIUM';
-const CACHE_NAME='zazohan-0.15.9-compact-premium';
+const SW_BUILD = '20260925-ZAZOHAN-V0.15.10-HAN-MERGE';
+const CACHE_NAME='zazohan-0.15.10-han-merge';
 const HANE_CACHE_PREFIX = 'zazohan-';
 
 
