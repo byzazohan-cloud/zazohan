@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.12",
-  "minimumVersion": "0.15.12",
+  "latestVersion": "0.15.13",
+  "minimumVersion": "0.15.13",
   "force": true,
-  "message": "HANE V0.15.12: Nakit Para kayıt akışı sadeleştirildi; kira/aidat diğer nakitten ayrıldı; çalışma ekranı Compact Premium ölçeğe ve çapraz takvim renklerine geçirildi; HANE marka/logo güncellendi.",
+  "message": "HANE V0.15.13: Nakit Para kayıt akışı sadeleştirildi; kira/aidat diğer nakitten ayrıldı; çalışma ekranı Compact Premium ölçeğe ve çapraz takvim renklerine geçirildi; HANE marka/logo güncellendi.",
   "updateUrl": "",
-  "build": "20260925-HANE-V0.15.12-NAKIT-CALISMA-UI",
-  "version": "0.15.12"
+  "build": "20260925-HANE-V0.15.13-BRAND-CENTER",
+  "version": "0.15.13"
 }

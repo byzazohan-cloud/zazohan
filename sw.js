@@ -7,8 +7,8 @@
       engine file is extracted/cached.
    4) Runtime is cache-only: no page/worker request is allowed to reach the network.
 */
-const SW_BUILD = '20260925-HANE-V0.15.12-NAKIT-CALISMA-UI';
-const CACHE_NAME='hane-0.15.12-nakit-calisma-ui';
+const SW_BUILD = '20260925-HANE-V0.15.13-BRAND-CENTER';
+const CACHE_NAME='hane-0.15.13-nakit-calisma-ui';
 const HANE_CACHE_PREFIX = 'zazohan-';
 
 
