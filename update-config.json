@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.13.6",
-  "minimumVersion": "0.13.6",
+  "latestVersion": "0.13.9",
+  "minimumVersion": "0.13.9",
   "force": true,
-  "message": "ZAZOHAN V0.13.6: Çalışma kaydına birden fazla yol gideri, ayrı ödeme kaynağı ve kart seçimi eklendi.",
+  "message": "ZAZOHAN V0.13.9: Tasarım sistemi merkezileştirildi; yeni koyu lacivert, mavi ve amber arayüz dili uygulandı.",
   "updateUrl": "",
-  "build": "20260924-ZAZOHAN-V0.13.6",
-  "version": "0.13.6"
+  "build": "20260925-ZAZOHAN-V0.13.9",
+  "version": "0.13.9"
 }
