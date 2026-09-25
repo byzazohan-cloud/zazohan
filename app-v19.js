@@ -76,7 +76,7 @@ const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
   build:'20260925-HANE-V0.15.16-CENTRAL-AUDIT',
-  brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hn-black-rg-v01512'}),
+  brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hn-black-rg-silhouette-v01516'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
     Object.freeze({tab:'home',icon:'home',label:'ANA SAYFA'}),

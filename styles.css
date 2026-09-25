@@ -2699,3 +2699,17 @@ html[data-skin='z'].darkMode .top.homeTop>.brand.brandLogo.officialBrand .brandM
   .premiumSetup .setupOfficialLogo{transform:translateY(-16px)!important}
   .premiumSetup .setupBrandLine{transform:translateY(-16px)!important}
 }
+
+/* V0.15.16 AUDIT FIX4 — HOME HEADER SIDE CONTROLS RESTORE
+   Only restore the alert + identity group to the far-right grid column.
+   Main logo stays independently anchored to the exact header center. */
+.top.homeTop>.menuBtn{
+  grid-column:1!important;
+  justify-self:start!important;
+}
+.top.homeTop>.topRight{
+  grid-column:3!important;
+  justify-self:end!important;
+  margin-left:0!important;
+  margin-right:0!important;
+}
