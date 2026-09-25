@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260925-ZAZOHAN-V0.15.10-HAN-MERGE';
+  const BUILD='20260925-ZAZOHAN-V0.15.11-NAKIT-PARA';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;

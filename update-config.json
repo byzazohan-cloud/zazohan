@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.10",
-  "minimumVersion": "0.15.10",
+  "latestVersion": "0.15.11",
+  "minimumVersion": "0.15.11",
   "force": true,
-  "message": "ZAZOHAN V0.15.10: Compact Premium ölçek; butonlar, yazılar, kart boşlukları, Hane Profil, Çalışma ve alt menü daha kompakt hale getirildi. Cache/build kimliği yenilendi.",
+  "message": "ZAZOHAN V0.15.11: Nakit Para raporu eklendi: verilen, harcanan ve kalan nakit; kira, aidat, diğer otomatik nakit giderler, manuel harcamalar ve dahil et/çıkar kontrolü.",
   "updateUrl": "",
-  "build": "20260925-ZAZOHAN-V0.15.10-HAN-MERGE",
-  "version": "0.15.10"
+  "build": "20260925-ZAZOHAN-V0.15.11-NAKIT-PARA",
+  "version": "0.15.11"
 }
