@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.7",
-  "minimumVersion": "0.15.7",
+  "latestVersion": "0.15.8",
+  "minimumVersion": "0.15.8",
   "force": true,
-  "message": "ZAZOHAN V0.15.7: açılışta eksik homeEdit ekran fonksiyonu düzeltildi; açılış ekran zinciri ve sürüm/cache kimlikleri yeniden doğrulandı.",
+  "message": "ZAZOHAN V0.15.8: tüm sekmeler için merkezi mobil UI sistemi; Hane Profil kartları, butonlar, özet alanları, çalışma işlemleri, boşluk ve mobil taşma düzeni standardize edildi.",
   "updateUrl": "",
-  "build": "20260925-ZAZOHAN-V0.15.7-STARTUP-FIX",
-  "version": "0.15.7"
+  "build": "20260925-ZAZOHAN-V0.15.8-STARTUP-FIX",
+  "version": "0.15.8"
 }
