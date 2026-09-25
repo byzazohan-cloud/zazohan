@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260925-HANE-V0.15.16-DESIGN3';
+  const BUILD='20260925-HANE-V0.15.16-CENTRAL-AUDIT';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;

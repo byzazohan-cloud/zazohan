@@ -4,6 +4,6 @@
   "force": true,
   "message": "HANE V0.15.16: eski marka kalıntıları temizlendi; merkezi HANE veri/API adları birleştirildi; sürüm ve service worker build uyumsuzlukları düzeltildi; merkezi Compact Premium tasarım ölçeği güçlendirildi.",
   "updateUrl": "",
-  "build": "20260925-HANE-V0.15.16-DESIGN3",
+  "build": "20260925-HANE-V0.15.16-CENTRAL-AUDIT",
   "version": "0.15.16"
 }

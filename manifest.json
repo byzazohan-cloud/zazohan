@@ -1,7 +1,7 @@
 {
   "name": "HANE V0.15.16",
   "short_name": "HANE",
-  "start_url": "./?v=0.15.16-DESIGN3",
+  "start_url": "./?v=0.15.16-CENTRAL-AUDIT",
   "scope": "./",
   "display": "standalone",
   "background_color": "#05080d",
