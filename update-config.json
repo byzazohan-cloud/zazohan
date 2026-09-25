@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.8",
-  "minimumVersion": "0.15.8",
+  "latestVersion": "0.15.9",
+  "minimumVersion": "0.15.9",
   "force": true,
-  "message": "ZAZOHAN V0.15.8: tüm sekmeler için merkezi mobil UI sistemi; Hane Profil kartları, butonlar, özet alanları, çalışma işlemleri, boşluk ve mobil taşma düzeni standardize edildi.",
+  "message": "ZAZOHAN V0.15.9: Compact Premium ölçek; butonlar, yazılar, kart boşlukları, Hane Profil, Çalışma ve alt menü daha kompakt hale getirildi. Cache/build kimliği yenilendi.",
   "updateUrl": "",
-  "build": "20260925-ZAZOHAN-V0.15.8-STARTUP-FIX",
-  "version": "0.15.8"
+  "build": "20260925-ZAZOHAN-V0.15.9-COMPACT-PREMIUM",
+  "version": "0.15.9"
 }
