@@ -90,3 +90,35 @@ html,body{background:var(--z-bg-deep)!important;color:var(--z-text)!important;fo
 .seg .active{background:linear-gradient(135deg,#ef313b,#b41620)!important}
 .brand{font-size:1.08em!important;letter-spacing:.035em!important}
 .ico{border:1px solid rgba(255,255,255,.06)!important}
+
+/* ZAZOHAN V0.14.3 — 4C PREMIUM / BLACK + GRAPHITE + CONTROLLED RED */
+:root{
+ --z-bg:#050607;--z-bg-deep:#010203;--z-surface:#0b0d10;--z-surface-2:#111419;--z-surface-3:#171b21;
+ --z-line:#343a42;--z-line-soft:rgba(255,255,255,.08);--z-text:#f4f6f8;--z-muted:#8e959e;
+ --z-accent:#d51624;--z-accent-2:#ff3b48;--z-blue:#cfd5dc;--z-focus:0 0 0 3px rgba(213,22,36,.16);
+ --z-r-sm:10px;--z-r-md:14px;--z-r-lg:18px;--z-r-xl:22px;
+ --z-shadow:0 18px 42px rgba(0,0,0,.48);--z-shadow-soft:0 10px 26px rgba(0,0,0,.34);
+}
+html,body,.phone{background:radial-gradient(circle at 50% -10%,#15191e 0,#07090b 30%,#020303 72%)!important}
+.top{background:linear-gradient(180deg,rgba(5,6,8,.99),rgba(8,9,11,.95))!important;border-bottom:1px solid rgba(255,255,255,.07)!important;box-shadow:0 10px 26px rgba(0,0,0,.28)!important}
+.homeTop{min-height:76px!important;padding-top:8px!important;padding-bottom:8px!important}
+.officialBrand{min-width:88px!important}.officialBrand .brandMark{width:66px!important;height:66px!important;border-radius:16px!important;border:1px solid #4a4e55!important;box-shadow:0 8px 24px #000b,0 0 0 1px rgba(213,22,36,.28),0 0 20px rgba(213,22,36,.10)!important;filter:saturate(.9) contrast(1.06)!important}
+.card,.item,.sum,.notice,.themeCard{background:linear-gradient(155deg,#15181c 0%,#0a0c0f 58%,#07080a 100%)!important;border:1px solid #34383e!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 12px 26px rgba(0,0,0,.30)!important}
+.card{position:relative;overflow:hidden}.card:before{content:"";position:absolute;left:0;top:0;width:34%;height:1px;background:linear-gradient(90deg,var(--z-accent-2),transparent);opacity:.8;pointer-events:none}
+.section span,.compactFinanceHead small{color:#c7ccd2!important}
+.btn.gold{background:linear-gradient(145deg,#ef3440,#a90916)!important;color:#fff!important;box-shadow:0 8px 20px rgba(213,22,36,.22)!important}
+/* 4C angular / armored quick buttons */
+.quick.premiumQuick,.quick.cleanQuick{gap:10px!important;padding:12px!important}
+.quick.premiumQuick button,.quick.cleanQuick button{position:relative!important;min-height:82px!important;border:1px solid #3a3e45!important;border-radius:8px!important;background:linear-gradient(145deg,#171a1f,#0a0c0f 66%,#070809)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 9px 18px rgba(0,0,0,.32)!important;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)!important}
+.quick.premiumQuick button:before,.quick.cleanQuick button:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(213,22,36,.24),transparent 25%,transparent 76%,rgba(213,22,36,.13));opacity:.55}
+.quick.premiumQuick button:active,.quick.cleanQuick button:active{transform:translateY(1px) scale(.985)!important;border-color:#b31b27!important}
+.quick.premiumQuick i,.quick.cleanQuick i{color:#e6e9ed!important;filter:drop-shadow(0 0 8px rgba(213,22,36,.20))!important}
+.quick.premiumQuick button:nth-child(1) i,.quick.cleanQuick button:nth-child(1) i,.quick.premiumQuick button:nth-child(3) i,.quick.cleanQuick button:nth-child(3) i{color:#ff3542!important}
+/* premium red/graphite navigation */
+.nav,.v1947CleanNav{background:linear-gradient(180deg,rgba(10,11,13,.98),rgba(2,3,4,.995))!important;border-top:1px solid #2d3035!important;box-shadow:0 -12px 30px rgba(0,0,0,.45)!important}
+.v1947CleanNav .navIcon{border-radius:9px!important;background:linear-gradient(145deg,#15181c,#080a0c)!important;border:1px solid #30343a!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important}
+.v1947CleanNav .navIcon .premiumSvg{color:#aeb4bc!important}
+.v1947CleanNav button.active{color:#fff!important}.v1947CleanNav button.active .navIcon{transform:translateY(-3px)!important;background:linear-gradient(145deg,#251014,#0b0b0d)!important;border-color:#d51a28!important;box-shadow:0 0 0 2px rgba(213,22,36,.10),0 0 18px rgba(213,22,36,.22)!important}.v1947CleanNav button.active .navIcon .premiumSvg{color:#ff3442!important}.v1947CleanNav button.active:after{background:#e21c2a!important}
+.ib,.back,.close{background:linear-gradient(145deg,#171a1f,#090b0e)!important;border:1px solid #34383e!important}.ib:active,.back:active,.close:active{border-color:#d51a28!important}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#d51a28!important}
+.hanQuickButton{border-color:#4b2529!important}
