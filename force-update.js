@@ -10,8 +10,8 @@
     }
     if('caches' in window){
       const ks=await caches.keys();
-      await Promise.all(ks.filter(k=>k.startsWith('hane-')).map(k=>caches.delete(k)));
+      await Promise.all(ks.filter(k=>(k.startsWith('zazohan-')||k.startsWith('hane-'))).map(k=>caches.delete(k)));
     }
   }catch(e){}
-  location.replace('./?v=19.4.36-V113-S19-HAN-FILTER1&fresh='+Date.now());
+  location.replace('./?v=0.15.6-CLEAN-BASE&fresh='+Date.now());
 })();

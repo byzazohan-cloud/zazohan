@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.14.3",
-  "minimumVersion": "0.14.3",
+  "latestVersion": "0.15.6",
+  "minimumVersion": "0.15.6",
   "force": true,
-  "message": "ZAZOHAN V0.14.3: 4C premium siyah/antrasit tasarım; kontrollü kırmızı detaylar, büyütülmüş Kara Kartal logo ve açılı premium buton şablonu. HAN 3.0 korunur.",
+  "message": "ZAZOHAN V0.15.6: legacy audit sonrası temiz temel sürüm; eski build/cache zinciri temizlendi, gerekli veri uyumluluk anahtarları korundu.",
   "updateUrl": "",
-  "build": "20260925-ZAZOHAN-V0.14.3-4C-PREMIUM",
-  "version": "0.14.3"
+  "build": "20260925-ZAZOHAN-V0.15.6-CLEAN-BASE",
+  "version": "0.15.6"
 }
