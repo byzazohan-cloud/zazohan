@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.6",
-  "minimumVersion": "0.15.6",
+  "latestVersion": "0.15.7",
+  "minimumVersion": "0.15.7",
   "force": true,
-  "message": "ZAZOHAN V0.15.6: legacy audit sonrası temiz temel sürüm; eski build/cache zinciri temizlendi, gerekli veri uyumluluk anahtarları korundu.",
+  "message": "ZAZOHAN V0.15.7: açılışta eksik homeEdit ekran fonksiyonu düzeltildi; açılış ekran zinciri ve sürüm/cache kimlikleri yeniden doğrulandı.",
   "updateUrl": "",
-  "build": "20260925-ZAZOHAN-V0.15.6-CLEAN-BASE",
-  "version": "0.15.6"
+  "build": "20260925-ZAZOHAN-V0.15.7-STARTUP-FIX",
+  "version": "0.15.7"
 }
