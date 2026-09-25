@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.13.9",
-  "minimumVersion": "0.13.9",
+  "latestVersion": "0.14.0",
+  "minimumVersion": "0.14.0",
   "force": true,
-  "message": "ZAZOHAN V0.13.9: Tasarım sistemi merkezileştirildi; yeni koyu lacivert, mavi ve amber arayüz dili uygulandı.",
+  "message": "ZAZOHAN V0.14.0: Merkezi tasarım siyah/antrasit tabana ve kontrollü kırmızı detaylara geçirildi; buton ve kart geometrileri yenilendi.",
   "updateUrl": "",
-  "build": "20260925-ZAZOHAN-V0.13.9",
-  "version": "0.13.9"
+  "build": "20260925-ZAZOHAN-V0.14.0",
+  "version": "0.14.0"
 }
