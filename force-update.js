@@ -13,5 +13,5 @@
       await Promise.all(ks.filter(k=>k.startsWith('hane-')).map(k=>caches.delete(k)));
     }
   }catch(e){}
-  location.replace('./?v=0.15.16-FIX19-WORK-INCOME-NAV&fresh='+Date.now());
+  location.replace('./?v=0.15.16-FIX20-WORK-PERSON-QUICKROW&fresh='+Date.now());
 })();

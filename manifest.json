@@ -1,7 +1,7 @@
 {
   "name": "HANE V0.15.16",
   "short_name": "HANE",
-  "start_url": "./?v=0.15.16-FIX19-WORK-INCOME-NAV",
+  "start_url": "./?v=0.15.16-FIX20-WORK-PERSON-QUICKROW",
   "scope": "./",
   "display": "standalone",
   "background_color": "#05080d",

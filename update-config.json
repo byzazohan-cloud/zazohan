@@ -4,6 +4,6 @@
   "force": true,
   "message": "FIX19 · Geçmiş maaş hakedişi salaryHistory ile tarihsel hesaplanır; eski çalışma ödemeleri çalışma ayına sabitlenir; otomatik çalışma geçmişi onaysız ve kurala uygun oluşturulur.",
   "updateUrl": "",
-  "build": "20260926-HANE-V0.15.16-FIX19-WORK-INCOME-NAV",
+  "build": "20260926-HANE-V0.15.16-FIX20-WORK-PERSON-QUICKROW",
   "version": "0.15.16"
 }
