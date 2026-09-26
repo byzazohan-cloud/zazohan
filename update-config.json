@@ -2,8 +2,8 @@
   "latestVersion": "0.15.16",
   "minimumVersion": "0.15.16",
   "force": true,
-  "message": "FIX18 · Geçmiş maaş hakedişi salaryHistory ile tarihsel hesaplanır; eski çalışma ödemeleri çalışma ayına sabitlenir; otomatik çalışma geçmişi onaysız ve kurala uygun oluşturulur.",
+  "message": "FIX19 · Geçmiş maaş hakedişi salaryHistory ile tarihsel hesaplanır; eski çalışma ödemeleri çalışma ayına sabitlenir; otomatik çalışma geçmişi onaysız ve kurala uygun oluşturulur.",
   "updateUrl": "",
-  "build": "20260926-HANE-V0.15.16-FIX18-HISTORY-MIGRATION",
+  "build": "20260926-HANE-V0.15.16-FIX19-WORK-INCOME-NAV",
   "version": "0.15.16"
 }

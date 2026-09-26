@@ -3271,3 +3271,8 @@ body{font-size:var(--type-body)!important;line-height:var(--type-lh)!important}
     font-size:11px!important;
   }
 }
+
+/* HANE FIX19 — Hızlı Erişim tek sıra / alt menü Çalışma */
+.quick.premiumQuick,.quick.cleanQuick,.quick.v1947Quick,.quick{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px!important}
+.quick.premiumQuick>button,.quick.cleanQuick>button,.quick.v1947Quick>button,.quick>button{min-width:0!important;padding-left:4px!important;padding-right:4px!important}
+@media(max-width:390px){.quick.premiumQuick,.quick.cleanQuick,.quick.v1947Quick,.quick{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important}.quick>button{font-size:8px!important}.quick>button i{transform:scale(.9)}}

@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260926-HANE-V0.15.16-FIX18-HISTORY-MIGRATION';
+  const BUILD='20260926-HANE-V0.15.16-FIX19-WORK-INCOME-NAV';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;

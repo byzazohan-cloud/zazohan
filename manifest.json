@@ -1,7 +1,7 @@
 {
   "name": "HANE V0.15.16",
   "short_name": "HANE",
-  "start_url": "./?v=0.15.16-FIX18-HISTORY-MIGRATION",
+  "start_url": "./?v=0.15.16-FIX19-WORK-INCOME-NAV",
   "scope": "./",
   "display": "standalone",
   "background_color": "#05080d",
