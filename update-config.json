@@ -2,8 +2,8 @@
   "latestVersion": "0.15.16",
   "minimumVersion": "0.15.16",
   "force": true,
-  "message": "HANE V0.15.16: eski marka kalıntıları temizlendi; merkezi HANE veri/API adları birleştirildi; sürüm ve service worker build uyumsuzlukları düzeltildi; merkezi Compact Premium tasarım ölçeği güçlendirildi.",
+  "message": "FIX18 · Geçmiş maaş hakedişi salaryHistory ile tarihsel hesaplanır; eski çalışma ödemeleri çalışma ayına sabitlenir; otomatik çalışma geçmişi onaysız ve kurala uygun oluşturulur.",
   "updateUrl": "",
-  "build": "20260925-HANE-V0.15.16-FIX10-PREMIUM-LOCK",
+  "build": "20260926-HANE-V0.15.16-FIX18-HISTORY-MIGRATION",
   "version": "0.15.16"
 }
