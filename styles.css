@@ -3216,3 +3216,58 @@ body{font-size:var(--type-body)!important;line-height:var(--type-lh)!important}
 @media(max-width:390px){
   :root{--type-body:12px;--type-control:12px;--type-section:13px;--type-title:16px;--type-value:16px;--type-hero:20px}
 }
+
+/* HANE FIX18 · QUICK ACCESS TYPOGRAPHY LOCK
+   All six primary quick-access labels use one exact typographic role. */
+.quick.premiumQuick > button,
+.quick.cleanQuick > button,
+.quick > button{
+  font-family:var(--hane-font)!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+  letter-spacing:0!important;
+  text-transform:uppercase!important;
+}
+.quick.premiumQuick > button > span,
+.quick.cleanQuick > button > span,
+.quick > button > span,
+.quick.premiumQuick > button > b,
+.quick.cleanQuick > button > b,
+.quick > button > b,
+.quick.premiumQuick .quickLabel,
+.quick.cleanQuick .quickLabel,
+.quick .quickLabel{
+  font-family:var(--hane-font)!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+  letter-spacing:0!important;
+  text-transform:uppercase!important;
+}
+.quick.premiumQuick .hanQuickButton,
+.quick.cleanQuick .hanQuickButton,
+.quick .hanQuickButton{
+  font-size:12px!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+  letter-spacing:0!important;
+}
+/* Secondary status remains a secondary role, never changes the main label size. */
+.quick .homeCardsQuick > span > small,
+.quick.premiumQuick .homeCardsQuick > span > small,
+.quick.cleanQuick .homeCardsQuick > span > small{
+  font-family:var(--hane-font)!important;
+  font-size:9px!important;
+  font-weight:600!important;
+  line-height:1.1!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+}
+@media(max-width:390px){
+  .quick.premiumQuick > button,.quick.cleanQuick > button,.quick > button,
+  .quick.premiumQuick > button > span,.quick.cleanQuick > button > span,.quick > button > span,
+  .quick.premiumQuick .hanQuickButton,.quick.cleanQuick .hanQuickButton,.quick .hanQuickButton{
+    font-size:11px!important;
+  }
+}
