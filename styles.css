@@ -3293,3 +3293,101 @@ body{font-size:var(--type-body)!important;line-height:var(--type-lh)!important}
 /* FIX21 — KARTLAR / TASARIM 4 PREMIUM 3D */
 .cardsV4Page{padding-bottom:14px}.cardsV4Head{margin-bottom:4px!important}.cardsV4Stage{position:relative;height:455px;display:flex;align-items:center;justify-content:center;overflow:hidden;perspective:1100px;margin:0 -14px}.premiumHanePhysical{position:absolute;width:252px;height:398px;border:1px solid rgba(226,190,102,.62);border-radius:24px;background:linear-gradient(155deg,#080a0d 0%,#11151a 48%,#050608 100%);box-shadow:0 26px 55px #000c,inset 0 0 0 1px #ffffff08;overflow:hidden;color:#fff;padding:0;transition:transform .28s ease,opacity .28s ease,filter .28s ease;transform-style:preserve-3d}.premiumHanePhysical.isSelectedCard{z-index:4;transform:translateX(0) rotateY(0) scale(1);opacity:1}.premiumHanePhysical.isSideCard{z-index:2;width:205px;height:330px;opacity:.46;filter:saturate(.72) brightness(.72)}.premiumHanePhysical.isPrevCard{transform:translateX(-178px) rotateY(26deg) scale(.9)}.premiumHanePhysical.isNextCard{transform:translateX(178px) rotateY(-26deg) scale(.9)}.phpEdge{position:absolute;inset:7px;border:1px solid rgba(210,175,91,.24);clip-path:polygon(10% 0,90% 0,100% 7%,100% 93%,90% 100%,10% 100%,0 93%,0 7%)}.phpCarbon{position:absolute;width:105px;height:150px;background:repeating-linear-gradient(135deg,#161a1e 0 3px,#0b0e11 3px 6px);opacity:.8;clip-path:polygon(0 0,100% 0,45% 100%,0 78%)}.phpCarbonA{left:0;top:0}.phpCarbonB{right:0;bottom:0;transform:rotate(180deg)}.phpRed,.phpGreen{position:absolute;height:3px;width:160px;filter:drop-shadow(0 0 8px currentColor)}.phpRed{right:-18px;top:78px;background:#ff2d3f;color:#ff2d3f;transform:rotate(52deg)}.phpGreen{left:-24px;bottom:105px;background:#19ef8c;color:#19ef8c;transform:rotate(-50deg)}.phpChip{position:absolute;left:27px;top:38px;width:45px;height:36px;border-radius:8px;background:linear-gradient(135deg,#f4d98a,#a97b26 52%,#f0d27c);box-shadow:inset 0 0 0 1px #fff5}.phpLogo{position:absolute;left:50%;top:49%;width:78%;max-height:220px;object-fit:contain;transform:translate(-50%,-50%);mix-blend-mode:screen;filter:contrast(1.05) brightness(1.1)}.phpOwner{position:absolute;left:0;right:0;bottom:25px;text-align:center;font-size:12px!important;letter-spacing:.18em;color:#d9b866;font-weight:650}.cardsV4Nav{display:grid;grid-template-columns:42px 1fr 42px;gap:10px;align-items:center;margin:-4px auto 8px;max-width:250px}.cardsV4Nav button{height:38px;border-radius:12px;border:1px solid #47bfff55;background:#07131d;color:#e8f8ff;font-size:25px}.cardsV4Nav span{text-align:center;font-size:10px;font-weight:900;letter-spacing:.12em;color:#91a9b8}.cardsV4Hint{text-align:center;font-size:9px!important;font-weight:800;letter-spacing:.12em;color:#7893a6;margin-bottom:14px}.cardsV4ListTitle{display:flex!important;align-items:center;justify-content:space-between}.cardsV4ListTitle small{font-size:9px!important;color:#7893a6}.cardsV4List .financeCardListRow{border-radius:14px!important}.cardDetailInfoGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 12px}.cardDetailInfoGrid>div{min-width:0;padding:10px;border:1px solid rgba(71,191,255,.16);border-radius:12px;background:linear-gradient(145deg,rgba(12,22,31,.94),rgba(6,10,14,.98))}.cardDetailInfoGrid small,.cardDetailInfoGrid b{display:block}.cardDetailInfoGrid small{font-size:8px!important;letter-spacing:.1em;color:#7893a6;margin-bottom:4px}.cardDetailInfoGrid b{font-size:11px!important;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.statementCardActions{grid-template-columns:repeat(2,minmax(0,1fr))!important}.statementCardActions .btn{min-width:0!important}
 @media(max-width:390px){.cardsV4Stage{height:420px}.premiumHanePhysical{width:226px;height:362px}.premiumHanePhysical.isSideCard{width:180px;height:302px}.premiumHanePhysical.isPrevCard{transform:translateX(-157px) rotateY(27deg) scale(.88)}.premiumHanePhysical.isNextCard{transform:translateX(157px) rotateY(-27deg) scale(.88)}.phpOwner{font-size:10px!important}.phpChip{width:40px;height:32px}.cardDetailInfoGrid{gap:6px}}
+
+/* HANE FIX22 · PREMIUM METAL DESIGN + REAL CARD ART */
+.financeHub,.cardsV4Page{background:linear-gradient(180deg,#030506 0%,#070b0e 48%,#020304 100%)!important}
+.financeModeButton{background:linear-gradient(145deg,#11161a,#070a0c)!important;border:1px solid rgba(99,214,255,.22)!important;box-shadow:inset 0 1px 0 #ffffff0b,0 10px 24px #0007!important}
+.cardsV4Head,.cardsV4ListTitle{border:1px solid rgba(99,214,255,.16)!important;background:linear-gradient(135deg,rgba(16,22,26,.96),rgba(5,8,10,.98))!important;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)!important}
+.cardsV4Stage{height:500px!important;margin:0 -12px!important;background:radial-gradient(circle at 50% 46%,rgba(30,239,140,.07),transparent 30%),radial-gradient(circle at 58% 45%,rgba(255,45,63,.06),transparent 36%)!important}
+.premiumHanePhysical{width:270px!important;height:432px!important;border:0!important;border-radius:27px!important;background-image:url('icons/hane-premium-card-vertical.png')!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;box-shadow:0 28px 60px #000e,0 0 0 1px rgba(224,184,86,.38),0 0 28px rgba(224,184,86,.10)!important;overflow:hidden!important}
+.premiumHanePhysical>*{display:none!important}
+.premiumHanePhysical.isSelectedCard{transform:translateX(0) rotateY(0deg) scale(1)!important;opacity:1!important;filter:none!important}
+.premiumHanePhysical.isSideCard{width:210px!important;height:345px!important;opacity:.40!important;filter:saturate(.65) brightness(.60)!important}
+.premiumHanePhysical.isPrevCard{transform:translateX(-195px) rotateY(30deg) scale(.91)!important}
+.premiumHanePhysical.isNextCard{transform:translateX(195px) rotateY(-30deg) scale(.91)!important}
+.cardsV4Nav{max-width:280px!important;margin:-10px auto 10px!important}.cardsV4Nav button{height:48px!important;border-radius:14px!important;background:linear-gradient(145deg,#10181d,#05090c)!important;border:1px solid rgba(99,214,255,.34)!important;box-shadow:inset 0 0 18px rgba(71,191,255,.05)!important}.cardsV4Nav span{font-size:12px!important;color:#a9bcc8!important}
+.cardsV4Hint{font-size:10px!important;color:#8fa5b2!important;margin-bottom:16px!important}
+.cardsV4List{display:grid!important;gap:8px!important}.cardsV4List .financeCardListRow{min-height:74px!important;border:1px solid rgba(120,151,169,.18)!important;background:linear-gradient(145deg,rgba(12,18,22,.98),rgba(4,7,9,.98))!important;box-shadow:inset 0 1px 0 #ffffff08!important;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)!important}.cardsV4List .financeCardListRow.active{border-color:rgba(99,214,255,.72)!important;box-shadow:inset 4px 0 0 #47bfff,0 0 18px rgba(71,191,255,.10)!important}.cardsV4List .financeCardListRow>i{color:#63d6ff!important;font-size:22px!important}
+.cardDetailInfoGrid>div{clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)!important;border-radius:0!important;background:linear-gradient(145deg,#0d1418,#05080a)!important}
+.statementCardActions .btn{clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)!important;border-radius:0!important}
+@media(max-width:390px){.cardsV4Stage{height:455px!important}.premiumHanePhysical{width:242px!important;height:392px!important}.premiumHanePhysical.isSideCard{width:180px!important;height:300px!important}.premiumHanePhysical.isPrevCard{transform:translateX(-168px) rotateY(29deg) scale(.9)!important}.premiumHanePhysical.isNextCard{transform:translateX(168px) rotateY(-29deg) scale(.9)!important}}
+
+/* =========================================================
+   HANE FIX23 · GLOBAL LUX METAL DESIGN LANGUAGE
+   UI-only consolidation: smoked metal + cut corners + HANE red/green accents.
+   ========================================================= */
+:root{
+  --h23-bg:#020304;--h23-surface:#080b0d;--h23-surface2:#0d1114;--h23-line:rgba(166,180,188,.18);
+  --h23-line2:rgba(214,224,230,.26);--h23-text:#f1f4f5;--h23-muted:#89969d;
+  --h23-green:#22df86;--h23-red:#f04350;--h23-steel:#b6c1c7;--h23-cut:10px;
+  --gold:var(--h23-steel);--gold2:#e0e6e9;--line:var(--h23-line);--line-strong:var(--h23-line2);
+}
+html,body{background:radial-gradient(circle at 50% -12%,#182026 0,#07090b 27%,#020304 66%,#000 100%) fixed!important;color:var(--h23-text)!important}
+.phone{background:linear-gradient(180deg,#050708 0,#020304 100%)!important}
+.content{padding:10px 13px 34px!important}
+
+/* top/header */
+.top,.homeTop,.premiumTopIcon{background:linear-gradient(180deg,rgba(8,11,13,.99),rgba(3,5,6,.96))!important;border-bottom:1px solid var(--h23-line)!important;box-shadow:0 10px 28px rgba(0,0,0,.30)!important}
+.brand{color:#f2f5f6!important;text-shadow:none!important;letter-spacing:.16em!important}
+.ib,.back,.menuBtn,.topRight button{background:linear-gradient(145deg,#12171a,#07090b)!important;border:1px solid var(--h23-line2)!important;color:#eef2f4!important;border-radius:0!important;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)!important}
+
+/* universal panels/cards */
+.card,.reportPanel,.reportChartCard,.financeHub,.financeDebtHero,.cashMoneyHero,.cashMoneySection,.expenseGroupHero,.expenseSummary,.monthlyLedgerPage,.monthlyPreview,.calendarPremium,.calendarDayPanel,.hanDashboard,.hanAttentionPanel,.hanIssueCard,.haneRecordHero,.haneRecordDetail,.memberOverviewHero,.memberOverviewGrid,.zWorkSection,.zWorkSummary,.zWorkDetailHero,.zWorkPaymentHistory,.statementHero,.statementBox,.statementReconcileBox,.simpleBankStatement,.paymentHero,.paymentGroup,.fixedCatDetailHero,.detailHero,.detailMini,.homeFinancePanel,.homeHero,.haneIdentityCard,.workSimpleHero,.sheet{
+  background:linear-gradient(145deg,rgba(16,20,23,.98),rgba(5,7,8,.99))!important;
+  border:1px solid var(--h23-line)!important;border-radius:0!important;
+  clip-path:polygon(var(--h23-cut) 0,100% 0,100% calc(100% - var(--h23-cut)),calc(100% - var(--h23-cut)) 100%,0 100%,0 var(--h23-cut))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 30px rgba(0,0,0,.28)!important;
+}
+.section b,.financeSectionHead b,.expenseSectionHead b,.zWorkHead b,.hanPanelTitle,.reportCardTitle{color:#f0f3f4!important;letter-spacing:.065em!important}
+.section span,.tapDetailHint,.fieldHint,.categoryVisibilityNote{color:var(--h23-muted)!important}
+
+/* common rows */
+.item,.movementRow,.monthlyLedgerRow,.monthlyPreviewRow,.categoryExpenseRow,.categoryMovementRow,.financeAccountRow,.financeCardListRow,.financeDebtRow,.cashMoneyDetailRow,.cashAddedRow,.cashGivenRow,.fixedReportRow,.fixedExpenseCenterRow,.expenseCenterRow,.paymentDetailItem,.roadFeeDetailItem,.statementImportRow,.statementItem,.searchResultItem,.v2MemberCard,.zWorkRoadRow,.haneRecordField,.memberMovementList>div{
+  background:linear-gradient(145deg,#0e1214,#060809)!important;border:1px solid rgba(166,180,188,.14)!important;border-radius:0!important;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)!important;
+}
+.ico,.financeAccountIcon,.monthlyLedgerIcon{background:#0b0f11!important;border-color:rgba(166,180,188,.15)!important;color:#dbe2e5!important}
+
+/* buttons */
+.btn,.miniAddBtn,.sectionLinkBtn,.calendarTodayBtn,.calendarAddMain,.calendarAddChoices button,.financeModeButton,.premiumCatBtn,.hanQuickButton,.hanMainScan,.txAdvancedBtn,.homeIdentityButton,.homeIdentityBtn,.personWorkActions button{
+  background:linear-gradient(145deg,#14191c,#07090a)!important;border:1px solid var(--h23-line2)!important;color:#f1f4f5!important;border-radius:0!important;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 7px 16px rgba(0,0,0,.24)!important
+}
+.btn.gold,.hanMainScan,.calendarAddMain{background:linear-gradient(135deg,#18211d,#0b1511)!important;border-color:rgba(34,223,134,.42)!important;color:#eafff4!important}
+.btn.danger,.danger{background:linear-gradient(135deg,#211113,#100708)!important;border-color:rgba(240,67,80,.45)!important;color:#ff9aa2!important}
+
+/* forms/segments */
+.field input,.field select,.field textarea,.liveTxSearch input,.premiumMovementSearch input,.txAmountRange input{background:#080b0d!important;border:1px solid rgba(166,180,188,.18)!important;color:#f4f6f7!important;border-radius:0!important;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)!important}
+.field input:focus,.field select:focus,.field textarea:focus,.liveTxSearch input:focus,.premiumMovementSearch input:focus{border-color:rgba(34,223,134,.50)!important;box-shadow:0 0 0 2px rgba(34,223,134,.06)!important}
+.seg,.expenseTabs,.movementSeg,.reportModeTabs,.paySourceSeg,.zWorkFilters{background:#050708!important;border-color:var(--h23-line)!important;border-radius:0!important;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)!important}
+.seg .active,.expenseTabs .active,.movementSeg .active,.reportModeTabs .active,.paySourceSeg .active,.zWorkFilters .active{background:linear-gradient(145deg,#16201b,#0a110e)!important;color:#eafff4!important;box-shadow:inset 0 -2px 0 var(--h23-green)!important}
+
+/* home quick / summaries */
+.homePrimaryActions button,.cleanQuick button,.premiumQuick button,.v1947Quick button{background:linear-gradient(145deg,#101416,#060809)!important;border:1px solid rgba(166,180,188,.16)!important;border-radius:0!important;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)!important}
+.sum,.reportStatLine,.zWorkPayStats>div,.zWorkSummary3>div,.paySummaryGrid>div,.paySummaryGrid3>div,.stmtCountGrid>div{background:linear-gradient(145deg,#101416,#060809)!important;border-color:rgba(166,180,188,.15)!important;border-radius:0!important;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)!important}
+
+/* calendar */
+.calDay,.zCalDay{background:linear-gradient(145deg,#0d1113,#060809)!important;border-color:rgba(166,180,188,.13)!important;border-radius:0!important;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)!important}
+.calDay.today,.zCalDay.today{border-color:rgba(214,224,230,.55)!important;box-shadow:inset 0 0 0 1px rgba(214,224,230,.12)!important}
+.calDay.worked,.zCalDay.worked{border-color:rgba(34,223,134,.42)!important}.calDay.leave,.zCalDay.leave{border-color:rgba(240,67,80,.40)!important}.calDay.overtime,.zCalDay.overtime{border-color:rgba(214,224,230,.38)!important}
+
+/* semantic accents */
+.income,.inc,.incDot,.movementAmount.income,.movementAmount.inc{color:var(--h23-green)!important}.expense,.exp,.expDot,.movementAmount.expense,.movementAmount.exp{color:var(--h23-red)!important}
+.zWorkSection,.workSimpleHero,.zWorkDetailHero,.hanDashboard{border-color:rgba(166,180,188,.20)!important}
+.zWorkHead b,.zWorkDetailHero b{color:#f1f4f5!important}
+
+/* nav */
+.nav,.premiumNav,.v1947CleanNav{background:linear-gradient(180deg,rgba(8,11,13,.98),rgba(2,3,4,.99))!important;border-top:1px solid rgba(166,180,188,.16)!important;box-shadow:0 -14px 30px rgba(0,0,0,.40)!important}
+.nav button,.premiumNav button,.v1947CleanNav button{color:#768188!important}
+.nav .active,.premiumNav .active,.v1947CleanNav .active{color:#f2f5f6!important;text-shadow:none!important;box-shadow:inset 0 2px 0 var(--h23-green)!important}
+
+/* cards screen retains real art, surrounding chrome follows global language */
+.cardsV4Head,.cardsV4ListTitle{border-color:rgba(166,180,188,.18)!important;background:linear-gradient(145deg,#111518,#060809)!important}
+.cardsV4List .financeCardListRow.active{border-color:rgba(34,223,134,.55)!important;box-shadow:inset 4px 0 0 var(--h23-green),0 0 18px rgba(34,223,134,.06)!important}
+.cardsV4List .financeCardListRow>i{color:#dce3e6!important}.cardsV4Nav button{border-color:rgba(166,180,188,.24)!important;color:#eef2f4!important}
+
+/* profile image and logo accents */
+.homeHeroAvatar,.profileAvatarLarge,.memberAvatar,.identityPhoto{border-color:rgba(214,224,230,.28)!important;box-shadow:0 0 0 2px rgba(34,223,134,.05),0 10px 22px rgba(0,0,0,.34)!important}
+
+/* modal */
+.modal{background:rgba(0,0,0,.84)!important}.sheet{border-color:rgba(166,180,188,.18)!important}.close{background:#0a0d0f!important;border-color:var(--h23-line)!important;color:#eef2f4!important}

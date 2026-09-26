@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260926-HANE-V0.15.16-FIX20-WORK-PERSON-QUICKROW';
+  const BUILD='20260926-HANE-V0.15.16-FIX23-GLOBAL-LUX-METAL';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
