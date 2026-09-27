@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260928-HANE-WORK-V94-HALKBANK-RECONCILE-CACHE-FIX';
+  const BUILD='20260928-HANE-WORK-V95-TEB-STALE-ASSET-HARD-FIX';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;

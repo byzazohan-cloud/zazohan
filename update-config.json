@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.37-work-v94",
-  "minimumVersion": "0.15.37-work-v94",
+  "latestVersion": "0.15.38-work-v95",
+  "minimumVersion": "0.15.38-work-v95",
   "force": true,
-  "message": "V94: Halkbank koordinat motorunda banka harcama toplamına benzersiz olarak uzlaştırılıp parserdan çıkarılan PDF yankıları fiziksel audit sayacından da düşülür. Muhasebe ve banka toplam kontrolleri ayrı korunur. App, Service Worker, cache ve tüm asset sürümleri V94 olarak eşitlendi.",
+  "message": "V95: TEB için eski app-v19 asset zinciri kırıldı; uygulama benzersiz app-v95.js ile yüklenir. Fiziksel sayaç kullanılamıyorsa TEB önizleme katmanı da eski meta değerlerinden bağımsız olarak Fazla Aday/Çözümlenemeyen değerlerini 0 gösterir. V94 banka düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V94-HALKBANK-RECONCILE-CACHE-FIX",
-  "version": "WORK-V94"
+  "build": "20260928-HANE-WORK-V95-TEB-STALE-ASSET-HARD-FIX",
+  "version": "WORK-V95"
 }
