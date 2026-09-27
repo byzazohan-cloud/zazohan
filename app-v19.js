@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260928-HANE-WORK-V79-TEB-MISSING-ROW-SAFE-FIX',
+  build:'20260928-HANE-WORK-V80-TEB-PHYSICAL-CONSENSUS-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -366,7 +366,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,cashMoney,tara,profile,adminProfile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V79-TEB-MISSING-ROW-SAFE-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V79-TEB-MISSING-ROW-SAFE-FIX.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V80-TEB-PHYSICAL-CONSENSUS-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V80-TEB-PHYSICAL-CONSENSUS-FIX.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -2390,6 +2390,19 @@ function parseStatementText(text,cardId){
     if(pick&&pick.rows.length){rows=pick.rows;strategy=pick.strategy}
     rows=stmtTebCompleteMissingRows(text,rows,tebPhysicalRows);
     if(rows.some(r=>r?.parserStrategy==='teb-verified-missing-row-v79'))strategy+=' + teb-verified-missing-row-v79';
+    // V80 — TEB fiziksel mutabakat kurtarması.
+    // Bazı SADE PDF'lerinde iki gerçek satır metin kolon sırası yüzünden normal/segment parserdan düşüyor.
+    // Fiziksel motoru körlemesine seçmek V76'da +1 sahte satır üretmişti. Bu nedenle yalnız:
+    // 1) fiziksel motorun temiz satır sayısı bağımsız fiziksel audit ile BİREBİR aynıysa,
+    // 2) seçili parser gerçekten eksik satır bırakmışsa
+    // fiziksel tablo nihai satır kaynağı olur. Böylece 46/44 -> 46/46 tamamlanır;
+    // 41/42 gibi V76 regresyonu bu kapıdan geçemez. Diğer banka profilleri etkilenmez.
+    const tebAuditCount=stmtPhysicalRowAudit(text,'teb').count||0;
+    const tebPhysicalClean=stmtTebPostProcess(tebPhysicalRows||[]);
+    if(tebAuditCount>0&&rows.length<tebAuditCount&&tebPhysicalClean.length===tebAuditCount){
+      rows=tebPhysicalClean.map(r=>({...r,parserStrategy:'teb-physical-consensus-v80'}));
+      strategy='teb-physical-consensus-v80';
+    }
   }
   else if(profile.id==='isbank'&&profileRows.length>=3){rows=profileRows;strategy='profile-layout'}
   if(profile.id==='teb')rows=stmtTebPostProcess(rows);
@@ -3016,7 +3029,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260928-HANE-WORK-V79-TEB-MISSING-ROW-SAFE-FIX';
+const HANE_SW_BUILD='20260928-HANE-WORK-V80-TEB-PHYSICAL-CONSENSUS-FIX';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v0.15.16-fix17-work-independent';
 const HANE_ENGINE_PACKAGES=[

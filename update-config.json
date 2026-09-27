@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.33-work-v78",
-  "minimumVersion": "0.15.33-work-v78",
+  "latestVersion": "0.15.33-work-v80",
+  "minimumVersion": "0.15.33-work-v80",
   "force": true,
-  "message": "V79: TEB eksik satır güvenli tamamlama. Ana parser korunur; fiziksel TEB adayları yalnız banka tür toplamındaki pozitif açığı veya bağımsız dönem borcu denklemi açığını benzersiz ve kuruşu kuruşuna kapatıyorsa eklenir. Fiziksel=parser ve borç denklemi tam ise yanlış bağlanan TEB harcama özeti işlem satırlarından düzeltilir. Ziraat ve diğer banka profillerine dokunulmadı.",
+  "message": "V80: TEB fiziksel mutabakat düzeltmesi. Seçili parser fiziksel satır eksik bırakırsa fiziksel TEB motoru yalnız kendi temiz satır sayısı bağımsız fiziksel audit ile birebir eşleştiğinde devreye girer. 46/44 gibi gerçek eksik satırlar tamamlanır; V76’daki +1 fazla satır regresyonu engellenir. V79 güvenli tamamlama ve Ziraat/diğer banka profilleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V79-TEB-MISSING-ROW-SAFE-FIX",
-  "version": "WORK-V79"
+  "build": "20260928-HANE-WORK-V80-TEB-PHYSICAL-CONSENSUS-FIX",
+  "version": "WORK-V80"
 }
