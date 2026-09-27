@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260927-HANE-WORK-V52-TEK-GIDER';
+  const BUILD='20260927-HANE-WORK-V53-LOGO-KART-STILLERI';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
