@@ -2,8 +2,8 @@
   "latestVersion": "0.15.37-work-v86",
   "minimumVersion": "0.15.37-work-v86",
   "force": true,
-  "message": "V87: TEB fiziksel aday denetimi düzeltildi. TEB PDF satırlarında para birimi etiketi bulunmasa da satır başındaki tam tarih + gerçek tutar ile fiziksel işlem sayılır; özet/limit/faiz alanları dışarıda kalır. V86 Halkbank, V85 İş Bankası, V83 DenizBank ve V74 Ziraat düzeltmeleri korunur.",
+  "message": "V88: Halkbank/Paraf sayfa sınırı tekrarları fiziksel aday denetiminden çıkarıldı. Koordinat tablosunda önceki sayfanın son işlem dizisi sonraki sayfanın başında birebir tekrar ediyorsa yalnız bu PDF yankısı düşürülür; gerçek aynı gün/tutar işlemleri korunur. V87 TEB, V85 İş Bankası, V83 DenizBank ve V74 Ziraat düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V87-TEB-PHYSICAL-TABLE-AUDIT-FIX",
-  "version": "WORK-V87"
+  "build": "20260928-HANE-WORK-V88-HALKBANK-PAGE-OVERLAP-AUDIT-FIX",
+  "version": "WORK-V88"
 }
