@@ -2,8 +2,8 @@
   "latestVersion": "0.15.33-work-v78",
   "minimumVersion": "0.15.33-work-v78",
   "force": true,
-  "message": "V78: TEB 5 ekstre seçici düzeltmesi. Sayfa sonunda özet metnine yapışan gerçek son hareket artık atılmaz. TEB tek parsera zorlanmaz; fixed/segment/fiziksel/layout adayları banka GENEL TOPLAMı ve fiziksel satır kanıtıyla karşılaştırılarak en güvenilir tablo seçilir. Önceki dönem devir satırı işlem sayılmaz. Değişiklik yalnız TEB profilindedir; Ziraat ve diğer banka motorlarına dokunulmadı.",
+  "message": "V79: TEB eksik satır güvenli tamamlama. Ana parser korunur; fiziksel TEB adayları yalnız banka tür toplamındaki pozitif açığı veya bağımsız dönem borcu denklemi açığını benzersiz ve kuruşu kuruşuna kapatıyorsa eklenir. Fiziksel=parser ve borç denklemi tam ise yanlış bağlanan TEB harcama özeti işlem satırlarından düzeltilir. Ziraat ve diğer banka profillerine dokunulmadı.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V78-TEB-5STATEMENT-SELECTOR-FIX",
-  "version": "WORK-V78"
+  "build": "20260928-HANE-WORK-V79-TEB-MISSING-ROW-SAFE-FIX",
+  "version": "WORK-V79"
 }
