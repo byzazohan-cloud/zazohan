@@ -2,8 +2,8 @@
   "latestVersion": "0.15.37-work-v86",
   "minimumVersion": "0.15.37-work-v86",
   "force": true,
-  "message": "V92: Halkbank/Paraf koordinat auditinde banka harcama toplamına birebir uzlaştırılarak güvenle kaldırılan PDF/parser yankıları artık fiziksel çözümlenemeyen aday sayılmıyor. 12/9, 41/39 ve 34/31 sahte farkları yalnız bağımsız muhasebe denklemi uyumluysa kapanır. V91 TEB ve önceki banka düzeltmeleri korunur.",
+  "message": "V93: TEB düzeltmesi için Service Worker kayıt URLsi, cache adı ve tüm asset sürümleri birlikte V93 yapıldı. TEB fiziksel sayaç ölçülemiyorsa parser satırları fazla aday sayılmaz; önizleme katmanında da aynı kural ikinci kez korunur. V92 Halkbank ve önceki banka düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V92-HALKBANK-FINAL-AUDIT-RECONCILE",
-  "version": "WORK-V92"
+  "build": "20260928-HANE-WORK-V93-TEB-HARD-CACHE-AUDIT-FIX",
+  "version": "WORK-V93"
 }

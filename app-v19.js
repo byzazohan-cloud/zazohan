@@ -3853,6 +3853,16 @@ function bootHane(){
             meta.fullVerified=true;meta.verificationStatus='verified';meta.unverifiedParserExtraRowCount=0;
           }
         }
+        // V93 — TEB son savunma: bağımsız fiziksel sayaç gerçekten kullanılamıyorsa (0),
+        // parserın bulduğu hareketleri fazla aday olarak göstermek mantıksal olarak imkansızdır.
+        // Bu UI/guard öncesi ikinci koruma, eski meta alanından sızan 8/44 gibi sahte 'fazla aday'ı kapatır.
+        if(detected.id==='teb'&&(+meta.physicalRowCount||0)===0&&(+meta.parsedRowCount||reconciled.rows.length)>0){
+          meta.tebPhysicalUnavailable=true;
+          meta.physicalRowCount=0;meta.unresolvedRowCount=0;meta.parserExtraRowCount=0;meta.unverifiedParserExtraRowCount=0;
+          const tebCountIndependent=true;
+          if(tebCountIndependent&&meta.typeTotalsMatch&&(meta.rowEquationOk||meta.summaryTrusted)){meta.fullVerified=true;meta.verificationStatus='verified'}
+          else if(!(meta.unresolvedRowCount||meta.unverifiedParserExtraRowCount)){meta.verificationStatus=meta.typeTotalsMatch?'partial':'review'}
+        }
         meta.autoDuplicateRemoved=reconciled.removed||0;meta.autoDuplicateAmount=reconciled.amount||0;meta.autoFeeReclassified=reconciled.reclassified||0;meta.autoFeeReclassifiedAmount=reconciled.reclassifiedAmount||0;const guard=stmtImportGuardStatus(meta,reconciled.rows,detected.id,statementImportCardId);meta.importBlocked=guard.blocked;meta.importGuardReasons=guard.reasons;meta.bankProfileId=detected.id;statementImportMeta=meta;open('EKSTRE ÖNİZLEME',statementPreview(statementImportCardId,reconciled.rows),{cardId:statementImportCardId})}catch(err){console.error(err);open('EKSTRE OKUNAMADI',`<div class="notice">${esc(err.message||'Dosya okunamadı.')}</div>`,{cardId:statementImportCardId})}finally{input.value=''}
       });
     }
