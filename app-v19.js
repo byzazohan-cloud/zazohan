@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260928-HANE-WORK-V88-HALKBANK-PAGE-OVERLAP-AUDIT-FIX',
+  build:'20260928-HANE-WORK-V89-TEB-ZERO-PHYSICAL-AUDIT-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -366,7 +366,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,cashMoney,tara,profile,adminProfile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V88-HALKBANK-PAGE-OVERLAP-AUDIT-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V88-HALKBANK-PAGE-OVERLAP-AUDIT-FIX.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V89-TEB-ZERO-PHYSICAL-AUDIT-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V89-TEB-ZERO-PHYSICAL-AUDIT-FIX.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -2779,7 +2779,17 @@ function stmtApplyAuditDiagnostics(meta,rows,text,bankId,readDiag={}){
   const physical=stmtPhysicalRowAudit(text,bankId),sum=k=>round2(list.filter(r=>r?.kind===k).reduce((a,r)=>a+Math.abs(+r.amount||0),0));
   const readPhysical=+(readDiag?.physicalRowCount||0);
   // V84: TEB'de sayfa-sınırı örtüşmesi temizlenmiş read audit, birleşik metindeki ham sayaçtan daha güvenilirdir.
-  m.physicalRowCount=((bankId==='teb'||bankId==='halkbank')&&readPhysical>0)?readPhysical:Math.max(physical.count||0,readPhysical);m.parsedRowCount=list.length;m.unresolvedRowCount=Math.max(0,m.physicalRowCount-m.parsedRowCount);m.parserExtraRowCount=Math.max(0,m.parsedRowCount-m.physicalRowCount);
+  m.physicalRowCount=((bankId==='teb'||bankId==='halkbank')&&readPhysical>0)?readPhysical:Math.max(physical.count||0,readPhysical);m.parsedRowCount=list.length;
+  // V89 — TEB fiziksel sayaç YOKSA parser satırlarını "fazla aday" diye suçlama.
+  // Bazı SADE TEB PDF'lerinde metin katmanı işlem tablosunu koordinat/satır biçiminde vermiyor;
+  // bu durumda bağımsız fiziksel audit 0 dönerken TEB parserı gerçek 8/44 vb. hareketleri çıkarabiliyor.
+  // 0 fiziksel kanıt "0 işlem vardı" anlamına gelmez, "fiziksel sayaç kullanılamadı" anlamına gelir.
+  // Bu nedenle yalnız TEB + fiziksel sayaç 0 durumunda parserExtra üretilmez. Muhasebe/özet farkı,
+  // tip toplamları ve içe aktarma kilidi aynen çalışmaya devam eder; gerçek parasal uyuşmazlık gizlenmez.
+  const tebPhysicalUnavailable=bankId==='teb'&&m.physicalRowCount===0&&m.parsedRowCount>0;
+  m.tebPhysicalUnavailable=tebPhysicalUnavailable;
+  m.unresolvedRowCount=tebPhysicalUnavailable?0:Math.max(0,m.physicalRowCount-m.parsedRowCount);
+  m.parserExtraRowCount=tebPhysicalUnavailable?0:Math.max(0,m.parsedRowCount-m.physicalRowCount);
   m.spendRowCount=list.filter(r=>r?.kind==='spend').length;m.paymentRowCount=list.filter(r=>r?.kind==='payment').length;m.refundRowCount=list.filter(r=>r?.kind==='refund').length;m.feeRowCount=list.filter(r=>r?.kind==='fee').length;m.adjustmentRowCount=list.filter(r=>r?.kind==='adjustment').length;m.physicalCandidateSamples=(physical.signatures||[]).slice(0,8);
   m.parsedSpendingTotal=sum('spend');m.parsedPaymentsTotal=sum('payment');m.parsedRefundsTotal=sum('refund');m.parsedFeesTotal=sum('fee');
   if(finite(m.previousBalance)&&finite(m.periodDebt)){
@@ -3120,7 +3130,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260928-HANE-WORK-V88-HALKBANK-PAGE-OVERLAP-AUDIT-FIX';
+const HANE_SW_BUILD='20260928-HANE-WORK-V89-TEB-ZERO-PHYSICAL-AUDIT-FIX';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v0.15.16-fix17-work-independent';
 const HANE_ENGINE_PACKAGES=[
