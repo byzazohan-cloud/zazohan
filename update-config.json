@@ -4,6 +4,6 @@
   "force": true,
   "message": "V49 gider yapısı korunarak Çalışma takvimi şeritleri alttan yukarı dizildi; normal Takvim bağımsız finans verileriyle aynı şerit görsel diline geçirildi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V51-ALT-SERIT-FINANS-TAKVIM",
-  "version": "WORK-V51"
+  "build": "20260927-HANE-WORK-V52-RAPORLAR",
+  "version": "WORK-V52"
 }
