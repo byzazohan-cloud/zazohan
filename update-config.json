@@ -2,8 +2,8 @@
   "latestVersion": "0.15.17",
   "minimumVersion": "0.15.17",
   "force": true,
-  "message": "FIX38 · Ekstre okuma regresyonu: uygulama ve Service Worker build kimlikleri eşitlendi; Ekstre Motoru 2.0 parser/sınıflandırma kodu değiştirilmedi.",
+  "message": "STABLE39 · Stabilizasyon: yalnız build/cache kimlikleri tekleştirildi; finans, kart, çalışma, ekstre parser ve parola işlev kodları değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260927-HANE-V0.15.17-FIX38-STATEMENT-REGRESSION",
+  "build": "20260927-HANE-V0.15.17-STABLE39",
   "version": "0.15.17"
 }
