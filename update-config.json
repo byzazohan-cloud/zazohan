@@ -4,6 +4,6 @@
   "force": true,
   "message": "Ekstre ekranı kompakt mutabakat düzenine alındı; kartlarda ortak limit görünümü eklendi; Raporlar üst sekmeleri tek segment oldu, özet sadeleştirildi, gider ve kart raporları yeniden düzenlendi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V60-RAPOR-EKSTRE-ORTAK-LIMIT",
+  "build": "20260927-HANE-WORK-V61-RAPOR-ACILIS-FIX",
   "version": "WORK-V60"
 }

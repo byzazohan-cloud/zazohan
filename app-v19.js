@@ -901,6 +901,7 @@ function reportCardMetricDetailBody(kind){
  return `<div class="reportMetricDetail"><div class="reportCompareHead"><small>${monthLabel(m)}</small><b>${title}</b></div><div class="reportMetricTotal"><small>TOPLAM</small><b>${money(total)}</b><span>${rows.length} KAYIT</span></div><div class="list">${rows.map(x=>{const c=(state.cards||[]).find(q=>q.id===x.cardId);return `<div class="item"><div class="ico premiumIco">${premiumIcon('cards',20)}</div><div><b>${esc(x.title)}</b><small>${prettyDate(x.date)}${c?' · '+esc(c.bank)+' · '+esc(c.name):''}</small></div><div class="right"><b>${money(x.amount)}</b></div></div>`}).join('')||'<div class="notice">KAYIT YOK.</div>'}</div></div>`
 }
 function reports(){
+ const diff=(a,b)=>(+a||0)-(+b||0);
  const m=state.selectedMonth;if(reportView==='fixed')reportView='summary';
  const [yy,mm]=m.split('-').map(Number),pm=ym(new Date(yy,mm-2,1)),cur=totals(m),prev=totals(pm);
  const monthExpenses=actualExpenseEntriesForMonth(m),catRange=reportMonthRange(reportCategoryMonths),catExpenses=actualExpenseEntriesInRange(catRange.start,catRange.end),cats={};catExpenses.forEach(x=>{const k=expenseCategoryGroup(x);cats[k]=(cats[k]||0)+(+x.amount||0)});const catRows=Object.entries(cats).sort((a,b)=>b[1]-a[1]),catTotal=catRows.reduce((a,x)=>a+x[1],0)||1;
@@ -2517,7 +2518,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260927-HANE-WORK-V60-RAPOR-EKSTRE-ORTAK-LIMIT';
+const HANE_SW_BUILD='20260927-HANE-WORK-V61-RAPOR-ACILIS-FIX';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v0.15.16-fix17-work-independent';
 const HANE_ENGINE_PACKAGES=[
