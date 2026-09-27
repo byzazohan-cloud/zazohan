@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.33-work-v80",
-  "minimumVersion": "0.15.33-work-v80",
+  "latestVersion": "0.15.34-work-v81",
+  "minimumVersion": "0.15.34-work-v81",
   "force": true,
-  "message": "V80: TEB fiziksel mutabakat düzeltmesi. Seçili parser fiziksel satır eksik bırakırsa fiziksel TEB motoru yalnız kendi temiz satır sayısı bağımsız fiziksel audit ile birebir eşleştiğinde devreye girer. 46/44 gibi gerçek eksik satırlar tamamlanır; V76’daki +1 fazla satır regresyonu engellenir. V79 güvenli tamamlama ve Ziraat/diğer banka profilleri korunur.",
+  "message": "V81: DenizBank fiziksel aday denetimi düzeltildi. Taksit 4/4, blok 4/4 ve benzeri kesirler artık tarih sayılmaz; DenizBank audit yalnız tam GG/AA/YYYY tarihli gerçek işlem satırlarını sayar. İşlem parserı ve TEB V80/Ziraat/diğer banka kuralları değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V80-TEB-PHYSICAL-CONSENSUS-FIX",
-  "version": "WORK-V80"
+  "build": "20260928-HANE-WORK-V81-DENIZBANK-AUDIT-FIX",
+  "version": "WORK-V81"
 }
