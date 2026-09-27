@@ -982,15 +982,15 @@ function zCalendarBody(memberId){
    if(hourly&&base){status=status+' hasHourly';label+=' + Saatlik iş'}
    if(pay){status=status?status+' hasPayment':'payment';label+=(label?' + ':'')+'Ödeme';icon=icon||'▤';if(!dayKind)dayKind='ÖDEME'}
    const future=ds>today?' future':'',todayCls=ds===today?' today':'';
-   const badges=[
+   const badgeItems=[
      base?.dayStatus==='leave'?`<i class="eventBadge ${(base.leaveType||mem?.leavePolicy||'unpaid')==='paid'?'leavePaid':'leaveUnpaid'}">${(base.leaveType||mem?.leavePolicy||'unpaid')==='paid'?'ÜCRETLİ':'ÜCRETSİZ'}</i>`:'',
      base&&base.dayStatus!=='leave'?'<i class="eventBadge worked">TAM GÜN</i>':'',
      ot?'<i class="eventBadge overtime">MESAİ</i>':'',
      hourly?'<i class="eventBadge hourly">SAATLİK</i>':'',
      pay?'<i class="eventBadge payment">ÖDEME</i>':'',
      road?'<i class="eventBadge road">YOL</i>':''
-   ].join('');
-   cells+=`<button class="zCalDay ${status}${road?' hasRoad':''}${future}${todayCls}" data-action="zWorkDay" data-date="${ds}" title="${esc(label+(road?(label?' + ':'')+'Yol ücreti':'')||'Kayıt yok')}"><b>${d}</b><span class="eventDots">${badges}</span></button>`
+   ].filter(Boolean),badges=badgeItems.join(''),badgeCount=badgeItems.length;
+   cells+=`<button class="zCalDay ${status}${road?' hasRoad':''}${future}${todayCls}" data-action="zWorkDay" data-date="${ds}" title="${esc(label+(road?(label?' + ':'')+'Yol ücreti':'')||'Kayıt yok')}"><b>${d}</b><span class="eventDots count-${badgeCount}">${badges}</span></button>`
  }
  cells+='</div>';
  if(!mem)return `<div class="zWorkCalendar"><div class="notice">Çalışma bilgilerini görmek için üstten bir kişi seç.</div>${cells}</div>`;
