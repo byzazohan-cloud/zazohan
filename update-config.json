@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.28-work-v69",
-  "minimumVersion": "0.15.28-work-v69",
+  "latestVersion": "0.15.29-work-v70",
+  "minimumVersion": "0.15.29-work-v70",
   "force": true,
-  "message": "V69: Ziraat/Bankkart harcama mutabakatı güçlendirildi. Özet harcama alanı faiz/ücret dahil veya PDF hücre sırası bozuksa, yalnız fiziksel satırlar eksiksiz ve dönem borcu denklemi doğrulanıyorsa işlem satırı toplamıyla güvenli biçimde onarılır; gerçek eksik satırlar gizlenmez.",
+  "message": "V70: Ziraat/Bankkart doğrulamasında fiziksel sayaçtan bir fazla bulunan parser satırı; çözümlenemeyen satır yoksa, tür toplamları ve dönem borcu denklemi tam uyuyorsa kurtarılan gerçek hareket olarak kabul edilir. Yanlış harcama özet etiketi açıklaması netleştirildi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V69-ZIRAAT-HARCAMA-MUTABAKAT-FIX",
-  "version": "WORK-V69"
+  "build": "20260927-HANE-WORK-V70-ZIRAAT-SATIR-DOGRULAMA-FIX",
+  "version": "WORK-V70"
 }
