@@ -4256,3 +4256,49 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .zPersonMonthSummary .roadSummary{border-color:rgba(32,228,210,.28)!important;background:linear-gradient(135deg,rgba(32,228,210,.09),rgba(7,14,20,.92))!important}
 .zPersonMonthSummary .roadSummary small{color:#6df5e8!important}
 .zPersonMonthSummary .roadSummary em{display:block;margin-top:4px;font-size:9px;line-height:1.25;font-style:normal;color:#9eb8bb;white-space:normal}
+
+
+/* WORK V40 — V39 uyumlu takvim şerit standardı + ana logo güncellemesi.
+   İş mantığı değişmez; yalnız Çalışma takvimi görünümü ve logo varlıkları standardize edilir. */
+/* Takvim altındaki bütün renk anahtarları aynı boyut ve aynı yazı rengi. */
+.personWorkCalendar .premiumWorkKey span,
+.personWorkCalendar .premiumWorkKey .roadKey{color:inherit!important;font-size:8px!important;line-height:1!important}
+.personWorkCalendar .premiumWorkKey i,
+.personWorkCalendar .premiumWorkKey i.road{width:8px!important;height:8px!important;min-width:8px!important;border-radius:3px!important;transform:none!important;box-shadow:none!important}
+.personWorkCalendar .premiumWorkKey i.road{background:#20e4d2!important}
+
+/* TAM GÜN, MESAİ, SAATLİK, ÖDEME ve YOL aynı alt şerit sistemini kullanır. */
+.personWorkCalendar .zCalDay .roadDayStripe{display:none!important}
+.personWorkCalendar .zCalDay .eventDots{
+  left:3px!important;right:3px!important;bottom:0!important;height:16px!important;
+  display:flex!important;flex-direction:row!important;align-items:flex-end!important;
+  justify-content:stretch!important;gap:1px!important;overflow:hidden!important;z-index:7!important;
+}
+.personWorkCalendar .eventBadge{
+  position:relative!important;isolation:isolate!important;flex:1 1 0!important;min-width:0!important;
+  width:auto!important;height:16px!important;padding:0 1px 1px!important;display:flex!important;
+  align-items:flex-end!important;justify-content:center!important;overflow:hidden!important;
+  border-radius:0!important;clip-path:none!important;background:transparent!important;
+  color:#f7fbfd!important;font-size:3.6px!important;line-height:6px!important;font-weight:950!important;
+  letter-spacing:0!important;text-shadow:0 1px 2px #000!important;box-shadow:none!important;
+}
+.personWorkCalendar .eventBadge::before{
+  content:""!important;position:absolute!important;left:-10%!important;right:-10%!important;bottom:0!important;
+  height:100%!important;z-index:-1!important;clip-path:polygon(0 100%,0 62%,100% 0,100% 38%)!important;opacity:.98!important;
+}
+.personWorkCalendar .eventBadge.fullDay::before{background:linear-gradient(90deg,#ff4a58,#a90f20)!important}
+.personWorkCalendar .eventBadge.overtime::before{background:linear-gradient(90deg,#ffad48,#c85c0d)!important}
+.personWorkCalendar .eventBadge.hourly::before{background:linear-gradient(90deg,#b56cff,#6f2eb7)!important}
+.personWorkCalendar .eventBadge.payment::before{background:linear-gradient(90deg,#4dd2ff,#0879ad)!important}
+.personWorkCalendar .eventBadge.road::before{background:linear-gradient(90deg,#5ff5e4,#16aa9d)!important}
+/* Beş kayıt aynı gündeyse yan yana eşit bölünür; üst üste binmez. */
+.personWorkCalendar .zCalDay:has(.eventBadge.fullDay) .dayKind{display:none!important}
+@media(max-width:390px){
+  .personWorkCalendar .zCalDay .eventDots{height:14px!important}
+  .personWorkCalendar .eventBadge{height:14px!important;font-size:3.15px!important;line-height:5px!important;padding:0!important}
+}
+
+/* V40 final ribbon parity: izinler de aynı şerit tipinde; Tam Gün anahtarı kırmızı. */
+.personWorkCalendar .premiumWorkKey i.worked{background:#ff3f50!important;box-shadow:none!important}
+.personWorkCalendar .eventBadge.leavePaid::before{background:linear-gradient(90deg,#ffe16a,#c99d13)!important}
+.personWorkCalendar .eventBadge.leaveUnpaid::before{background:linear-gradient(90deg,#ff6678,#b51e32)!important}
