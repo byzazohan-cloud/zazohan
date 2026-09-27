@@ -2,8 +2,8 @@
   "latestVersion": "0.15.37-work-v86",
   "minimumVersion": "0.15.37-work-v86",
   "force": true,
-  "message": "V89: TEB SADE PDF metin katmanında bağımsız fiziksel sayaç 0 kaldığında parser satırları artık yanlış biçimde FAZLA ADAY sayılmaz. Fiziksel kanıt yoksa sayaç — olarak kalır; parser 8/44 gibi gerçek satırları göstermeye devam eder, çözümlenemeyen/fazla aday 0 olur. Muhasebe denklemi, banka özeti ve içe aktarma güvenlik kilitleri korunur. V88 Halkbank, V85 İş Bankası, V83 DenizBank ve V74 Ziraat düzeltmeleri korunur.",
+  "message": "V91: TEB SADE için fiziksel sayaç kullanılamadığında son audit koruması eklendi; sayfa denetiminin tamamı 0 ise parser satırları artık fazla aday sayılmaz. Ayrıca PWA asset sürümü ve Service Worker cache adı V91 olarak yenilendi; eski V86/V89 cache üzerinden eski parser kodunun çalışması engellendi. V90 Halkbank ve önceki banka düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V90-HALKBANK-COORDINATE-ROW-PRESERVE-FIX",
-  "version": "WORK-V89"
+  "build": "20260928-HANE-WORK-V91-TEB-AUDIT-CACHE-FINAL-FIX",
+  "version": "WORK-V91"
 }

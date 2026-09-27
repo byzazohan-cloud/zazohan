@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260928-HANE-WORK-V90-HALKBANK-COORDINATE-ROW-PRESERVE-FIX',
+  build:'20260928-HANE-WORK-V91-TEB-AUDIT-CACHE-FINAL-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -366,7 +366,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,cashMoney,tara,profile,adminProfile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V90-HALKBANK-COORDINATE-ROW-PRESERVE-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V90-HALKBANK-COORDINATE-ROW-PRESERVE-FIX.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V91-TEB-AUDIT-CACHE-FINAL-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V91-TEB-AUDIT-CACHE-FINAL-FIX.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -2856,6 +2856,18 @@ function stmtApplyAuditDiagnostics(meta,rows,text,bankId,readDiag={}){
       m.tebTableVerified=true;m.summaryTrusted=true;directSpend=directPay=directFee=true;
     }
   }
+  // V91 — TEB fiziksel sayaç kullanılamıyor son-koruması.
+  // PDF sayfa denetimi açıkça 0 aday döndürdüyse bu, TEB SADE metin katmanında
+  // bağımsız fiziksel tablonun ölçülemediği anlamına gelir; parserın bulduğu gerçek
+  // hareketler 'fazla aday' değildir. Bu karar yalnız TEB'e ve yalnız tüm sayfa
+  // denetimleri 0 iken uygulanır. Banka toplamları / muhasebe denklemi kontrolleri korunur.
+  if(bankId==='teb'&&m.parsedRowCount>0&&Array.isArray(readDiag?.pageAudit)&&readDiag.pageAudit.length>0&&readDiag.pageAudit.every(x=>(+x?.candidates||0)===0)){
+    m.tebPhysicalUnavailable=true;
+    m.physicalRowCount=0;
+    m.unresolvedRowCount=0;
+    m.parserExtraRowCount=0;
+  }
+
   // V85 — İş Bankası fiziksel aday yanlış-pozitif temizliği.
   // Maximum PDF'lerinde işlem satırının sonundaki MaxiPuan / taksit toplamı gibi yardımcı kolonlar
   // genel fiziksel audit tarafından ayrı/şüpheli aday izlenimi oluşturabiliyor. Parser satırları ise
@@ -3135,7 +3147,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260928-HANE-WORK-V90-HALKBANK-COORDINATE-ROW-PRESERVE-FIX';
+const HANE_SW_BUILD='20260928-HANE-WORK-V91-TEB-AUDIT-CACHE-FINAL-FIX';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v0.15.16-fix17-work-independent';
 const HANE_ENGINE_PACKAGES=[
