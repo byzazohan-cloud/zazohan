@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.17-work-v14",
-  "minimumVersion": "0.15.17-work-v14",
+  "latestVersion": "0.15.17-work-v20",
+  "minimumVersion": "0.15.17-work-v20",
   "force": true,
-  "message": "WORK V14 · Onaylanan takvim tasarımına uygun üst üste paralel çapraz Mesai/Saatlik/Ödeme şeritleri; nötr gün numarası; merkez ikonları kaldırıldı. Kompakt para ayrıntısı korunur.",
+  "message": "WORK V20 · Parola ekranında dengeli dikey boşluklar: ne sıkışık ne dağınık. Büyük yatay HANE logosu, profil tema stüdyosu ve çalışan sistemler korunur.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V17-APPROVED-RIBBONS",
-  "version": "0.15.17-work-v14"
+  "build": "20260927-HANE-WORK-V20-BALANCED-LOCK",
+  "version": "0.15.17-work-v20"
 }

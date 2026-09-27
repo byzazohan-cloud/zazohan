@@ -4089,3 +4089,45 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
   .hanePremiumLock .hplKeypad{grid-template-rows:repeat(4,54px)!important;gap:8px!important}
   .hanePremiumLock .hplFooter{margin-top:9px!important}
 }
+
+/* HANE WORK V20 — BALANCED LOCK RHYTHM.
+   Restore breathing room without reintroducing the oversized gaps from V18. */
+.hanePremiumLock .hplPanel{
+  row-gap:8px!important;
+  padding-top:max(10px,env(safe-area-inset-top))!important;
+  padding-bottom:max(10px,env(safe-area-inset-bottom))!important;
+}
+.hanePremiumLock .hplBrand.hplBrandUnified,
+.hanePremiumLock .hplGreeting,
+.hanePremiumLock .hplQuote,
+.hanePremiumLock .hplPortraitShell,
+.hanePremiumLock .hplDots,
+.hanePremiumLock .hplKeypad,
+.hanePremiumLock .hplFooter{
+  margin-top:0!important;
+  margin-bottom:0!important;
+}
+.hanePremiumLock .hplBrand.hplBrandUnified{margin:0!important}
+.hanePremiumLock .hplQuote{margin:0!important}
+.hanePremiumLock .hplDots{margin:0!important}
+.hanePremiumLock .hplFooter{margin:0!important;padding:2px 0 0!important}
+/* Give the greeting itself a little internal air so name and label do not look glued together. */
+.hanePremiumLock .hplGreeting small{line-height:1.15!important}
+.hanePremiumLock .hplGreeting b{margin-top:3px!important;line-height:1.05!important}
+
+@media(max-height:760px){
+  .hanePremiumLock .hplPanel{
+    row-gap:6px!important;
+    padding-top:max(7px,env(safe-area-inset-top))!important;
+    padding-bottom:max(7px,env(safe-area-inset-bottom))!important;
+  }
+  .hanePremiumLock .hplUnifiedBrandLogo{width:min(80vw,320px)!important;max-height:93px!important}
+  .hanePremiumLock .hplPortraitShell{width:min(57vw,228px)!important}
+  .hanePremiumLock .hplDots{margin:1px 0!important}
+  .hanePremiumLock .hplKeypad{width:min(76vw,300px)!important;grid-template-rows:repeat(4,40px)!important;gap:6px!important}
+  .hanePremiumLock .hplFooter{width:min(76vw,300px)!important;padding-top:2px!important}
+}
+@media(min-height:900px){
+  .hanePremiumLock .hplPanel{row-gap:11px!important;padding-top:max(16px,env(safe-area-inset-top))!important}
+  .hanePremiumLock .hplFooter{padding-top:3px!important}
+}
