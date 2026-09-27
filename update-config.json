@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.34-work-v81",
-  "minimumVersion": "0.15.34-work-v81",
+  "latestVersion": "0.15.34-work-v82",
+  "minimumVersion": "0.15.34-work-v82",
   "force": true,
-  "message": "V81: DenizBank fiziksel aday denetimi düzeltildi. Taksit 4/4, blok 4/4 ve benzeri kesirler artık tarih sayılmaz; DenizBank audit yalnız tam GG/AA/YYYY tarihli gerçek işlem satırlarını sayar. İşlem parserı ve TEB V80/Ziraat/diğer banka kuralları değiştirilmedi.",
+  "message": "V82: TEB sayfa-sınırı eksik satır düzeltmesi. TEB fiziksel parserı bağımsız audit ile aynı satır penceresini kullanır ve sayfa bazlı fiziksel sayı birleşik PDF metninde kaybolmaz. V79 9/8 düzeltmesi, DenizBank V81 ve Ziraat kuralları korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V81-DENIZBANK-AUDIT-FIX",
-  "version": "WORK-V81"
+  "build": "20260928-HANE-WORK-V82-TEB-PAGE-ROW-FIX",
+  "version": "WORK-V82"
 }
