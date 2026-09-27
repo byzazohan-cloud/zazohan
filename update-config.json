@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.22-work-v63",
-  "minimumVersion": "0.15.22-work-v63",
+  "latestVersion": "0.15.23-work-v64",
+  "minimumVersion": "0.15.23-work-v64",
   "force": true,
-  "message": "HAN 3.0: ortak limit, günlük kategori yoğunluğu, değişen kayıtların yeniden denetimi, iadeli ekstre denklemi, tam filtreler ve yeni HAN ikonu.",
+  "message": "V64: HAN denetim düzeltmeleri, çalışma/taksit yanlış alarm onarımı, ekstre iade mutabakatı, ortak limit projeksiyonu ve sabit giderden normal Gider migrasyonu.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V63-HAN-4-0",
-  "version": "WORK-V63"
+  "build": "20260927-HANE-WORK-V64-HAN-AUDIT-FIX",
+  "version": "WORK-V64"
 }
