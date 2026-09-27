@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.18-work-v24",
-  "minimumVersion": "0.15.18-work-v24",
+  "latestVersion": "0.15.18-work-v36",
+  "minimumVersion": "0.15.18-work-v36",
   "force": true,
-  "message": "V25 temiz taban. Çalışma profil değişimindeki otomatik gün üretimi kaldırıldı; boş gün kayıt ekranı, Yol Ücreti Nakit/Kredi Kartı kayıt akışı ve gerçek Kimlik Kartı ekranında seçili üye + alt üye listesi düzeltildi.",
+  "message": "V34 çalışan boş-gün tabanı korunarak Yol Ücreti ana Çalışma veri akışına alındı ve Kimlik Kartı tek ekran olarak yeniden kuruldu.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V24-HANE-UYELERI-PROFIL-SAYFASI",
-  "version": "WORK-V35"
+  "build": "20260927-HANE-WORK-V36-ROAD-IDENTITY-SCREEN",
+  "version": "WORK-V36"
 }
