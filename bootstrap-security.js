@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260927-HANE-WORK-V77-TEB-REGRESSION-SAFE-FIX';
+  const BUILD='20260928-HANE-WORK-V78-TEB-5STATEMENT-SELECTOR-FIX';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;

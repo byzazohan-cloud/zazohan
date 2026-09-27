@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.32-work-v77",
-  "minimumVersion": "0.15.32-work-v77",
+  "latestVersion": "0.15.33-work-v78",
+  "minimumVersion": "0.15.33-work-v78",
   "force": true,
-  "message": "V77: TEB regresyon güvenli düzeltmesi. V76 ile eklenen ve tüm TEB ekstrelerinde 1 fazla hareket üreten fiziksel kayıt motoru devreden çıkarıldı; V75 ile doğrulanmış TEB parserı geri alındı. V76 GENEL TOPLAM özet düzeltmesi korundu. Fiziksel sayaç parserdan fazla aday görürse bu fark yalnız TEB banka toplamları, ödeme, faiz/ücret ve varsa dönem borcu denklemi bağımsız olarak tam uyuştuğunda yanlış fiziksel aday sayılır. Ziraat V74 3/3 kuralları değiştirilmedi.",
+  "message": "V78: TEB 5 ekstre seçici düzeltmesi. Sayfa sonunda özet metnine yapışan gerçek son hareket artık atılmaz. TEB tek parsera zorlanmaz; fixed/segment/fiziksel/layout adayları banka GENEL TOPLAMı ve fiziksel satır kanıtıyla karşılaştırılarak en güvenilir tablo seçilir. Önceki dönem devir satırı işlem sayılmaz. Değişiklik yalnız TEB profilindedir; Ziraat ve diğer banka motorlarına dokunulmadı.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V77-TEB-REGRESSION-SAFE-FIX",
-  "version": "WORK-V77"
+  "build": "20260928-HANE-WORK-V78-TEB-5STATEMENT-SELECTOR-FIX",
+  "version": "WORK-V78"
 }
