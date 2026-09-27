@@ -2,8 +2,8 @@
   "latestVersion": "0.15.18-work-v24",
   "minimumVersion": "0.15.18-work-v24",
   "force": true,
-  "message": "WORK V33 · V25 kilit tabanı üzerinden temiz düzeltme: boş çalışma gününe kayıt ekleme, bağımsız Yol Ücreti (Nakit/Kredi Kartı), takvim yol şeridi ve HANE Üyeleri ekranında seçili kişinin kimlik kartı üstte. V21 parola tasarımı korunur.",
+  "message": "V25 temiz taban. Çalışma profil değişimindeki otomatik gün üretimi kaldırıldı; boş gün kayıt ekranı, Yol Ücreti Nakit/Kredi Kartı kayıt akışı ve gerçek Kimlik Kartı ekranında seçili üye + alt üye listesi düzeltildi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V33-V25-TEMIZ-TABAN-YOL-KIMLIK",
-  "version": "0.15.17-WORK-V33"
+  "build": "20260927-HANE-WORK-V24-HANE-UYELERI-PROFIL-SAYFASI",
+  "version": "WORK-V34"
 }
