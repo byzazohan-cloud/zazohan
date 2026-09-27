@@ -2,8 +2,8 @@
   "latestVersion": "0.15.37-work-v86",
   "minimumVersion": "0.15.37-work-v86",
   "force": true,
-  "message": "V91: TEB SADE için fiziksel sayaç kullanılamadığında son audit koruması eklendi; sayfa denetiminin tamamı 0 ise parser satırları artık fazla aday sayılmaz. Ayrıca PWA asset sürümü ve Service Worker cache adı V91 olarak yenilendi; eski V86/V89 cache üzerinden eski parser kodunun çalışması engellendi. V90 Halkbank ve önceki banka düzeltmeleri korunur.",
+  "message": "V92: Halkbank/Paraf koordinat auditinde banka harcama toplamına birebir uzlaştırılarak güvenle kaldırılan PDF/parser yankıları artık fiziksel çözümlenemeyen aday sayılmıyor. 12/9, 41/39 ve 34/31 sahte farkları yalnız bağımsız muhasebe denklemi uyumluysa kapanır. V91 TEB ve önceki banka düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V91-TEB-AUDIT-CACHE-FINAL-FIX",
-  "version": "WORK-V91"
+  "build": "20260928-HANE-WORK-V92-HALKBANK-FINAL-AUDIT-RECONCILE",
+  "version": "WORK-V92"
 }
