@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260927-HANE-WORK-V71-ZIRAAT-GERCEK-SATIR-MOTORU',
+  build:'20260927-HANE-WORK-V72-ZIRAAT-SAYFA-OVERLAP-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -366,7 +366,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,cashMoney,tara,profile,adminProfile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260927-HANE-WORK-V71-ZIRAAT-GERCEK-SATIR-MOTORU')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260927-HANE-WORK-V71-ZIRAAT-GERCEK-SATIR-MOTORU.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260927-HANE-WORK-V72-ZIRAAT-SAYFA-OVERLAP-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260927-HANE-WORK-V72-ZIRAAT-SAYFA-OVERLAP-FIX.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -2465,7 +2465,7 @@ function stmtPhysicalSummaryLike(v,bankId='generic'){
 }
 function stmtPhysicalRowAudit(text,bankId='generic'){
   const src=String(text||'').replace(/\r/g,'\n'),lines=src.split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
-  const dateRx=/\b\d{1,2}[.\/-]\d{1,2}(?:[.\/-](?:20\d{2}|\d{2}))?\b/;
+  const dateRx=bankId==='ziraat'?/\b\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2})\b/:/\b\d{1,2}[.\/-]\d{1,2}(?:[.\/-](?:20\d{2}|\d{2}))?\b/;
   const signatures=[];let zStarted=bankId!=='ziraat';
   for(let i=0;i<lines.length;i++){
     const line=lines[i],u=line.toLocaleUpperCase('tr-TR');
@@ -2504,7 +2504,7 @@ function stmtApplyAuditDiagnostics(meta,rows,text,bankId,readDiag={}){
   const directPay=!finite(m.paymentsTotal)||Math.abs((+m.paymentsTotal)-m.parsedPaymentsTotal)<.02;
   const directFee=!finite(m.feesTotal)||Math.abs((+m.feesTotal)-m.parsedFeesTotal)<.02;
   m.typeTotalsMatch=directSpend&&directPay&&directFee;
-  m.pageAudit=Array.isArray(readDiag?.pageAudit)?readDiag.pageAudit:[];
+  m.pageAudit=Array.isArray(readDiag?.pageAudit)?readDiag.pageAudit:[];m.pageOverlapRemoved=+readDiag?.overlapRemoved||0;
   // V70 — Fiziksel sayaç yalnız tarih+tutar biçimindeki adayları görür. Banka parserı ise
   // tarih satırı PDF'de kopmuş bir gerçek hareketi (özellikle vergi/faiz satırını) kurtarabilir.
   // Parser fiziksel sayaçtan fazla satır buldu diye tek başına hata üretme: çözümlenemeyen yoksa,
@@ -2748,8 +2748,8 @@ function statementPreview(cardId,rows){
   const prev=Number.isFinite(statementImportMeta.previousBalance)?statementImportMeta.previousBalance:'';
   const fees=Number.isFinite(statementImportMeta.feesTotal)?statementImportMeta.feesTotal:feeRows.reduce((a,r)=>a+Math.abs(+r.amount||0),0);
   const pays=Number.isFinite(statementImportMeta.paymentsTotal)?statementImportMeta.paymentsTotal:paymentRows.reduce((a,r)=>a+r.amount,0),refunds=refundRows.reduce((a,r)=>a+Math.abs(+r.amount||0),0);
-  const physical=+statementImportMeta.physicalRowCount||0,parsed=+statementImportMeta.parsedRowCount||finalRows.length,unresolved=+statementImportMeta.unresolvedRowCount||0,extra=+statementImportMeta.parserExtraRowCount||0,recovered=+statementImportMeta.parserRecoveredRowCount||0;const verifyLabel=statementImportMeta.fullVerified?'EKSTRE TAM DOĞRULANDI':statementImportMeta.verificationStatus==='review'?'İNCELEME GEREKİYOR':'KISMİ DOĞRULAMA';const pageAudit=(statementImportMeta.pageAudit||[]).map(x=>`S${x.page}: ${x.candidates}`).join(' · ');
-  return `<div class="statementReconcileBox statementV65Audit ${statementImportMeta.fullVerified?'ok':'review'}"><b>${verifyLabel}</b><div class="stmtCountGrid"><span><small>FİZİKSEL ADAY</small><b>${physical||'—'}</b></span><span><small>PARSER</small><b>${parsed}</b></span><span><small>ÇÖZÜMLENEMEYEN</small><b>${unresolved}</b></span><span><small>${recovered?'KURTARILAN':'FAZLA ADAY'}</small><b>${recovered||extra}</b></span></div><small>${pageAudit?`Sayfa kontrolü: ${esc(pageAudit)}. `:''}Harcama ${money(statementImportMeta.parsedSpendingTotal||0)} · Ödeme ${money(statementImportMeta.parsedPaymentsTotal||0)} · İade ${money(statementImportMeta.parsedRefundsTotal||0)} · Faiz/Masraf ${money(statementImportMeta.parsedFeesTotal||0)}${adjustmentRows.length?` · Bonus/Puan ${adjustmentRows.length} satır (harcamaya dahil değil)`:''}.</small>${unresolved&&Array.isArray(statementImportMeta.physicalCandidateSamples)&&statementImportMeta.physicalCandidateSamples.length?`<br><small><b>Şüpheli fiziksel aday örnekleri:</b> ${esc(statementImportMeta.physicalCandidateSamples.slice(0,3).join(' · '))}</small>`:''}${Number.isFinite(+statementImportMeta.rowEquationTotal)?`<br><small>Muhasebe denklemi: ${statementImportMeta.rowEquationOk?'✓ UYUMLU':'⚠ FARK VAR'} · Hesaplanan ${money(+statementImportMeta.rowEquationTotal||0)}</small>`:''}</div><div class="notice"><b>${esc(c?.bank||'KART')} · •••• ${esc(c?.last4||'')}</b><br><small>Ekstre bankası: <b>${esc(bankProfile.label)}</b></small><br><b>${movementCount} satır bulundu</b> · ${spendRows.length} harcama · ${paymentRows.length} ödeme · ${refundRows.length} iade · ${feeRows.length} vergi/faiz${adjustmentRows.length?` · ${adjustmentRows.length} bonus/puan düzeltme`:''}${skipped?` · ${skipped} mükerrer atlandı`:''}.<br>${statementImportMeta.autoDuplicateRemoved?`<small><b>${statementImportMeta.autoDuplicateRemoved} yinelenen satır</b> banka harcama toplamıyla karşılaştırılarak çıkarıldı (${money(statementImportMeta.autoDuplicateAmount||0)}).</small><br>`:''}${statementImportMeta.autoFeeReclassified?`<small><b>${statementImportMeta.autoFeeReclassified} satır</b> banka özetiyle uzlaştırılarak Vergi & Faiz'e ayrıldı (${money(statementImportMeta.autoFeeReclassifiedAmount||0)}).</small><br>`:''}${statementImportMeta.importBlocked?`<small><b>⛔ İÇE AKTARMA KİLİTLİ:</b> ${esc((statementImportMeta.importGuardReasons||[]).join(' · '))}</small><br>`:''}${statementImportMeta.ziraatSpendFromVerifiedRows?`<small><b>✓ Ziraat harcama özeti işlem satırları + dönem borcu denklemiyle doğrulandı.</b>${Number.isFinite(+statementImportMeta.ziraatOriginalSpendingTotal)?` PDF düz metin sırasında harcama alanına yanlış taşınan ${money(+statementImportMeta.ziraatOriginalSpendingTotal)} değeri kullanılmadı; doğrulanmış gerçek harcama toplamı ${money(+statementImportMeta.spendingTotal)} kullanıldı.`:''}</small><br>`:statementImportMeta.ziraatSummaryIncludesFees?`<small><b>✓ Ziraat özetindeki harcama toplamının faiz/ücreti içerdiği doğrulandı; net harcama ayrıştırıldı.</b></small><br>`:statementImportMeta.summaryRepaired?`<small><b>Ekstre özeti doğrulandı ve PDF metin sırası otomatik düzeltildi.</b></small><br>`:''}${statementImportMeta.summaryTrusted?`<small>✓ Banka özeti ve işlem satırları birlikte doğrulandı.</small><br>`:statementImportMeta.summaryEquationOk?`<small>⚠ Banka özeti matematiksel olarak tutuyor; işlem satırlarıyla tam doğrulama bekleniyor.</small><br>`:''}<small>Motor: EKSTRE MOTORU 3.6 · Profil: ${esc(bankProfile.label)} · Satır ve blok stratejileri otomatik karşılaştırılır; gerekirse OCR yedeği kullanılır.</small><br><small>Taksitli alışverişlerde yalnızca bu ekstreye yansıyan taksit tutarı gider olarak eklenir.</small></div>
+  const physical=+statementImportMeta.physicalRowCount||0,parsed=+statementImportMeta.parsedRowCount||finalRows.length,unresolved=+statementImportMeta.unresolvedRowCount||0,extra=+statementImportMeta.parserExtraRowCount||0,recovered=+statementImportMeta.parserRecoveredRowCount||0;const verifyLabel=statementImportMeta.fullVerified?'EKSTRE TAM DOĞRULANDI':statementImportMeta.verificationStatus==='review'?'İNCELEME GEREKİYOR':'KISMİ DOĞRULAMA';const pageAudit=(statementImportMeta.pageAudit||[]).map(x=>`S${x.page}: ${x.candidates}${x.overlapRemoved?` (-${x.overlapRemoved} sayfa tekrarı)`:''}`).join(' · ');
+  return `<div class="statementReconcileBox statementV65Audit ${statementImportMeta.fullVerified?'ok':'review'}"><b>${verifyLabel}</b><div class="stmtCountGrid"><span><small>FİZİKSEL ADAY</small><b>${physical||'—'}</b></span><span><small>PARSER</small><b>${parsed}</b></span><span><small>ÇÖZÜMLENEMEYEN</small><b>${unresolved}</b></span><span><small>${recovered?'KURTARILAN':'FAZLA ADAY'}</small><b>${recovered||extra}</b></span></div><small>${pageAudit?`Sayfa kontrolü: ${esc(pageAudit)}. `:''}Harcama ${money(statementImportMeta.parsedSpendingTotal||0)} · Ödeme ${money(statementImportMeta.parsedPaymentsTotal||0)} · İade ${money(statementImportMeta.parsedRefundsTotal||0)} · Faiz/Masraf ${money(statementImportMeta.parsedFeesTotal||0)}${adjustmentRows.length?` · Bonus/Puan ${adjustmentRows.length} satır (harcamaya dahil değil)`:''}.</small>${unresolved&&Array.isArray(statementImportMeta.physicalCandidateSamples)&&statementImportMeta.physicalCandidateSamples.length?`<br><small><b>Şüpheli fiziksel aday örnekleri:</b> ${esc(statementImportMeta.physicalCandidateSamples.slice(0,3).join(' · '))}</small>`:''}${Number.isFinite(+statementImportMeta.rowEquationTotal)?`<br><small>Muhasebe denklemi: ${statementImportMeta.rowEquationOk?'✓ UYUMLU':'⚠ FARK VAR'} · Hesaplanan ${money(+statementImportMeta.rowEquationTotal||0)}</small>`:''}</div><div class="notice"><b>${esc(c?.bank||'KART')} · •••• ${esc(c?.last4||'')}</b><br><small>Ekstre bankası: <b>${esc(bankProfile.label)}</b></small><br><b>${movementCount} satır bulundu</b> · ${spendRows.length} harcama · ${paymentRows.length} ödeme · ${refundRows.length} iade · ${feeRows.length} vergi/faiz${adjustmentRows.length?` · ${adjustmentRows.length} bonus/puan düzeltme`:''}${skipped?` · ${skipped} mükerrer atlandı`:''}.<br>${statementImportMeta.autoDuplicateRemoved?`<small><b>${statementImportMeta.autoDuplicateRemoved} yinelenen satır</b> banka harcama toplamıyla karşılaştırılarak çıkarıldı (${money(statementImportMeta.autoDuplicateAmount||0)}).</small><br>`:''}${statementImportMeta.autoFeeReclassified?`<small><b>${statementImportMeta.autoFeeReclassified} satır</b> banka özetiyle uzlaştırılarak Vergi & Faiz'e ayrıldı (${money(statementImportMeta.autoFeeReclassifiedAmount||0)}).</small><br>`:''}${statementImportMeta.importBlocked?`<small><b>⛔ İÇE AKTARMA KİLİTLİ:</b> ${esc((statementImportMeta.importGuardReasons||[]).join(' · '))}</small><br>`:''}${statementImportMeta.ziraatSpendFromVerifiedRows?`<small><b>✓ Ziraat harcama özeti işlem satırları + dönem borcu denklemiyle doğrulandı.</b>${Number.isFinite(+statementImportMeta.ziraatOriginalSpendingTotal)?` PDF düz metin sırasında harcama alanına yanlış taşınan ${money(+statementImportMeta.ziraatOriginalSpendingTotal)} değeri kullanılmadı; doğrulanmış gerçek harcama toplamı ${money(+statementImportMeta.spendingTotal)} kullanıldı.`:''}</small><br>`:statementImportMeta.ziraatSummaryIncludesFees?`<small><b>✓ Ziraat özetindeki harcama toplamının faiz/ücreti içerdiği doğrulandı; net harcama ayrıştırıldı.</b></small><br>`:statementImportMeta.summaryRepaired?`<small><b>Ekstre özeti doğrulandı ve PDF metin sırası otomatik düzeltildi.</b></small><br>`:''}${statementImportMeta.summaryTrusted?`<small>✓ Banka özeti ve işlem satırları birlikte doğrulandı.</small><br>`:statementImportMeta.summaryEquationOk?`<small>⚠ Banka özeti matematiksel olarak tutuyor; işlem satırlarıyla tam doğrulama bekleniyor.</small><br>`:''}<small>Motor: EKSTRE MOTORU 3.7 · Profil: ${esc(bankProfile.label)} · Satır ve blok stratejileri otomatik karşılaştırılır; gerekirse OCR yedeği kullanılır.</small><br><small>Taksitli alışverişlerde yalnızca bu ekstreye yansıyan taksit tutarı gider olarak eklenir.</small></div>
   <div class="statementReconcileBox s18MatchSummary"><b>EKSTRE MUTABAKATI</b><div class="stmtCountGrid"><span><small>BANKA</small><b>${reconcileStats.bank}</b></span><span><small>EŞLEŞEN</small><b>${reconcileStats.matched}</b></span><span><small>OLASI</small><b>${reconcileStats.possible}</b></span><span><small>YENİ HARCAMA</small><b>${reconcileStats.newSpend}</b></span><span><small>FAİZ / MASRAF</small><b>${reconcileStats.fees}</b></span><span><small>ÖDEME</small><b>${reconcileStats.payments}</b></span>${reconcileStats.adjustments?`<span><small>BONUS / PUAN</small><b>${reconcileStats.adjustments}</b></span>`:''}</div><small>Olası eşleşmeler otomatik birleştirilmez. Banka açıklaması ile HANE kayıt adı ayrı korunur.</small></div>
   <div class="statementReconcileBox statementBankEquation">
     <b>BANKA EKSTRE ÖZETİ</b>
@@ -2767,7 +2767,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260927-HANE-WORK-V71-ZIRAAT-GERCEK-SATIR-MOTORU';
+const HANE_SW_BUILD='20260927-HANE-WORK-V72-ZIRAAT-SAYFA-OVERLAP-FIX';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v0.15.16-fix17-work-independent';
 const HANE_ENGINE_PACKAGES=[
@@ -3023,6 +3023,45 @@ async function stmtPdfPageTexts(pg){
   }
   return{raw,layout,halkLayout,hasHalkTable,hasHalkSummary}
 }
+
+// V72 — Ziraat / Bankkart sayfa sınırı tekrar temizliği.
+// Bankkart PDF'lerinin metin katmanı sayfa sonunda görünen son birkaç işlemi sonraki sayfada
+// yeniden taşıyabiliyor. Aynı gün/tutarla gerçekten yapılmış işlemler korunur; yalnız önceki
+// sayfanın SON işlem dizisi ile sonraki sayfanın İLK işlem dizisi birebir aynıysa bu fiziksel
+// sayfa örtüşmesi kaldırılır.
+function stmtZiraatPageOverlapClean(pageLayouts){
+  const pages=(pageLayouts||[]).map(x=>String(x||''));
+  const dateStart=/^(\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2}))\s+(.+)$/;
+  const rowInfo=(line)=>{
+    const clean=String(line||'').replace(/\s+/g,' ').trim(),m=clean.match(dateStart);if(!m)return null;
+    if(stmtPhysicalSummaryLike(clean,'ziraat')||stmtCarryForwardLike(clean))return null;
+    const amounts=stmtAmountCandidates(m[2]).filter(a=>Number.isFinite(+a.value)&&Math.abs(+a.value)>.004);if(!amounts.length)return null;
+    // İmza tüm fiziksel satırı içerir. Böylece aynı tarih+tutar ama farklı gerçek işlemler birleşmez.
+    const sig=clean.toLocaleUpperCase('tr-TR').replace(/\s+/g,' ').trim();
+    return{sig,line:clean};
+  };
+  const outPages=[],audit=[];let prevTx=[];
+  for(let pi=0;pi<pages.length;pi++){
+    const lines=pages[pi].split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+    const cur=lines.map((line,idx)=>{const r=rowInfo(line);return r?{...r,idx}:null}).filter(Boolean);
+    let overlap=0;
+    if(prevTx.length&&cur.length){
+      const max=Math.min(30,prevTx.length,cur.length);
+      for(let k=max;k>=1;k--){
+        let ok=true;for(let j=0;j<k;j++)if(prevTx[prevTx.length-k+j].sig!==cur[j].sig){ok=false;break}
+        if(ok){overlap=k;break}
+      }
+    }
+    const dropIdx=new Set(cur.slice(0,overlap).map(x=>x.idx));
+    const keptLines=lines.filter((_,idx)=>!dropIdx.has(idx));
+    const keptTx=cur.slice(overlap);
+    outPages.push(keptLines.join('\n'));
+    audit.push({page:pi+1,candidates:keptTx.length,overlapRemoved:overlap});
+    prevTx=prevTx.concat(keptTx);
+  }
+  return{text:outPages.join('\n'),pageAudit:audit,physicalRowCount:audit.reduce((n,x)=>n+x.candidates,0),overlapRemoved:audit.reduce((n,x)=>n+(x.overlapRemoved||0),0)}
+}
+
 const MAX_STATEMENT_FILE_BYTES=20*1024*1024;
 async function readStatementFile(file){
   if(!file)throw new Error('Ekstre dosyası seçilmedi.');
@@ -3039,15 +3078,21 @@ async function readStatementFile(file){
       // Özet sayfalarını aynen, işlem tablosu olan sayfaları yalnız koordinat-doğrulanmış satırlarla taşı.
       halkText+='\n'+((pt.hasHalkTable||pt.hasHalkSummary)?pt.halkLayout:pt.layout)
     }
-    const rawEval=rawText.replace(/\s/g,'').length>40?stmtInterpretationScore(rawText,statementImportCardId):{score:-1,rows:[],meta:{}},layoutEval=layoutText.replace(/\s/g,'').length>40?stmtInterpretationScore(layoutText,statementImportCardId):{score:-1,rows:[],meta:{}};
-    let text=layoutEval.score>=rawEval.score?layoutText:rawText,textEval=layoutEval.score>=rawEval.score?layoutEval:rawEval;
     const layoutBank=stmtDetectBank(layoutText,statementImportCardId);
+    const ziraatClean=layoutBank.id==='ziraat'?stmtZiraatPageOverlapClean(pageLayouts):null;
+    const ziraatText=ziraatClean?.text||layoutText;
+    const rawEval=rawText.replace(/\s/g,'').length>40?stmtInterpretationScore(rawText,statementImportCardId):{score:-1,rows:[],meta:{}},layoutEval=layoutText.replace(/\s/g,'').length>40?stmtInterpretationScore(layoutText,statementImportCardId):{score:-1,rows:[],meta:{}},ziraatEval=layoutBank.id==='ziraat'&&ziraatText.replace(/\s/g,'').length>40?stmtInterpretationScore(ziraatText,statementImportCardId):null;
+    let text=layoutEval.score>=rawEval.score?layoutText:rawText,textEval=layoutEval.score>=rawEval.score?layoutEval:rawEval;
+    if(layoutBank.id==='ziraat'&&ziraatEval){text=ziraatText;textEval=ziraatEval}
     if(layoutBank.id==='halkbank'&&halkText.replace(/\s/g,'').length>40){
       const halkEval=stmtInterpretationScore(halkText,statementImportCardId);
       // Halkbank'ta koordinat tablosu tek gerçek kaynak: regex yamalarının ürettiği footer/özet hareketlerini kökten önler.
       text=halkText;textEval=halkEval;
     }else if(['denizbank','teb','isbank'].includes(layoutBank.id)&&layoutEval.rows.length>=3){text=layoutText;textEval=layoutEval}
-    const finalBank=stmtDetectBank(text,statementImportCardId);const pageAudit=pageLayouts.map((pt,i)=>{const a=stmtPhysicalRowAudit(pt,finalBank.id);return{page:i+1,candidates:a.count}});statementReadDiagnostics={bankId:finalBank.id,pageCount:pageLayouts.length,pageAudit,physicalRowCount:pageAudit.reduce((n,x)=>n+x.candidates,0)};
+    const finalBank=stmtDetectBank(text,statementImportCardId);let pageAudit,physicalRowCount,overlapRemoved=0;
+    if(finalBank.id==='ziraat'&&ziraatClean){pageAudit=ziraatClean.pageAudit;physicalRowCount=ziraatClean.physicalRowCount;overlapRemoved=ziraatClean.overlapRemoved||0}
+    else{pageAudit=pageLayouts.map((pt,i)=>{const a=stmtPhysicalRowAudit(pt,finalBank.id);return{page:i+1,candidates:a.count}});physicalRowCount=pageAudit.reduce((n,x)=>n+x.candidates,0)}
+    statementReadDiagnostics={bankId:finalBank.id,pageCount:pageLayouts.length,pageAudit,physicalRowCount,overlapRemoved};
     const textChars=text.replace(/\s/g,'').length,dateTokens=(text.match(/\b\d{1,2}[.\/-]\d{1,2}(?:[.\/-](?:20\d{2}|\d{2}))?\b/g)||[]).length;
     // V90: Metin katmanında yeterli gerçek işlem varsa OCR zorunlu değildir.
     // summaryTrusted yalnız uzlaştırma kalitesidir; tek başına OCR'a düşürme sebebi olamaz.

@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.30-work-v71",
-  "minimumVersion": "0.15.30-work-v71",
+  "latestVersion": "0.15.31-work-v72",
+  "minimumVersion": "0.15.31-work-v72",
   "force": true,
-  "message": "V71: Ziraat/Bankkart gerçek tablo satırı motoru eklendi. Aynı gün aynı tutarlı tekrarlar artık kaybolmaz; taksit satırında yalnız ekstreye yansıyan taksit tutarı, Bankkart Lira kolonunda gerçek TL işlem tutarı alınır. Fiziksel aday sayacı tekrar eden gerçek satırları tekilleştirmez.",
+  "message": "V72: Ziraat/Bankkart sayfa sınırı tekrarları güvenli biçimde temizlendi. Yalnız önceki sayfanın son işlem dizisi ile sonraki sayfanın ilk işlem dizisi birebir aynıysa örtüşen satırlar kaldırılır; aynı gün ve aynı tutarlı gerçek tekrarlar korunur. Fiziksel sayaç Ziraat için yalnız tam tarihleri sayar.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V71-ZIRAAT-GERCEK-SATIR-MOTORU",
-  "version": "WORK-V71"
+  "build": "20260927-HANE-WORK-V72-ZIRAAT-SAYFA-OVERLAP-FIX",
+  "version": "WORK-V72"
 }
