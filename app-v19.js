@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260928-HANE-WORK-V86-TEB-HALKBANK-PHYSICAL-AUDIT-FIX',
+  build:'20260928-HANE-WORK-V87-TEB-PHYSICAL-TABLE-AUDIT-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -366,7 +366,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,cashMoney,tara,profile,adminProfile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V86-TEB-HALKBANK-PHYSICAL-AUDIT-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V86-TEB-HALKBANK-PHYSICAL-AUDIT-FIX.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V87-TEB-PHYSICAL-TABLE-AUDIT-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V87-TEB-PHYSICAL-TABLE-AUDIT-FIX.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -2694,23 +2694,33 @@ function stmtPhysicalRowAudit(text,bankId='generic'){
     }
     return{count:signatures.length,signatures,bankId};
   }
-  // V86 — TEB SADE fiziksel audit yalnız gerçek işlem tablosundaki TAM TARİHLE BAŞLAYAN satırları sayar.
-  // Önceki genel audit; faiz oranı, hesap kesim/son ödeme ve sayfa üstbilgilerindeki tarih+tutarları
-  // bazı PDF'lerde 2-8 adet sahte hareket adayı olarak sayabiliyordu.
+  // V87 — TEB SADE fiziksel tablo denetimi.
+  // TEB PDF metin katmanında işlem tutarı bazı ekstrelerde "TL 1.177,-", bazılarında
+  // yalnız "1.177,-" olarak gelir. V86 yalnız açık TL/TRY para birimi kabul ettiği için
+  // gerçek işlem satırlarının tamamını 0 fiziksel aday sayabiliyordu. Burada fiziksel kanıt:
+  // SATIR BAŞINDA tam tarih + aynı işlem bloğunda gerçek parasal tutardır. Özet/limit/faiz
+  // satırları tarih ile başlamadığı için dışarıda kalır; toplam satırları da ayrıca kesilir.
   if(bankId==='teb'){
     const fullDate=/^(\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2}))\s+(.+)$/;
-    const dateAny=/\b\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2})\b/;
-    const stopRx=/(?:BU\s+KARTINIZLA\s+YAPILAN\s+[İI][ŞS]LEM\s+TOPLAMLARI|GENEL\s+TOPLAM|D[ÖO]NEM\s+BORCU|ASGAR[İI]\s+[ÖO]DEME)/i;
+    const stopRx=/(?:BU\s+KARTINIZLA\s+YAPILAN\s+[İI][ŞS]LEM\s+TOPLAMLARI|GENEL\s+TOPLAM|D[ÖO]NEM\s+BORCU|ASGAR[İI]\s+[ÖO]DEME|FA[İI]Z\s+ORAN)/i;
     const signatures=[];
     for(let i=0;i<lines.length;i++){
       const m=lines[i].match(fullDate);if(!m)continue;
       let block=lines[i];
-      for(let j=i+1;j<Math.min(lines.length,i+4);j++){if(fullDate.test(lines[j])||stopRx.test(lines[j]))break;block+=' '+lines[j]}
+      for(let j=i+1;j<Math.min(lines.length,i+3);j++){
+        if(fullDate.test(lines[j])||stopRx.test(lines[j]))break;
+        block+=' '+lines[j];
+      }
       if(stopRx.test(m[2])||stmtPhysicalSummaryLike(block,'teb')||stmtCarryForwardLike(block)||stmtTebSummaryLike(block))continue;
-      const vals=stmtAmountCandidates(block).filter(a=>Number.isFinite(+a.value)&&Math.abs(+a.value)>.004);
-      const explicit=vals.filter(a=>['TL','TRY','₺'].includes(a.currency));if(!explicit.length)continue;
-      const pick=stmtPaymentLike(block)?(explicit.find(a=>a.value<0)||explicit[0]):explicit[0];if(!pick)continue;
-      signatures.push((m[1]+'|'+Math.abs(+pick.value).toFixed(2)+'|'+stmtCleanTitle(block).slice(0,80)).toLocaleUpperCase('tr-TR'));
+      // Tarihi bloktan çıkar; böylece tarih rakamları hiçbir zaman tutar adayı olamaz.
+      const body=block.replace(fullDate,'$2');
+      const vals=stmtAmountCandidates(body).filter(a=>Number.isFinite(+a.value)&&Math.abs(+a.value)>.004);
+      if(!vals.length)continue;
+      // TEB'de bonus/taksit yardımcı sayıları bulunabilir; fiziksel audit için amaç tutarı
+      // yeniden hesaplamak değil, gerçek işlem satırının varlığını bağımsız olarak saymaktır.
+      const explicit=vals.filter(a=>['TL','TRY','₺'].includes(a.currency));
+      const pick=explicit[0]||vals[0];
+      signatures.push((m[1]+'|'+Math.abs(+pick.value).toFixed(2)+'|'+stmtCleanTitle(body).slice(0,80)).toLocaleUpperCase('tr-TR'));
     }
     return{count:signatures.length,signatures,bankId};
   }
@@ -3110,7 +3120,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260928-HANE-WORK-V86-TEB-HALKBANK-PHYSICAL-AUDIT-FIX';
+const HANE_SW_BUILD='20260928-HANE-WORK-V87-TEB-PHYSICAL-TABLE-AUDIT-FIX';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v0.15.16-fix17-work-independent';
 const HANE_ENGINE_PACKAGES=[

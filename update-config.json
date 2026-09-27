@@ -2,8 +2,8 @@
   "latestVersion": "0.15.37-work-v86",
   "minimumVersion": "0.15.37-work-v86",
   "force": true,
-  "message": "V86: TEB ve Halkbank fiziksel aday denetimi parserın gerçek işlem tablosuyla aynı kaynağa bağlandı. TEB SADE ekstrelerinde faiz oranı/üstbilgi tarihleri; Halkbank Paraf ekstrelerinde özet/limit/son ödeme tarihleri artık sahte çözümlenemeyen işlem üretmez. V85 İş Bankası, V83 DenizBank ve V74 Ziraat düzeltmeleri korunur.",
+  "message": "V87: TEB fiziksel aday denetimi düzeltildi. TEB PDF satırlarında para birimi etiketi bulunmasa da satır başındaki tam tarih + gerçek tutar ile fiziksel işlem sayılır; özet/limit/faiz alanları dışarıda kalır. V86 Halkbank, V85 İş Bankası, V83 DenizBank ve V74 Ziraat düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V86-TEB-HALKBANK-PHYSICAL-AUDIT-FIX",
-  "version": "WORK-V86"
+  "build": "20260928-HANE-WORK-V87-TEB-PHYSICAL-TABLE-AUDIT-FIX",
+  "version": "WORK-V87"
 }
