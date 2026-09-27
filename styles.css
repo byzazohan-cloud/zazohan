@@ -4358,3 +4358,74 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
     font-size:2.9px!important;line-height:6px!important;padding:0 2px!important;border-radius:2px!important;
   }
 }
+
+
+/* WORK V43 — V42 tabanı: takvim şerit geometrisi + kimlik kartı düzenleme. */
+/* Açıklama işaretleri aynı ölçüdedir. Yol işareti siyah/beyaz olarak görünür. */
+.premiumWorkKey i.worked,
+.premiumWorkKey i.overtime,
+.premiumWorkKey i.hourly,
+.premiumWorkKey i.leaveUnpaid,
+.premiumWorkKey i.leavePaid,
+.premiumWorkKey i.payment,
+.premiumWorkKey i.road{
+  width:8px!important;height:8px!important;min-width:8px!important;min-height:8px!important;
+  border-radius:3px!important;box-sizing:border-box!important;
+}
+.premiumWorkKey i.worked{background:#ff3048!important;box-shadow:0 0 7px rgba(255,48,72,.58)!important}
+.premiumWorkKey i.road{background:#050505!important;border:1px solid rgba(255,255,255,.88)!important;box-shadow:0 0 5px rgba(255,255,255,.22)!important}
+.premiumWorkKey .roadKey{color:inherit!important}
+
+/* Gün içindeki şeritler yataydır; uçları çapraz kesik ve V42'ye göre biraz daha geniştir. */
+.personWorkCalendar .zCalDay .eventDots{
+  left:3px!important;right:3px!important;top:21px!important;bottom:3px!important;
+  gap:2px!important;overflow:hidden!important;
+}
+.personWorkCalendar .eventBadge,
+.personWorkCalendar .eventBadge:nth-child(1),
+.personWorkCalendar .eventBadge:nth-child(2),
+.personWorkCalendar .eventBadge:nth-child(3),
+.personWorkCalendar .eventBadge:nth-child(4),
+.personWorkCalendar .eventBadge:nth-child(5),
+.personWorkCalendar .eventBadge:nth-child(6){
+  position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  flex:0 0 8px!important;width:100%!important;height:8px!important;min-height:8px!important;
+  margin:0!important;padding:0 5px!important;box-sizing:border-box!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  border:0!important;border-radius:0!important;
+  clip-path:polygon(7% 0,100% 0,93% 100%,0 100%)!important;
+  transform:none!important;
+  font-size:3.5px!important;line-height:8px!important;font-weight:950!important;letter-spacing:.015em!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.85)!important;box-shadow:0 0 5px rgba(0,0,0,.45)!important;
+}
+/* Tam Gün profil renginden bağımsız, sabit kırmızıdır. */
+.personWorkCalendar .eventBadge.worked{background:linear-gradient(90deg,#a90820,#ff3048)!important;color:#fff!important}
+.personWorkCalendar .eventBadge.overtime{background:linear-gradient(90deg,#d86a12,#ffb248)!important;color:#241205!important}
+.personWorkCalendar .eventBadge.hourly{background:linear-gradient(90deg,#6c2bb5,#bd70ff)!important;color:#fff!important}
+.personWorkCalendar .eventBadge.payment{background:linear-gradient(90deg,#087cae,#50d5ff)!important;color:#04161e!important}
+/* Yol Ücreti: siyah şerit + beyaz yazı. */
+.personWorkCalendar .eventBadge.road{background:linear-gradient(90deg,#020202,#181818)!important;color:#fff!important;border:1px solid rgba(255,255,255,.38)!important;text-shadow:none!important}
+.personWorkCalendar .eventBadge.leavePaid{background:linear-gradient(90deg,#b48b13,#ffd84f)!important;color:#251c02!important}
+.personWorkCalendar .eventBadge.leaveUnpaid{background:linear-gradient(90deg,#b62339,#ff6577)!important;color:#fff!important}
+
+/* Kimlik kartının kendisinden seçili üyeyi düzenleme. */
+.haneIdentityEditBar{position:relative;z-index:2;padding:0 13px 11px}
+.haneIdentityEditBar button{width:100%;min-height:36px;border:1px solid color-mix(in srgb,var(--mc) 58%,#26333d);border-radius:9px;background:linear-gradient(180deg,#111a21,#080d12);color:#eef7fb;font-size:9px;font-weight:950;letter-spacing:.055em;box-shadow:inset 0 1px rgba(255,255,255,.045)}
+.haneIdentityEditBar button:active{transform:translateY(1px)}
+
+@media(max-width:390px){
+  .personWorkCalendar .zCalDay .eventDots{left:2px!important;right:2px!important;top:20px!important;bottom:2px!important;gap:1.5px!important}
+  .personWorkCalendar .eventBadge,
+  .personWorkCalendar .eventBadge:nth-child(1),
+  .personWorkCalendar .eventBadge:nth-child(2),
+  .personWorkCalendar .eventBadge:nth-child(3),
+  .personWorkCalendar .eventBadge:nth-child(4),
+  .personWorkCalendar .eventBadge:nth-child(5),
+  .personWorkCalendar .eventBadge:nth-child(6){
+    flex-basis:7px!important;height:7px!important;min-height:7px!important;
+    font-size:3px!important;line-height:7px!important;padding:0 3px!important;
+    clip-path:polygon(8% 0,100% 0,92% 100%,0 100%)!important;
+  }
+  .haneIdentityEditBar{padding:0 12px 10px}
+}
