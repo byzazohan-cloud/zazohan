@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.18-work-v24",
-  "minimumVersion": "0.15.18-work-v24",
+  "latestVersion": "0.15.18-work-v38",
+  "minimumVersion": "0.15.18-work-v38",
   "force": true,
-  "message": "V25 temiz taban. Çalışma profil değişimindeki otomatik gün üretimi kaldırıldı; boş gün kayıt ekranı, Yol Ücreti Nakit/Kredi Kartı kayıt akışı ve gerçek Kimlik Kartı ekranında seçili üye + alt üye listesi düzeltildi.",
+  "message": "V38 çalışan akış korunarak Çalışma takvimi açıklamasına Yol Ücreti rengi ve aylık özete Yol Ücreti detayı eklendi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V24-HANE-UYELERI-PROFIL-SAYFASI",
-  "version": "WORK-V37"
+  "build": "20260927-HANE-WORK-V39-ROAD-SUMMARY",
+  "version": "WORK-V39"
 }
