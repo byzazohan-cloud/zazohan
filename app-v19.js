@@ -2681,6 +2681,28 @@ function stmtPhysicalSummaryLike(v,bankId='generic'){
 }
 function stmtPhysicalRowAudit(text,bankId='generic'){
   const src=String(text||'').replace(/\r/g,'\n'),lines=src.split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+  // V83 — DenizBank fiziksel denetimi parser ile aynı TABLO SATIRI tanımını kullanır.
+  // V81'de tam tarih şartı 10-12 sahte adayı kaldırdı; kalan 2-3 aday ise ekstre üst/alt
+  // bilgilerindeki gerçek tam tarih + parasal değerlerin genel audit tarafından hareket sanılmasıydı.
+  // DenizBank fixed parser yalnız satır başında tam tarih ve satır sonunda TL işlem tutarı olan
+  // gerçek tablo satırlarını okur. Audit de aynı yapısal kapıyı kullanır. Böylece özet/son ödeme/
+  // hesap kesim tarihleri fiziksel işlem sayılmaz. Gerçek bir işlem parserdan düşerse banka toplamı
+  // ve muhasebe denklemi ayrıca uyuşmayacağı için hata gizlenmez.
+  if(bankId==='denizbank'){
+    const fullDate=/^(\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2}))\s+(.+)$/;
+    const signatures=[];
+    for(let i=0;i<lines.length;i++){
+      const m=lines[i].match(fullDate);if(!m)continue;
+      const rest=m[2].trim();
+      if(stmtPhysicalSummaryLike(rest,'denizbank')||stmtCarryForwardLike(rest))continue;
+      const end=rest.match(/([+-]?\s*(?:\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{2})\s*\+?)\s*TL\s*$/i);
+      if(!end)continue;
+      const value=stmtMoney(end[0]);if(!Number.isFinite(value)||Math.abs(value)<=.004)continue;
+      const sig=(m[1]+'|'+Math.abs(value).toFixed(2)+'|'+stmtCleanTitle(rest).slice(0,80)).toLocaleUpperCase('tr-TR');
+      signatures.push(sig);
+    }
+    return{count:signatures.length,signatures,bankId};
+  }
   // V81 — DenizBank fiziksel denetiminde yalnız TAM tarih kabul edilir.
   // DenizBank PDF'lerinde taksit 4/4, blok 4/4 ve benzeri kesirler DD/MM sanılıp her ekstrede 10-12 sahte fiziksel aday üretiyordu.
   // Parser zaten DenizBank hareketlerini tam tarihli satırlardan okur; audit de aynı fiziksel tanıma bağlanır.
