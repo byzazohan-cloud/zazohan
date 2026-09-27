@@ -4,6 +4,6 @@
   "force": true,
   "message": "V82: TEB sayfa-sınırı eksik satır düzeltmesi. TEB fiziksel parserı bağımsız audit ile aynı satır penceresini kullanır ve sayfa bazlı fiziksel sayı birleşik PDF metninde kaybolmaz. V79 9/8 düzeltmesi, DenizBank V81 ve Ziraat kuralları korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V82-TEB-PAGE-ROW-FIX",
+  "build": "20260928-HANE-WORK-V84-TEB-PAGE-OVERLAP-AUDIT-FIX",
   "version": "WORK-V82"
 }
