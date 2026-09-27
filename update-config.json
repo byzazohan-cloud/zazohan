@@ -2,8 +2,8 @@
   "latestVersion": "0.15.18-work-v38",
   "minimumVersion": "0.15.18-work-v38",
   "force": true,
-  "message": "V38 çalışan akış korunarak Çalışma takvimi açıklamasına Yol Ücreti rengi ve aylık özete Yol Ücreti detayı eklendi.",
+  "message": "V49 gider yapısı korunarak Çalışma takvimi şeritleri alttan yukarı dizildi; normal Takvim bağımsız finans verileriyle aynı şerit görsel diline geçirildi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V49-TEK-GIDER",
-  "version": "WORK-V49"
+  "build": "20260927-HANE-WORK-V50-ALT-SERIT-FINANS-TAKVIM",
+  "version": "WORK-V50"
 }

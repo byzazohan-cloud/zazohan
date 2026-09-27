@@ -4743,3 +4743,89 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 /* WORK V49 — Giderler tek tip: Sabit/Normal ayrımı kaldırıldı. */
 .expensesCenter .expenseSummary{grid-template-columns:repeat(3,1fr)!important}
 .expensesCenter .expenseSectionHead{margin-top:12px}
+
+
+/* WORK V50 — Çalışma şeritleri her zaman hücrenin ALTINDAN başlar.
+   1 kayıt = en alt sıra, 2 kayıt = en alt iki sıra. Kalınlık değişmez. */
+.personWorkCalendar .zCalDay>span.eventDots,
+.personWorkCalendar .zCalDay>span.eventDots.count-1,
+.personWorkCalendar .zCalDay>span.eventDots.count-2,
+.personWorkCalendar .zCalDay>span.eventDots.count-3,
+.personWorkCalendar .zCalDay>span.eventDots.count-4,
+.personWorkCalendar .zCalDay>span.eventDots.count-5,
+.personWorkCalendar .zCalDay>span.eventDots.count-6{
+  position:absolute!important;
+  top:20px!important;right:2px!important;bottom:3px!important;left:2px!important;
+  inset:20px 2px 3px 2px!important;
+  height:auto!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:none!important;
+  grid-auto-rows:9px!important;
+  align-content:end!important;
+  justify-content:stretch!important;
+  gap:1px!important;
+  overflow:visible!important;
+}
+
+/* V50 — Normal Takvim: görünüş Çalışma takvimindeki şerit diline yaklaştırıldı.
+   Veri kaynakları tamamen bağımsızdır; burada yalnız finans takvimi kayıtları kullanılır. */
+.calendarPremium .calDay.financeCalDay{
+  position:relative!important;
+  min-height:54px!important;
+  height:54px!important;
+  padding:5px 2px!important;
+  overflow:hidden!important;
+  justify-content:flex-start!important;
+}
+.calendarPremium .calDay.financeCalDay>b{
+  position:absolute!important;top:5px!important;left:7px!important;z-index:3!important;
+  font-size:12px!important;line-height:14px!important;
+}
+.calendarPremium .calDay.financeCalDay:has(.financeDayStrips.count-4){min-height:62px!important;height:62px!important}
+.calendarPremium .calDay.financeCalDay:has(.financeDayStrips.count-5){min-height:71px!important;height:71px!important}
+.calendarPremium .calDay.financeCalDay:has(.financeDayStrips.count-6){min-height:80px!important;height:80px!important}
+.calendarPremium .financeDayStrips{
+  position:absolute!important;inset:20px 2px 3px 2px!important;
+  display:grid!important;grid-template-columns:1fr!important;grid-auto-rows:8px!important;
+  align-content:end!important;gap:1px!important;overflow:visible!important;pointer-events:none!important;
+}
+.calendarPremium .financeDayBadge{
+  width:100%!important;height:8px!important;min-height:8px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  margin:0!important;padding:0 3px!important;box-sizing:border-box!important;
+  border:0!important;border-radius:0!important;
+  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)!important;
+  font-size:3.3px!important;line-height:8px!important;font-style:normal!important;font-weight:950!important;
+  letter-spacing:.01em!important;white-space:nowrap!important;overflow:hidden!important;color:#fff!important;
+}
+.calendarPremium .financeDayBadge.income{background:#18b96d!important}
+.calendarPremium .financeDayBadge.expense{background:#e21d36!important}
+.calendarPremium .financeDayBadge.cardPayment{background:#168fd1!important}
+.calendarPremium .financeDayBadge.flexSpend{background:#7c3bc4!important}
+.calendarPremium .financeDayBadge.flexPayment{background:#139e91!important}
+.calendarPremium .financeDayBadge.futurefixed{background:#c79a21!important;color:#171003!important}
+.calendarPremium .financeDayBadge.futurecard{background:#2e8dd7!important}
+.calendarPremium .financeDayBadge.futureflex{background:#8750c7!important}
+.calendarPremium .financeStripLegend{flex-wrap:wrap!important;justify-content:flex-start!important;gap:8px 12px!important}
+.calendarPremium .financeStripLegend span{display:flex!important;align-items:center!important;gap:5px!important}
+.calendarPremium .financeLegendMark{width:16px!important;height:6px!important;border-radius:2px!important;display:inline-block!important;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)!important}
+.calendarPremium .financeLegendMark.income{background:#18b96d!important}
+.calendarPremium .financeLegendMark.expense{background:#e21d36!important}
+.calendarPremium .financeLegendMark.cardPayment{background:#168fd1!important}
+.calendarPremium .financeLegendMark.flexSpend{background:#7c3bc4!important}
+.calendarPremium .financeLegendMark.futurefixed{background:#c79a21!important}
+@media(max-width:390px){
+  .personWorkCalendar .zCalDay>span.eventDots,
+  .personWorkCalendar .zCalDay>span.eventDots.count-1,
+  .personWorkCalendar .zCalDay>span.eventDots.count-2,
+  .personWorkCalendar .zCalDay>span.eventDots.count-3,
+  .personWorkCalendar .zCalDay>span.eventDots.count-4,
+  .personWorkCalendar .zCalDay>span.eventDots.count-5,
+  .personWorkCalendar .zCalDay>span.eventDots.count-6{inset:19px 2px 3px 2px!important;align-content:end!important}
+  .calendarPremium .calDay.financeCalDay{min-height:52px!important;height:52px!important}
+  .calendarPremium .calDay.financeCalDay:has(.financeDayStrips.count-4){min-height:60px!important;height:60px!important}
+  .calendarPremium .calDay.financeCalDay:has(.financeDayStrips.count-5){min-height:69px!important;height:69px!important}
+  .calendarPremium .calDay.financeCalDay:has(.financeDayStrips.count-6){min-height:78px!important;height:78px!important}
+  .calendarPremium .financeDayBadge{font-size:3px!important}
+}
