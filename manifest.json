@@ -1,7 +1,7 @@
 {
-  "name": "HANE V0.15.16",
+  "name": "HANE V0.15.17",
   "short_name": "HANE",
-  "start_url": "./?v=0.15.16-FIX23-PREMIUM-UI",
+  "start_url": "./?v=0.15.17-FIX24-CARDS-X",
   "scope": "./",
   "display": "standalone",
   "background_color": "#05080d",
@@ -34,5 +34,5 @@
     "productivity",
     "utilities"
   ],
-  "version": "0.15.16"
+  "version": "0.15.17"
 }

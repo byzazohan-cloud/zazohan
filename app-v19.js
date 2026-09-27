@@ -737,20 +737,17 @@ function cards(){
 }
 function cardsPanel(){
  if(financeCardIndex>=state.cards.length)financeCardIndex=Math.max(0,state.cards.length-1);
- const n=state.cards.length;
+ const n=state.cards.length,c=state.cards[financeCardIndex];
  let stage=[];
  if(n===1) stage=[{i:0,pos:'selected'}];
- else if(n>1){
-   const prev=(financeCardIndex-1+n)%n,next=(financeCardIndex+1)%n;
-   stage=[{i:prev,pos:'prev'},{i:financeCardIndex,pos:'selected'}];
-   if(next!==prev)stage.push({i:next,pos:'next'});
- }
+ else if(n>1){const prev=(financeCardIndex-1+n)%n,next=(financeCardIndex+1)%n;stage=[{i:prev,pos:'prev'},{i:financeCardIndex,pos:'selected'}];if(next!==prev)stage.push({i:next,pos:'next'});}
  const stageHtml=stage.map(o=>premiumHaneCard(state.cards[o.i],o.pos)).join('');
- return `<div class="cardsV4Page"><div class="section financeSectionHead cardsV4Head"><b>KARTLARIM</b><button class="miniAddBtn" data-action="addCard">+ KART EKLE</button></div><div class="cardsV4Stage">${stageHtml||'<div class="notice">HENÜZ KREDİ KARTI EKLENMEDİ.</div>'}</div>${n>1?`<div class="cardsV4Nav"><button data-action="cardCarouselStep" data-dir="-1" aria-label="Önceki kart">‹</button><span>${financeCardIndex+1} / ${n}</span><button data-action="cardCarouselStep" data-dir="1" aria-label="Sonraki kart">›</button></div>`:''}${n?'<div class="cardsV4Hint">KART DETAYI İÇİN KARTA DOKUN</div>':''}<div class="section cardsV4ListTitle"><b>KART LİSTESİ</b><small>${n} KART</small></div><div class="financeCardList cardsV4List">${state.cards.map((c,i)=>{const st=cardPaymentStatus(c);return `<button class="financeCardListRow ${i===financeCardIndex?'active':''}" data-action="scrollCard" data-index="${i}"><span><b>${esc(c.bank)}</b><small>${esc(c.name||'KREDİ KARTI')} · •••• ${esc(c.last4||'0000')}</small>${cardStatusBadge(st)}</span><strong>${money(c.balance)}${sharedCardLimitInfo(c)?`<small>ORTAK KALAN ${money(sharedCardLimitInfo(c).available)}</small>`:''}</strong><i>›</i></button>`}).join('')||'<div class="notice">KART YOK.</div>'}</div></div>`
+ const info=c?`<div class="cardsXInfo"><div class="cardsXThumb style-${esc(c.style||'blackgold')}"></div><div><small>${esc((c.style||'blackgold').toUpperCase())}</small><b>${esc(c.name||'KREDİ KARTI')}</b><span>${esc(c.bank)} · •••• ${esc(c.last4||'0000')}</span></div><strong>${money(c.balance)}</strong></div><div class="cardsXActions"><button data-action="cardStatement" data-id="${c.id}"><i>▣</i><span>DETAY</span></button><button data-action="editCard" data-id="${c.id}"><i>⚙</i><span>AYARLAR</span></button><button data-action="cardStatement" data-id="${c.id}"><i>↗</i><span>HAREKETLER</span></button><button class="danger" data-action="delCard" data-id="${c.id}"><i>⌫</i><span>KARTI SİL</span></button></div>`:'';
+ return `<div class="cardsV4Page cardsXPage"><div class="cardsXFrame"><div class="cardsXTitle"><span>KARTLAR</span><button data-action="addCard">+ KART EKLE</button></div><div class="cardsV4Stage">${stageHtml||'<div class="notice">HENÜZ KREDİ KARTI EKLENMEDİ.</div>'}</div>${n>1?`<div class="cardsV4Nav"><button data-action="cardCarouselStep" data-dir="-1">‹</button><span>${financeCardIndex+1} / ${n}</span><button data-action="cardCarouselStep" data-dir="1">›</button></div>`:''}${info}</div><div class="section cardsV4ListTitle"><b>KART LİSTESİ</b><small>${n} KART</small></div><div class="financeCardList cardsV4List">${state.cards.map((x,i)=>{const st=cardPaymentStatus(x);return `<button class="financeCardListRow ${i===financeCardIndex?'active':''}" data-action="scrollCard" data-index="${i}"><span><b>${esc(x.bank)}</b><small>${esc(x.name||'KREDİ KARTI')} · •••• ${esc(x.last4||'0000')} · ${esc((x.style||'blackgold').toUpperCase())}</small>${cardStatusBadge(st)}</span><strong>${money(x.balance)}</strong><i>›</i></button>`}).join('')||'<div class="notice">KART YOK.</div>'}</div></div>`
 }
 function premiumHaneCard(c,pos='selected'){
- const cls=pos==='selected'?'isSelectedCard':`isSideCard is${pos==='prev'?'Prev':'Next'}Card`;
- return `<button class="premiumHanePhysical ${cls}" data-action="cardStatement" data-id="${c.id}" data-card-id="${c.id}" aria-label="${esc(c.bank)} ${esc(c.name||'kart')} detayını aç"><span class="phpEdge"></span><span class="phpCarbon phpCarbonA"></span><span class="phpCarbon phpCarbonB"></span><span class="phpRed"></span><span class="phpGreen"></span><span class="phpChip" aria-hidden="true"></span><img class="phpLogo" src="icons/hane-main-logo.jpg" alt="HANE"><span class="phpOwner">MrZazoHAN</span></button>`
+ const cls=pos==='selected'?'isSelectedCard':`isSideCard is${pos==='prev'?'Prev':'Next'}Card`,style=String(c.style||'blackgold').toLowerCase();
+ return `<button class="premiumHanePhysical ${cls} style-${esc(style)}" data-action="cardStatement" data-id="${c.id}" data-card-id="${c.id}" aria-label="${esc(c.bank)} ${esc(c.name||'kart')} detayını aç"></button>`
 }
 function sharedCardLimitInfo(c){
   const group=String(c?.sharedLimitGroup||'').trim();

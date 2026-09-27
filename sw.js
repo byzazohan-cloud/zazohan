@@ -7,14 +7,14 @@
       engine file is extracted/cached.
    4) Runtime blocks unknown same-origin resources; mutable verified app-shell files use network-first with cache fallback for safe updates.
 */
-const SW_BUILD = '20260927-HANE-V0.15.16-FIX23-PREMIUM-UI';
-const CACHE_NAME='hane-0.15.16-fix23-premium-ui';
+const SW_BUILD = '20260927-HANE-V0.15.17-FIX24-CARDS-X';
+const CACHE_NAME='hane-0.15.17-fix24-cards-x';
 const HANE_CACHE_PREFIX = 'hane-';
 
 
 const APP_SHELL=[
   './','./index.html','./styles.css','./design-system.css','./bootstrap-security.js','./central-core.js','./central-integration.js','./app-v19.js','./manifest.json','./update-config.json','./force-update.html','./force-update.js',
-  './icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png','./icons/hane-app-icon.png','./icons/han-logo.png','./icons/hane-brand-full.jpg','./icons/hane-premium-card-vertical.png',
+  './icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png','./icons/hane-app-icon.png','./icons/han-logo.png','./icons/hane-brand-full.jpg','./icons/hane-premium-card-vertical.png','./icons/hane-card-blackgold.png','./icons/hane-card-gold.png','./icons/hane-card-titanium.png','./icons/hane-card-blue.png','./icons/hane-card-burgundy.png','./icons/hane-card-green.png','./icons/hane-card-purple.png','./icons/hane-card-silver.png',
   './vendor/tesseract/lang/tur.traineddata.gz','./vendor/tesseract/lang/eng.traineddata.gz'
 ];
 

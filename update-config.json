@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.16",
-  "minimumVersion": "0.15.16",
+  "latestVersion": "0.15.17",
+  "minimumVersion": "0.15.17",
   "force": true,
-  "message": "FIX19 · Geçmiş maaş hakedişi salaryHistory ile tarihsel hesaplanır; eski çalışma ödemeleri çalışma ayına sabitlenir; otomatik çalışma geçmişi onaysız ve kurala uygun oluşturulur.",
+  "message": "FIX24 · Kartlar sekmesi 10 numaralı fütüristik premium tasarıma geçirildi; 8 kart stili ayrı gerçek görsellerle eşleştirildi.",
   "updateUrl": "",
-  "build": "20260926-HANE-V0.15.16-FIX23-PREMIUM-UI",
-  "version": "0.15.16"
+  "build": "20260926-HANE-V0.15.17-FIX24-CARDS-X",
+  "version": "0.15.17"
 }
