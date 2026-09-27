@@ -4257,7 +4257,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .zPersonMonthSummary .roadSummary small{color:#6df5e8!important}
 .zPersonMonthSummary .roadSummary em{display:block;margin-top:4px;font-size:9px;line-height:1.25;font-style:normal;color:#9eb8bb;white-space:normal}
 
-/* WORK V41 — V39 tabanı korunur: yalnız ana logo ve çalışma takvimi şerit uyumu. */
+/* WORK V46 — V39 tabanı korunur: yalnız ana logo ve çalışma takvimi şerit uyumu. */
 /* Yol Ücreti legend'i diğer açıklamalarla aynı boy ve aynı yazı stilindedir. */
 .premiumWorkKey .roadKey{color:inherit!important}
 .premiumWorkKey i.road{width:8px!important;height:8px!important;border-radius:3px!important;background:#20e4d2!important;box-shadow:0 0 7px rgba(32,228,210,.55)!important}
@@ -4297,7 +4297,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
  .personWorkCalendar .eventBadge:nth-child(1){bottom:1px!important}.personWorkCalendar .eventBadge:nth-child(2){bottom:6.5px!important}.personWorkCalendar .eventBadge:nth-child(3){bottom:12px!important}.personWorkCalendar .eventBadge:nth-child(4){bottom:17.5px!important}.personWorkCalendar .eventBadge:nth-child(5){bottom:23px!important}.personWorkCalendar .eventBadge:nth-child(6){bottom:28.5px!important}
 }
 
-/* WORK V42 — V41 düzeltmesi: parola yatay marka korunur; takvim olay şeritleri yatay ve tek tip. */
+/* WORK V46 — V46 düzeltmesi: parola yatay marka korunur; takvim olay şeritleri yatay ve tek tip. */
 /* Profil rengi yalnız kişinin çalışma temasını belirtir. TAM GÜN şeridi sabit kırmızıdır. */
 .premiumWorkKey i.worked{
   background:#ff4051!important;
@@ -4360,7 +4360,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 }
 
 
-/* WORK V43 — V42 tabanı: takvim şerit geometrisi + kimlik kartı düzenleme. */
+/* WORK V46 — V46 tabanı: takvim şerit geometrisi + kimlik kartı düzenleme. */
 /* Açıklama işaretleri aynı ölçüdedir. Yol işareti siyah/beyaz olarak görünür. */
 .premiumWorkKey i.worked,
 .premiumWorkKey i.overtime,
@@ -4376,7 +4376,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .premiumWorkKey i.road{background:#050505!important;border:1px solid rgba(255,255,255,.88)!important;box-shadow:0 0 5px rgba(255,255,255,.22)!important}
 .premiumWorkKey .roadKey{color:inherit!important}
 
-/* Gün içindeki şeritler yataydır; uçları çapraz kesik ve V42'ye göre biraz daha geniştir. */
+/* Gün içindeki şeritler yataydır; uçları çapraz kesik ve V46'ye göre biraz daha geniştir. */
 .personWorkCalendar .zCalDay .eventDots{
   left:3px!important;right:3px!important;top:21px!important;bottom:3px!important;
   gap:2px!important;overflow:hidden!important;
@@ -4430,7 +4430,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
   .haneIdentityEditBar{padding:0 12px 10px}
 }
 
-/* WORK V44 — takvim şeritleri: eski yüksek özgüllüklü kuralların kesin override'ı. */
+/* WORK V46 — takvim şeritleri: eski yüksek özgüllüklü kuralların kesin override'ı. */
 /* eventDots eski .zCalDay>span kurallarından etkilenmesin. */
 .personWorkCalendar .zCalDay>span.eventDots{
   position:absolute!important;
@@ -4498,4 +4498,110 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
     clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)!important;
   }
 }
-\n\n/* WORK V45 — yol şeridi gri kenar temizliği + 4/5/6 olayın tamamını görünür tut. */\n/* Takvim hücresi 4 olayı rahat gösterecek kadar yüksek; eski 40px mobil kuralını ezer. */\n.personWorkCalendar .zCalDay{min-height:58px!important}\n.personWorkCalendar .zCalDay>span.eventDots{\n  top:19px!important;bottom:3px!important;inset:19px 2px 3px 2px!important;\n  gap:1px!important;overflow:hidden!important;\n}\n/* 1–4 kayıt: mevcut geniş şerit boyu korunur ve dördü de görünür. */\n.personWorkCalendar .zCalDay>span.eventDots.count-1>i.eventBadge,\n.personWorkCalendar .zCalDay>span.eventDots.count-2>i.eventBadge,\n.personWorkCalendar .zCalDay>span.eventDots.count-3>i.eventBadge,\n.personWorkCalendar .zCalDay>span.eventDots.count-4>i.eventBadge{\n  flex:0 0 8px!important;height:8px!important;min-height:8px!important;max-height:8px!important;\n  line-height:8px!important;\n}\n/* 5–6 kayıt olduğunda hepsi aynı hücre içinde, birbirine binmeden eşit incelir. */\n.personWorkCalendar .zCalDay>span.eventDots.count-5>i.eventBadge{\n  flex:0 0 6px!important;height:6px!important;min-height:6px!important;max-height:6px!important;\n  line-height:6px!important;font-size:2.9px!important;\n}\n.personWorkCalendar .zCalDay>span.eventDots.count-6>i.eventBadge{\n  flex:0 0 5px!important;height:5px!important;min-height:5px!important;max-height:5px!important;\n  line-height:5px!important;font-size:2.6px!important;\n}\n/* Yol: saf siyah. Gri üst/alt çizgi oluşturan inset border tamamen kaldırıldı. */\n.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.road{\n  background:#050505!important;color:#fff!important;border:0!important;outline:0!important;\n  box-shadow:0 0 5px rgba(0,0,0,.58)!important;text-shadow:none!important;\n}\n@media(max-width:390px){\n  .personWorkCalendar .zCalDay{min-height:56px!important}\n  .personWorkCalendar .zCalDay>span.eventDots{top:18px!important;bottom:3px!important;inset:18px 2px 3px 2px!important;gap:1px!important}\n  .personWorkCalendar .zCalDay>span.eventDots.count-1>i.eventBadge,\n  .personWorkCalendar .zCalDay>span.eventDots.count-2>i.eventBadge,\n  .personWorkCalendar .zCalDay>span.eventDots.count-3>i.eventBadge,\n  .personWorkCalendar .zCalDay>span.eventDots.count-4>i.eventBadge{\n    flex-basis:8px!important;height:8px!important;min-height:8px!important;max-height:8px!important;line-height:8px!important;\n  }\n  .personWorkCalendar .zCalDay>span.eventDots.count-5>i.eventBadge{flex-basis:6px!important;height:6px!important;min-height:6px!important;max-height:6px!important;line-height:6px!important}\n  .personWorkCalendar .zCalDay>span.eventDots.count-6>i.eventBadge{flex-basis:5px!important;height:5px!important;min-height:5px!important;max-height:5px!important;line-height:5px!important}\n}\n
+
+/* WORK V46 — gerçek takvim şerit düzeltmesi.
+   V46 paketi yanlışlıkla literal \\n karakterleri içerdiği için tarayıcı bu bloğu uygulamıyordu.
+   Bu blok gerçek CSS satırlarıdır ve V46 üstüne uygulanır. */
+.personWorkCalendar .zCalDay{
+  min-height:68px!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots{
+  position:absolute!important;
+  inset:20px 2px 3px 2px!important;
+  width:auto!important;
+  height:auto!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  align-content:end!important;
+  justify-content:stretch!important;
+  gap:1px!important;
+  overflow:hidden!important;
+  z-index:24!important;
+  pointer-events:none!important;
+  background:transparent!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots.count-1{grid-template-rows:9px!important}
+.personWorkCalendar .zCalDay>span.eventDots.count-2{grid-template-rows:repeat(2,9px)!important}
+.personWorkCalendar .zCalDay>span.eventDots.count-3{grid-template-rows:repeat(3,9px)!important}
+.personWorkCalendar .zCalDay>span.eventDots.count-4{grid-template-rows:repeat(4,9px)!important}
+.personWorkCalendar .zCalDay>span.eventDots.count-5{grid-template-rows:repeat(5,7px)!important}
+.personWorkCalendar .zCalDay>span.eventDots.count-6{grid-template-rows:repeat(6,6px)!important}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge,
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(1),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(2),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(3),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(4),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(5),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(6){
+  position:static!important;
+  inset:auto!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0 4px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%)!important;
+  transform:none!important;
+  opacity:1!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  font-size:3.5px!important;
+  line-height:1!important;
+  font-weight:950!important;
+  letter-spacing:.01em!important;
+  text-overflow:clip!important;
+  box-shadow:none!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.worked{
+  background:#e21d36!important;
+  color:#fff!important;
+  text-shadow:0 1px 1px #67000d!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.overtime{
+  background:linear-gradient(90deg,#d86a12,#ffb248)!important;
+  color:#241205!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.hourly{
+  background:linear-gradient(90deg,#6c2bb5,#bd70ff)!important;
+  color:#fff!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.payment{
+  background:linear-gradient(90deg,#087cae,#50d5ff)!important;
+  color:#04161e!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.leavePaid{
+  background:linear-gradient(90deg,#b48b13,#ffd84f)!important;
+  color:#251c02!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.leaveUnpaid{
+  background:linear-gradient(90deg,#b62339,#ff6577)!important;
+  color:#fff!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.road{
+  background:#000!important;
+  color:#fff!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+}
+@media(max-width:390px){
+  .personWorkCalendar .zCalDay{min-height:66px!important}
+  .personWorkCalendar .zCalDay>span.eventDots{inset:19px 2px 3px 2px!important;gap:1px!important}
+  .personWorkCalendar .zCalDay>span.eventDots.count-1{grid-template-rows:9px!important}
+  .personWorkCalendar .zCalDay>span.eventDots.count-2{grid-template-rows:repeat(2,9px)!important}
+  .personWorkCalendar .zCalDay>span.eventDots.count-3{grid-template-rows:repeat(3,9px)!important}
+  .personWorkCalendar .zCalDay>span.eventDots.count-4{grid-template-rows:repeat(4,9px)!important}
+  .personWorkCalendar .zCalDay>span.eventDots.count-5{grid-template-rows:repeat(5,7px)!important}
+  .personWorkCalendar .zCalDay>span.eventDots.count-6{grid-template-rows:repeat(6,6px)!important}
+  .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge{font-size:3.2px!important;padding:0 3px!important}
+}
