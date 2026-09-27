@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.29-work-v70",
-  "minimumVersion": "0.15.29-work-v70",
+  "latestVersion": "0.15.30-work-v71",
+  "minimumVersion": "0.15.30-work-v71",
   "force": true,
-  "message": "V70: Ziraat/Bankkart doğrulamasında fiziksel sayaçtan bir fazla bulunan parser satırı; çözümlenemeyen satır yoksa, tür toplamları ve dönem borcu denklemi tam uyuyorsa kurtarılan gerçek hareket olarak kabul edilir. Yanlış harcama özet etiketi açıklaması netleştirildi.",
+  "message": "V71: Ziraat/Bankkart gerçek tablo satırı motoru eklendi. Aynı gün aynı tutarlı tekrarlar artık kaybolmaz; taksit satırında yalnız ekstreye yansıyan taksit tutarı, Bankkart Lira kolonunda gerçek TL işlem tutarı alınır. Fiziksel aday sayacı tekrar eden gerçek satırları tekilleştirmez.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V70-ZIRAAT-SATIR-DOGRULAMA-FIX",
-  "version": "WORK-V70"
+  "build": "20260927-HANE-WORK-V71-ZIRAAT-GERCEK-SATIR-MOTORU",
+  "version": "WORK-V71"
 }
