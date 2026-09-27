@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260927-HANE-WORK-V74-ZIRAAT-FINAL-AUDIT-FIX';
+  const BUILD='20260927-HANE-WORK-V75-TEB-ISOLATED-PARSER-FIX';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;

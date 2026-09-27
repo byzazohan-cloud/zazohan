@@ -2,8 +2,8 @@
   "latestVersion": "0.15.32-work-v73",
   "minimumVersion": "0.15.32-work-v73",
   "force": true,
-  "message": "V74: Ziraat/Bankkart özet doğrulayıcı düzeltildi. Alt özet tablosundaki Devreden Bakiye, Harcamalar, Faiz/Ücret, Ödemeler ve Dönem Borcu TL sütunları etiketli bloktan sırayla okunur; devreden bakiye harcama, yüzde faiz oranı da faiz tutarı olarak kullanılamaz. V72 işlem parserı ve sayfa overlap motoru korunur.",
+  "message": "V75: TEB/SADE ekstre motoru banka bazında izole edildi. Fiziksel sayaç yalnız tam tarihli işlem satırlarını sayar; faiz oranı metinleri işlem adayı değildir. TEB için satır sonundaki gerçek TL tutarını kullanan fixed parser birincil yapıldı, tarih-segment parserı yalnız yedek kaldı. Önceki Dönemden Devir Edilen Tutar işlem sayılmaz; CEPTETEB ÖDEME gerçek ödeme olarak korunur; BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI banka harcama toplamı olarak doğrulanır. Ziraat V74 kuralları değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V74-ZIRAAT-FINAL-AUDIT-FIX",
-  "version": "WORK-V74"
+  "build": "20260927-HANE-WORK-V75-TEB-ISOLATED-PARSER-FIX",
+  "version": "WORK-V75"
 }
