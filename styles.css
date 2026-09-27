@@ -4605,3 +4605,80 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
   .personWorkCalendar .zCalDay>span.eventDots.count-6{grid-template-rows:repeat(6,6px)!important}
   .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge{font-size:3.2px!important;padding:0 3px!important}
 }
+
+/* WORK V47 — şerit kalınlığı sabit. 4+ kayıt için şerit inceltilmez; gün hücresi büyür. */
+.personWorkCalendar .zCalDay{
+  min-height:84px!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots,
+.personWorkCalendar .zCalDay>span.eventDots.count-1,
+.personWorkCalendar .zCalDay>span.eventDots.count-2,
+.personWorkCalendar .zCalDay>span.eventDots.count-3,
+.personWorkCalendar .zCalDay>span.eventDots.count-4,
+.personWorkCalendar .zCalDay>span.eventDots.count-5,
+.personWorkCalendar .zCalDay>span.eventDots.count-6{
+  position:absolute!important;
+  inset:20px 2px 3px 2px!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:none!important;
+  grid-auto-rows:9px!important;
+  align-content:end!important;
+  gap:1px!important;
+  overflow:hidden!important;
+}
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge,
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(1),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(2),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(3),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(4),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(5),
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(6){
+  width:100%!important;
+  height:9px!important;
+  min-height:9px!important;
+  max-height:9px!important;
+  line-height:9px!important;
+  padding:0 5px!important;
+  font-size:3.7px!important;
+  clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%)!important;
+}
+/* Yol şeridi de aynı geometri: siyah zemin, beyaz yazı; gri kenar/gölge yok. */
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.road{
+  background:#000!important;
+  color:#fff!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+}
+/* Tam Gün profil renginden bağımsız sabit kırmızı. */
+.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.worked{
+  background:#e21d36!important;
+  color:#fff!important;
+}
+@media(max-width:390px){
+  .personWorkCalendar .zCalDay{min-height:84px!important}
+  .personWorkCalendar .zCalDay>span.eventDots,
+  .personWorkCalendar .zCalDay>span.eventDots.count-1,
+  .personWorkCalendar .zCalDay>span.eventDots.count-2,
+  .personWorkCalendar .zCalDay>span.eventDots.count-3,
+  .personWorkCalendar .zCalDay>span.eventDots.count-4,
+  .personWorkCalendar .zCalDay>span.eventDots.count-5,
+  .personWorkCalendar .zCalDay>span.eventDots.count-6{
+    inset:19px 2px 3px 2px!important;
+    grid-template-rows:none!important;
+    grid-auto-rows:9px!important;
+    gap:1px!important;
+  }
+  .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge,
+  .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(1),
+  .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(2),
+  .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(3),
+  .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(4),
+  .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(5),
+  .personWorkCalendar .zCalDay>span.eventDots>i.eventBadge:nth-child(6){
+    height:9px!important;min-height:9px!important;max-height:9px!important;
+    line-height:9px!important;font-size:3.4px!important;padding:0 4px!important;
+  }
+}
