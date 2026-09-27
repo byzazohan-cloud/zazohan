@@ -3747,81 +3747,112 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
  .workMoneyBalance b{font-size:9px!important}
 }
 
-/* HANE WORK V12 — unmistakable bottom-rising diagonal ribbons. V11 compact money detail preserved. */
-.personWorkCalendar .zCalDay .eventDots{
-  position:absolute!important;
-  left:2px!important;right:2px!important;bottom:0!important;top:auto!important;
-  height:19px!important;width:auto!important;
-  display:flex!important;flex-direction:row!important;align-items:flex-end!important;justify-content:stretch!important;
-  gap:1px!important;overflow:visible!important;z-index:6!important;pointer-events:none!important;
-}
-.personWorkCalendar .eventBadge{
-  position:relative!important;isolation:isolate!important;
-  flex:1 1 0!important;width:auto!important;min-width:0!important;
-  height:18px!important;min-height:18px!important;
-  padding:0 2px 2px!important;margin:0!important;
-  display:flex!important;align-items:flex-end!important;justify-content:center!important;
-  border:0!important;border-radius:0!important;clip-path:none!important;background:transparent!important;
-  color:#f8fbfd!important;font-size:3.9px!important;line-height:6px!important;font-weight:950!important;
-  white-space:nowrap!important;overflow:visible!important;text-shadow:0 1px 2px #000!important;box-shadow:none!important;
-}
-.personWorkCalendar .eventBadge::before{
-  content:""!important;position:absolute!important;z-index:-1!important;
-  left:-2px!important;right:-2px!important;bottom:-1px!important;height:17px!important;
-  /* A real slash rising from the lower-left edge to the upper-right edge. */
-  clip-path:polygon(0 100%,0 70%,82% 0,100% 0,100% 32%,18% 100%)!important;
-  opacity:1!important;filter:drop-shadow(0 0 3px rgba(0,0,0,.35))!important;
-}
-.personWorkCalendar .eventBadge.overtime::before{background:linear-gradient(90deg,#d96a12,#ffb14e)!important}
-.personWorkCalendar .eventBadge.hourly::before{background:linear-gradient(90deg,#6f2db5,#bc70ff)!important}
-.personWorkCalendar .eventBadge.payment::before{background:linear-gradient(90deg,#0879ad,#50d5ff)!important}
-/* Day number and main state are never painted by event colors. */
-.personWorkCalendar .zCalDay>b{z-index:10!important;color:#aab4bd!important;background:transparent!important}
-.personWorkCalendar .zCalDay.today>b{color:#eef7fb!important}
-.personWorkCalendar .zCalDay .dayKind{z-index:9!important}
-@media(max-width:390px){
- .personWorkCalendar .zCalDay .eventDots{height:17px!important;left:2px!important;right:2px!important}
- .personWorkCalendar .eventBadge{height:16px!important;min-height:16px!important;font-size:3.4px!important;line-height:5px!important;padding-bottom:2px!important}
- .personWorkCalendar .eventBadge::before{height:15px!important}
-}
-
-/* HANE WORK V13 — Mesai + Saatlik + Ödeme: her biri ayrı ve gerçek çapraz alt şerit */
-.personWorkCalendar .zCalDay .eventDots{
-  position:absolute!important;
-  left:2px!important;right:2px!important;bottom:0!important;top:auto!important;
-  height:21px!important;
-  display:flex!important;flex-direction:row!important;align-items:flex-end!important;
-  gap:1px!important;overflow:visible!important;z-index:6!important;pointer-events:none!important;
-}
-.personWorkCalendar .eventBadge{
+/* HANE WORK V14 — approved mockup parity: stacked diagonal lower ribbons, neutral day number, no center icon. */
+.personWorkCalendar .zCalDay{
   position:relative!important;
-  flex:1 1 0!important;min-width:0!important;width:auto!important;
-  height:20px!important;min-height:20px!important;
-  padding:0 0 1px!important;margin:0!important;
-  display:flex!important;align-items:flex-end!important;justify-content:center!important;
-  background:transparent!important;border:0!important;clip-path:none!important;
-  color:#fff!important;font-size:3.7px!important;line-height:5px!important;font-weight:950!important;
-  white-space:nowrap!important;overflow:visible!important;text-shadow:0 1px 2px #000!important;
-  isolation:isolate!important;
+  overflow:hidden!important;
+  min-height:72px!important;
+  padding:0!important;
 }
-.personWorkCalendar .eventBadge::before{
-  content:""!important;
+/* Day number stays neutral and readable. */
+.personWorkCalendar .zCalDay>b{
   position:absolute!important;
-  left:0!important;right:0!important;bottom:0!important;
-  height:20px!important;
-  z-index:-1!important;
-  /* Her kayıt kendi hücresinde alt-soldan üst-sağa çıkan saf çapraz şerit. */
-  clip-path:polygon(0 100%,0 72%,100% 0,100% 28%)!important;
-  opacity:1!important;
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))!important;
+  top:7px!important;
+  left:8px!important;
+  z-index:30!important;
+  margin:0!important;
+  color:#aab4bd!important;
+  background:transparent!important;
+  font-size:12px!important;
+  line-height:1!important;
+  text-shadow:none!important;
 }
-.personWorkCalendar .eventBadge.overtime::before{background:linear-gradient(135deg,#c85b0b,#ffad45)!important}
-.personWorkCalendar .eventBadge.hourly::before{background:linear-gradient(135deg,#6425a9,#bd72ff)!important}
-.personWorkCalendar .eventBadge.payment::before{background:linear-gradient(135deg,#0574a8,#4dd6ff)!important}
-.personWorkCalendar .zCalDay>b{position:relative!important;z-index:12!important;color:#aab4bd!important;background:transparent!important}
-.personWorkCalendar .zCalDay .dayKind{position:relative!important;z-index:11!important}
+.personWorkCalendar .zCalDay.today>b{color:#f3f7fa!important}
+/* Remove decorative center icons: the text/ribbons carry the state. */
+.personWorkCalendar .zCalDay>strong{display:none!important}
+/* Main state sits cleanly in the middle, above the ribbon zone. */
+.personWorkCalendar .zCalDay .dayKind{
+  position:absolute!important;
+  top:30px!important;
+  left:5px!important;
+  right:5px!important;
+  bottom:auto!important;
+  z-index:20!important;
+  margin:0!important;
+  padding:0!important;
+  color:#f3f5f7!important;
+  font-size:6px!important;
+  line-height:1!important;
+  font-weight:950!important;
+  letter-spacing:.055em!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+  text-shadow:0 1px 2px #000!important;
+}
+/* Extra events share one lower-right ribbon field; they STACK diagonally, never split into columns. */
+.personWorkCalendar .zCalDay .eventDots{
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  top:auto!important;
+  bottom:0!important;
+  width:100%!important;
+  height:34px!important;
+  display:block!important;
+  overflow:hidden!important;
+  z-index:24!important;
+  pointer-events:none!important;
+}
+.personWorkCalendar .eventBadge{
+  position:absolute!important;
+  right:-7px!important;
+  left:auto!important;
+  width:72%!important;
+  min-width:0!important;
+  height:10px!important;
+  min-height:10px!important;
+  margin:0!important;
+  padding:0 7px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  box-sizing:border-box!important;
+  border:0!important;
+  border-radius:0!important;
+  clip-path:polygon(11% 0,100% 0,89% 100%,0 100%)!important;
+  transform:rotate(-12deg)!important;
+  transform-origin:right center!important;
+  color:#fff!important;
+  font-size:4.2px!important;
+  line-height:10px!important;
+  font-weight:950!important;
+  letter-spacing:.025em!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-shadow:0 1px 2px #000!important;
+  box-shadow:0 0 6px rgba(0,0,0,.45)!important;
+  isolation:auto!important;
+}
+.personWorkCalendar .eventBadge::before{display:none!important;content:none!important}
+/* First/second/third event form three separate parallel diagonal ribbons like the approved mockup. */
+.personWorkCalendar .eventBadge:nth-child(1){bottom:2px!important;right:-8px!important}
+.personWorkCalendar .eventBadge:nth-child(2){bottom:10px!important;right:-3px!important}
+.personWorkCalendar .eventBadge:nth-child(3){bottom:18px!important;right:2px!important}
+.personWorkCalendar .eventBadge.overtime{background:linear-gradient(90deg,#d86a12,#ffb248)!important;color:#241205!important}
+.personWorkCalendar .eventBadge.hourly{background:linear-gradient(90deg,#6c2bb5,#bd70ff)!important;color:#fff!important}
+.personWorkCalendar .eventBadge.payment{background:linear-gradient(90deg,#087cae,#50d5ff)!important;color:#04161e!important}
+/* Keep member color on the work tile/background only, never on the number. */
+.personWorkCalendar .zCalDay.worked>b,
+.personWorkCalendar .zCalDay.hasOvertime>b,
+.personWorkCalendar .zCalDay.hasHourly>b,
+.personWorkCalendar .zCalDay.hasPayment>b{color:#aab4bd!important;text-shadow:none!important}
 @media(max-width:390px){
- .personWorkCalendar .zCalDay .eventDots{height:19px!important}
- .personWorkCalendar .eventBadge{height:18px!important;min-height:18px!important;font-size:3.2px!important}
- .personWorkCalendar .eventBadge::before{height:18px!important}
+  .personWorkCalendar .zCalDay{min-height:66px!important}
+  .personWorkCalendar .zCalDay>b{top:6px!important;left:7px!important;font-size:11px!important}
+  .personWorkCalendar .zCalDay .dayKind{top:27px!important;font-size:5.3px!important}
+  .personWorkCalendar .zCalDay .eventDots{height:31px!important}
+  .personWorkCalendar .eventBadge{width:74%!important;height:9px!important;min-height:9px!important;font-size:3.7px!important;line-height:9px!important;padding:0 5px!important}
+  .personWorkCalendar .eventBadge:nth-child(1){bottom:2px!important}
+  .personWorkCalendar .eventBadge:nth-child(2){bottom:9px!important}
+  .personWorkCalendar .eventBadge:nth-child(3){bottom:16px!important}
 }
