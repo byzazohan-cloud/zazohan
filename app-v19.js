@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260927-HANE-V0.15.17-FIX33-INTEGRATION-CLEAN',
+  build:'20260927-HANE-V0.15.20-FIX36-CLEANUP',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hn-black-rg-silhouette-v01516'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -298,7 +298,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,tara,profile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260927-HANE-V0.15.17-FIX33-INTEGRATION-CLEAN')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260927-HANE-V0.15.17-FIX33-INTEGRATION-CLEAN.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260927-HANE-V0.15.20-FIX36-CLEANUP')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260927-HANE-V0.15.20-FIX36-CLEANUP.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -1106,12 +1106,11 @@ function bind(){
   if(contentRoot){let gsx=0,gsy=0,gtrack=false;contentRoot.addEventListener('touchstart',e=>{const t=e.touches?.[0];if(!t)return;gsx=t.clientX;gsy=t.clientY;gtrack=true},{passive:true});contentRoot.addEventListener('touchmove',e=>{if(!gtrack)return;const t=e.touches?.[0];if(!t)return;const dx=t.clientX-gsx,dy=t.clientY-gsy;if(Math.abs(dx)<=Math.abs(dy)||Math.abs(dx)<12)return;const allowed=e.target.closest?.('[data-home-month-swipe="1"],.calendarPremium,.calendarDayPanel,.financeCarousel,.cardsV4Stage,.fixedList,.cropStage');if(!allowed)e.preventDefault()},{passive:false});contentRoot.addEventListener('touchend',()=>{gtrack=false},{passive:true});}
   const cardSwipe=document.querySelector('.cardsV4Stage, .financeCarousel');
   if(cardSwipe&&state.cards.length>1){
-    let csx=0,csy=0,ctrack=false,pid=null,dragged=false;
+    let csx=0,csy=0,ctrack=false,pid=null;
     const cardStep=dx=>{financeCardIndex=(financeCardIndex+(dx<0?1:-1)+state.cards.length)%state.cards.length;render()};
-    cardSwipe.addEventListener('pointerdown',e=>{if(e.button!=null&&e.button!==0)return;pid=e.pointerId;csx=e.clientX;csy=e.clientY;ctrack=true;dragged=false;try{cardSwipe.setPointerCapture(pid)}catch(_){}});
-    cardSwipe.addEventListener('pointermove',e=>{if(!ctrack||pid!==e.pointerId)return;const dx=e.clientX-csx,dy=e.clientY-csy;if(Math.abs(dx)>12&&Math.abs(dx)>Math.abs(dy))dragged=true;});
-    cardSwipe.addEventListener('pointerup',e=>{if(!ctrack||pid!==e.pointerId)return;ctrack=false;const dx=e.clientX-csx,dy=e.clientY-csy;try{cardSwipe.releasePointerCapture(pid)}catch(_){}pid=null;if(dragged&&Math.abs(dx)>=45&&Math.abs(dx)>Math.abs(dy)*1.15){e.preventDefault();cardStep(dx)}});
-    cardSwipe.addEventListener('pointercancel',()=>{ctrack=false;pid=null;dragged=false});
+    cardSwipe.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;pid=e.pointerId;csx=e.clientX;csy=e.clientY;ctrack=true});
+    cardSwipe.addEventListener('pointerup',e=>{if(!ctrack||pid!==e.pointerId)return;ctrack=false;pid=null;const dx=e.clientX-csx,dy=e.clientY-csy;if(Math.abs(dx)>=52&&Math.abs(dx)>Math.abs(dy)*1.2){e.preventDefault();e.stopPropagation();cardStep(dx)}});
+    cardSwipe.addEventListener('pointercancel',()=>{ctrack=false;pid=null});
   }
   const homeMonthSwipe=document.querySelector('[data-home-month-swipe="1"]');
   if(homeMonthSwipe){let hsx=0,hsy=0,htrack=false;homeMonthSwipe.addEventListener('touchstart',e=>{const t=e.touches&&e.touches[0];if(!t)return;hsx=t.clientX;hsy=t.clientY;htrack=true},{passive:true});homeMonthSwipe.addEventListener('touchend',e=>{if(!htrack)return;htrack=false;const t=e.changedTouches&&e.changedTouches[0];if(!t)return;const dx=t.clientX-hsx,dy=t.clientY-hsy;if(Math.abs(dx)<48||Math.abs(dx)<=Math.abs(dy)*1.15)return;state.selectedMonth=monthShiftValue(state.selectedMonth,dx<0?1:-1);calendarMonth=state.selectedMonth;calendarDay='';save().then(()=>render())},{passive:true});}
@@ -2399,7 +2398,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260927-HANE-V0.15.17-FIX33-INTEGRATION-CLEAN';
+const HANE_SW_BUILD='20260927-HANE-V0.15.20-FIX36-CLEANUP';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v0.15.16-fix17-work-independent';
 const HANE_ENGINE_PACKAGES=[

@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.19",
-  "minimumVersion": "0.15.19",
+  "latestVersion": "0.15.20",
+  "minimumVersion": "0.15.20",
   "force": true,
-  "message": "FIX35 · Sade premium parola ekranı uygulandı; FIX33 kart etkileşim düzeltmeleri korundu.",
+  "message": "FIX36 · Entegrasyon, cache, kart etkileşimi ve parola ekranı temizlendi.",
   "updateUrl": "",
-  "build": "20260927-HANE-V0.15.19-FIX35-CLEAN-LOCK",
-  "version": "0.15.19"
+  "build": "20260927-HANE-V0.15.20-FIX36-CLEANUP",
+  "version": "0.15.20"
 }
