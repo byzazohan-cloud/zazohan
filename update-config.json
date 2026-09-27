@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.31-work-v72",
-  "minimumVersion": "0.15.31-work-v72",
+  "latestVersion": "0.15.32-work-v73",
+  "minimumVersion": "0.15.32-work-v73",
   "force": true,
-  "message": "V72: Ziraat/Bankkart sayfa sınırı tekrarları güvenli biçimde temizlendi. Yalnız önceki sayfanın son işlem dizisi ile sonraki sayfanın ilk işlem dizisi birebir aynıysa örtüşen satırlar kaldırılır; aynı gün ve aynı tutarlı gerçek tekrarlar korunur. Fiziksel sayaç Ziraat için yalnız tam tarihleri sayar.",
+  "message": "V73: Ziraat/Bankkart özet doğrulayıcı düzeltildi. Alt özet tablosundaki Devreden Bakiye, Harcamalar, Faiz/Ücret, Ödemeler ve Dönem Borcu TL sütunları etiketli bloktan sırayla okunur; devreden bakiye harcama, yüzde faiz oranı da faiz tutarı olarak kullanılamaz. V72 işlem parserı ve sayfa overlap motoru korunur.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V72-ZIRAAT-SAYFA-OVERLAP-FIX",
-  "version": "WORK-V72"
+  "build": "20260927-HANE-WORK-V73-ZIRAAT-OZET-DOGRULAMA-FIX",
+  "version": "WORK-V73"
 }
