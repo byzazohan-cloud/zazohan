@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260927-HANE-WORK-V50-ALT-SERIT-FINANS-TAKVIM',
+  build:'20260927-HANE-WORK-V51-TEK-RENK-TEK-SERIT',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hn-black-rg-silhouette-v01516'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -781,7 +781,12 @@ function calendar(){
  for(let d=1;d<=last;d++){
    const ds=calendarMonth+'-'+String(d).padStart(2,'0'),items=calendarItems(ds),future=upcomingPayments().filter(x=>x.date===ds&&!x.paid);
    const stripMap={income:['income','GELİR'],expense:['expense','GİDER'],fixedPayment:['expense','GİDER'],cardPayment:['cardPayment','KART'],flexSpend:['flexSpend','ESNEK'],flexPayment:['flexPayment','ÖDEME']};
-   const financeStrips=[...items.map(x=>stripMap[x._kind]||['expense','KAYIT']),...future.map(x=>x.kind==='card'?['futurecard','KART SON']:x.kind==='flex'?['futureflex','ESNEK SON']:['futurefixed','HATIRLATMA'])].slice(0,6);
+   // V51: Normal takvimde aynı renk/tür şeridi bir günde yalnız bir kez gösterilir.
+   // Günün tüm işlem ayrıntıları güne dokunulduğunda alttaki detay panelinde görünmeye devam eder.
+   const rawFinanceStrips=[...items.map(x=>stripMap[x._kind]||['expense','KAYIT']),...future.map(x=>x.kind==='card'?['cardPayment','KART']:x.kind==='flex'?['flexSpend','ESNEK']:['futurefixed','HATIRLATMA'])];
+   const financeStrips=[];
+   const usedStripColors=new Set();
+   for(const z of rawFinanceStrips){if(usedStripColors.has(z[0]))continue;usedStripColors.add(z[0]);financeStrips.push(z)}
    cells.push(`<button class="calDay financeCalDay ${ds===calendarDay?'active':''}" data-action="calendarDay" data-date="${ds}"><b>${d}</b><span class="financeDayStrips count-${financeStrips.length}">${financeStrips.map(z=>`<i class="financeDayBadge ${z[0]}">${z[1]}</i>`).join('')}</span></button>`)
  }
  const futureDue=upcomingPayments().filter(x=>x.date===calendarDay&&!x.paid);
