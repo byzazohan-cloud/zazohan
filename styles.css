@@ -3646,3 +3646,63 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .workMoneyDetailTotal{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;margin-top:2px;border:1px solid color-mix(in srgb,var(--work-theme,#47bfff) 45%,transparent);border-radius:12px;background:color-mix(in srgb,var(--work-theme,#47bfff) 9%,#080a0d)}.workMoneyDetailTotal span{font-size:9px;font-weight:900;letter-spacing:.06em}.workMoneyDetailTotal strong{font-size:14px;white-space:nowrap}
 .workMoneyBalance{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.workMoneyBalance>div{min-width:0;padding:9px 6px;text-align:center;border:1px solid rgba(255,255,255,.09);border-radius:11px;background:#0c1116}.workMoneyBalance small{display:block;font-size:7px;color:#8d99a5;font-weight:900}.workMoneyBalance b{display:block;margin-top:4px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.workMoneyBalance .remain b{color:#ff727c}.workMoneyPayBtn{width:100%;min-height:42px!important;margin-top:8px!important}
 @media(max-width:370px){.workMoneyDetailRow{padding:7px 9px}.workMoneyDetailRow>span{gap:5px}.workMoneyDetailRow b{font-size:10px}.workMoneyDetailRow strong{font-size:11px}.workMoneyBalance b{font-size:10px}}
+
+/* WORK V10 — calendar extras are true diagonal strips anchored to the bottom edge. */
+.personWorkCalendar .zCalDay .eventDots{
+  left:3px!important;
+  right:3px!important;
+  bottom:0!important;
+  height:16px!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:flex-end!important;
+  justify-content:stretch!important;
+  gap:1px!important;
+  overflow:hidden!important;
+  z-index:5!important;
+  pointer-events:none!important;
+}
+.personWorkCalendar .eventBadge{
+  position:relative!important;
+  isolation:isolate!important;
+  flex:1 1 0!important;
+  width:auto!important;
+  min-width:0!important;
+  height:16px!important;
+  padding:0 1px 1px!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+  border-radius:0!important;
+  clip-path:none!important;
+  background:transparent!important;
+  color:#f7fbfd!important;
+  font-size:3.9px!important;
+  line-height:6px!important;
+  font-weight:950!important;
+  letter-spacing:.01em!important;
+  text-shadow:0 1px 2px #000!important;
+  box-shadow:none!important;
+}
+.personWorkCalendar .eventBadge::before{
+  content:""!important;
+  position:absolute!important;
+  left:-10%!important;
+  right:-10%!important;
+  bottom:0!important;
+  height:100%!important;
+  z-index:-1!important;
+  clip-path:polygon(0 100%,0 62%,100% 0,100% 38%)!important;
+  opacity:.98!important;
+}
+.personWorkCalendar .eventBadge.overtime::before{background:linear-gradient(90deg,#ffad48,#c85c0d)!important}
+.personWorkCalendar .eventBadge.hourly::before{background:linear-gradient(90deg,#b56cff,#6f2eb7)!important}
+.personWorkCalendar .eventBadge.payment::before{background:linear-gradient(90deg,#4dd2ff,#0879ad)!important}
+/* Day number and main day state always stay above the bottom ribbons. */
+.personWorkCalendar .zCalDay>b{z-index:9!important}
+.personWorkCalendar .zCalDay .dayKind{z-index:8!important}
+@media(max-width:390px){
+  .personWorkCalendar .zCalDay .eventDots{height:14px!important;bottom:0!important}
+  .personWorkCalendar .eventBadge{height:14px!important;font-size:3.5px!important;line-height:5px!important}
+}

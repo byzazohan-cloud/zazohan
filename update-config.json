@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.17-work-v9",
-  "minimumVersion": "0.15.17-work-v9",
+  "latestVersion": "0.15.17-work-v10",
+  "minimumVersion": "0.15.17-work-v10",
   "force": true,
-  "message": "WORK V9 · Yalnız Çalışma Kazanılan/Alınan/Kalan ayrıntı pencereleri kompakt yatay düzene alındı.",
+  "message": "WORK V10 · Çalışma takviminde Mesai, Saatlik ve Ödeme göstergeleri gün kartının alt kenarından yükselen gerçek çapraz şeritlere dönüştürüldü.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V9-COMPACT-DETAIL",
-  "version": "0.15.17-work-v9"
+  "build": "20260927-HANE-WORK-V10-DIAGONAL-BOTTOM-RIBBONS",
+  "version": "0.15.17-work-v10"
 }
