@@ -2,8 +2,8 @@
   "latestVersion": "0.15.18-work-v29",
   "minimumVersion": "0.15.18-work-v29",
   "force": true,
-  "message": "WORK V29 · Yol ücretinde Nakit/Kredi Kartı açık seçimleri ve seçili HANE üyesinin kimlik kartı üstte; üye seçici altta. V21 parola ekranı korunur.",
+  "message": "WORK V30 · Yol ücreti Nakit/Kredi Kartı gerçek radio seçimi; seçili HANE üyesinin kimlik kartı aktif profile bağlı; cache/build kimlikleri eşitlendi. V21 parola ekranı korunur.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V29-YOL-ODEME-KIMLIK",
-  "version": "V29"
+  "build": "20260927-HANE-WORK-V30-ROAD-IDENTITY-STABLE",
+  "version": "V30"
 }
