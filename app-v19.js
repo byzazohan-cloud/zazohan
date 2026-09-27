@@ -959,20 +959,21 @@ function zCalendarBody(memberId){
  let cells='<div class="zCalWeek">'+['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map(x=>`<b>${x}</b>`).join('')+'</div><div class="zCalGrid">'+('<span class="zCalBlank"></span>'.repeat(first));
  for(let d=1;d<=days;d++){
    const ds=`${m}-${String(d).padStart(2,'0')}`,rows=dailyRows.filter(x=>x.date===ds),base=rows.find(x=>x.type==='daily'),ot=rows.some(x=>x.type==='overtime'||x.dayStatus==='overtime'),hourly=rows.some(x=>x.type==='hourly'),pay=pays.some(x=>x.date===ds);
-   let status='',label='',icon='';
-   if(base?.dayStatus==='leave'){status=(mem?.leavePolicy==='paid')?'leavePaid':'leaveUnpaid';label=(mem?.leavePolicy==='paid')?'Ücretli izin':'Ücretsiz izin';icon='☂'}
-   else if(base){status='worked';label='Çalışma günü';icon='▣'}
-   if(ot){status=status?status+' hasOvertime':'overtime';label+=(label?' + ':'')+'Mesai';icon=icon||'◷'}
-   if(hourly){status=status?status+' hasHourly':'hourly';label+=(label?' + ':'')+'Saatlik iş';icon=icon||'▥'}
-   if(pay){status=status?status+' hasPayment':'payment';label+=(label?' + ':'')+'Ödeme';icon=icon||'▤'}
+   let status='',label='',icon='',dayKind='';
+   if(base?.dayStatus==='leave'){status=(mem?.leavePolicy==='paid')?'leavePaid':'leaveUnpaid';label=(mem?.leavePolicy==='paid')?'Ücretli izin':'Ücretsiz izin';icon='☂';dayKind='İZİN'}
+   else if(base){status='worked';label='Tam gün çalışma';icon='▣';dayKind='TAM GÜN'}
+   else if(hourly){status='hourly';label='Saatlik iş';icon='▥';dayKind='SAATLİK'}
+   if(ot){status=status?status+' hasOvertime':'overtime';label+=(label?' + ':'')+'Mesai';icon=icon||'◷';if(!dayKind)dayKind='MESAİ'}
+   if(hourly&&base){status=status+' hasHourly';label+=' + Saatlik iş'}
+   if(pay){status=status?status+' hasPayment':'payment';label+=(label?' + ':'')+'Ödeme';icon=icon||'▤';if(!dayKind)dayKind='ÖDEME'}
    const future=ds>today?' future':'',todayCls=ds===today?' today':'';
    const badges=[ot?'<i class="eventDot overtime"></i>':'',hourly?'<i class="eventDot hourly"></i>':'',pay?'<i class="eventDot payment"></i>':''].join('');
-   cells+=`<button class="zCalDay ${status}${future}${todayCls}" data-action="zWorkDay" data-date="${ds}" title="${esc(label||'Kayıt yok')}"><b>${d}</b>${icon?`<strong>${icon}</strong>`:''}<span class="eventDots">${badges}</span></button>`
+   cells+=`<button class="zCalDay ${status}${future}${todayCls}" data-action="zWorkDay" data-date="${ds}" title="${esc(label||'Kayıt yok')}"><b>${d}</b>${dayKind?`<em class="dayKind">${dayKind}</em>`:''}${icon?`<strong>${icon}</strong>`:''}<span class="eventDots">${badges}</span></button>`
  }
  cells+='</div>';
  if(!mem)return `<div class="zWorkCalendar"><div class="notice">Çalışma bilgilerini görmek için üstten bir kişi seç.</div>${cells}</div>`;
  const rows=zMemberWorkRows(mem.id,m),daily=rows.filter(x=>x.type==='daily'),worked=daily.filter(x=>(x.dayStatus||'worked')!=='leave').length,leave=daily.filter(x=>x.dayStatus==='leave').length,otHours=rows.reduce((n,x)=>n+(x.type==='overtime'?(+x.hours||0):(x.dayStatus==='overtime'?(+x.overtimeHours||0):0)),0),hourlyAmount=rows.filter(x=>x.type==='hourly').reduce((n,x)=>n+zWorkAmount(x),0),ent=zMemberMonthEntitlement(mem,m),paid=zMemberMonthPaid(mem.id,m),remain=zMemberMonthRemaining(mem,m);
- return `<div class="zWorkCalendar personWorkCalendar"><div class="zCalTitle"><button data-action="zWorkCalShift" data-dir="-1">‹</button><b>${monthLabel(m)}</b><button data-action="zWorkCalShift" data-dir="1">›</button></div>${cells}<div class="zCalKey premiumWorkKey"><span><i class="worked"></i>Çalışma</span><span><i class="overtime"></i>Mesai</span><span><i class="hourly"></i>Saatlik İş</span><span><i class="leaveUnpaid"></i>Ücretsiz İzin</span><span><i class="leavePaid"></i>Ücretli İzin</span><span><i class="payment"></i>Ödeme</span></div><div class="section zWorkSection"><b>AYLIK ÖZET</b><span>${monthLabel(m)}</span></div><div class="zPersonMonthSummary"><div><small>ÇALIŞMA</small><b>${worked} gün</b></div><div><small>İZİN</small><b>${leave} gün</b></div><div><small>MESAİ</small><b>${otHours} saat</b></div><div><small>SAATLİK İŞ</small><b>${money(hourlyAmount)}</b></div><div><small>HAKEDİŞ</small><b>${money(ent.total)}</b></div><div><small>ALINAN</small><b>${money(paid)}</b></div><div><small>KALAN</small><b>${money(remain)}</b></div></div></div>`
+ return `<div class="zWorkCalendar personWorkCalendar" style="--member-color:${esc(zMemberColor(mem,(state.members||[]).findIndex(x=>x.id===mem.id)))}"><div class="zCalTitle"><button data-action="zWorkCalShift" data-dir="-1">‹</button><b>${monthLabel(m)}</b><button data-action="zWorkCalShift" data-dir="1">›</button></div><div class="activeMemberColor"><i></i><span>${esc(mem.name)} · çalışma rengi</span></div>${cells}<div class="zCalKey premiumWorkKey"><span><i class="worked"></i>Çalışma</span><span><i class="overtime"></i>Mesai</span><span><i class="hourly"></i>Saatlik İş</span><span><i class="leaveUnpaid"></i>Ücretsiz İzin</span><span><i class="leavePaid"></i>Ücretli İzin</span><span><i class="payment"></i>Ödeme</span></div><div class="section zWorkSection"><b>AYLIK ÖZET</b><span>${monthLabel(m)}</span></div><div class="zPersonMonthSummary"><div><small>ÇALIŞMA</small><b>${worked} gün</b></div><div><small>İZİN</small><b>${leave} gün</b></div><div><small>MESAİ</small><b>${otHours} saat</b></div><div><small>SAATLİK İŞ</small><b>${money(hourlyAmount)}</b></div><div><small>HAKEDİŞ</small><b>${money(ent.total)}</b></div><div><small>ALINAN</small><b>${money(paid)}</b></div><div><small>KALAN</small><b>${money(remain)}</b></div></div></div>`
 }
 function zWorkDayBody(date){const mid=state.settings?.activeMemberId||'me',mem=(state.members||[]).find(x=>x.id===mid&&x.startDate&&x.startDate<=date),w=mem?(state.work||[]).find(x=>x.memberId===mem.id&&x.date===date&&x.type==='daily'):null,st=w?.dayStatus||'worked';if(!mem)return '<div class="notice">Bu tarih için seçili çalışma profili bulunamadı.</div>';return `<form class="form" id="zWorkDayForm"><input type="hidden" name="date" value="${date}"><input type="hidden" name="memberId" value="${esc(mem.id)}"><div class="notice"><b>${prettyDate(date)} · ${esc(mem.name)}</b><br>Bu günün durumunu buradan değiştirebilirsin.</div><div class="field"><label>Gün Durumu</label><select name="status"><option value="worked" ${st==='worked'?'selected':''}>ÇALIŞTIM</option><option value="leave" ${st==='leave'?'selected':''}>İZİN</option><option value="overtime" ${st==='overtime'?'selected':''}>MESAİ</option></select></div>${input('overtimeHours','Mesai Saati',w?.overtimeHours||0,'number','step="0.25" min="0"')}<div class="zWorkDayActions"><button class="btn gold" type="submit">DÜZENLE / DEĞİŞTİR</button>${w?`<button class="btn danger" type="button" data-action="zWorkDayDelete" data-id="${esc(w.id)}">SİL</button>`:''}</div></form>`}
 function zMissingMemberDays(mem){if(!mem?.startDate)return[];const out=[];let d=new Date(mem.startDate+'T12:00:00'),end=new Date(iso()+'T12:00:00');for(;d<=end;d.setDate(d.getDate()+1)){const ds=iso(d);if(!(state.work||[]).some(x=>x.memberId===mem.id&&x.date===ds))out.push(ds)}return out}
@@ -983,16 +984,16 @@ async function zEnsureMemberDays(mem){if(!mem?.startDate)return 0;state.work=Arr
 
 function zMemberMonthEntitlement(mem,m=state.selectedMonth){
  const rows=zMemberWorkRows(mem.id,m),salary=zMemberMonthBaseSalary(mem,m),daily=salary/30;
- const [yy,mm]=String(m).split('-').map(Number),monthStart=`${m}-01`,monthEnd=`${m}-${String(new Date(yy,mm,0).getDate()).padStart(2,'0')}`,today=iso();
- const effectiveStart=(mem.startDate&&mem.startDate>monthStart)?mem.startDate:monthStart,effectiveEnd=(m===today.slice(0,7)&&today<monthEnd)?today:monthEnd;
- let eligibleDays=30;
- // Current month and first employment month are prorated on the fixed 30-day salary basis.
- // This prevents a different selected member from receiving a full-month entitlement before the month is complete.
- if((mem.startDate&&mem.startDate.slice(0,7)===m)||m===today.slice(0,7)){const a=new Date(effectiveStart+'T12:00:00'),b=new Date(effectiveEnd+'T12:00:00');eligibleDays=Math.max(0,Math.min(30,Math.floor((b-a)/86400000)+1))}
+ const dailyRows=rows.filter(x=>x.type==='daily');
+ const workedDays=dailyRows.filter(x=>(x.dayStatus||'worked')!=='leave').length;
+ const leaveRows=dailyRows.filter(x=>x.dayStatus==='leave');
+ const paidLeave=(mem.leavePolicy||'unpaid')==='paid'?leaveRows.length:0;
+ const unpaidLeave=(mem.leavePolicy||'unpaid')==='unpaid'?leaveRows.length:0;
+ const eligibleDays=Math.min(30,workedDays+paidLeave);
  const base=money2(daily*eligibleDays);
- const leave=rows.filter(x=>x.dayStatus==='leave').length,unpaidLeave=(mem.leavePolicy||'unpaid')==='unpaid'?leave:0;
  const overtime=rows.reduce((n,x)=>{if(x.type==='overtime')return n+money2((+x.hours||0)*(+x.rate||0));if(x.dayStatus==='overtime'&&+x.overtimeHours>0)return n+money2((daily/8)*(+x.overtimeHours||0));return n},0);
- return {base,leave,unpaidLeave,leaveDeduction:money2(unpaidLeave*daily),overtime:money2(overtime),eligibleDays,total:money2(Math.max(0,base-unpaidLeave*daily)+overtime)};
+ const hourly=rows.filter(x=>x.type==='hourly').reduce((n,x)=>n+money2((+x.hours||0)*(+x.rate||0)),0);
+ return {base,leave:leaveRows.length,paidLeave,unpaidLeave,leaveDeduction:0,overtime:money2(overtime),hourly:money2(hourly),eligibleDays,workedDays,total:money2(base+overtime+hourly)};
 }
 
 function zWorkPaymentMonth(p){if(p?.workMonth)return p.workMonth;const w=p?.workId?(state.work||[]).find(x=>x.id===p.workId):null;return String(w?.date||p?.date||'').slice(0,7)}
