@@ -2,8 +2,8 @@
   "latestVersion": "0.15.17",
   "minimumVersion": "0.15.17",
   "force": true,
-  "message": "FIX34 · Sürüm/cache kimlikleri tekleştirildi; kart tıklama ve kaydırma olayları tek pointer sistemine alındı.",
+  "message": "FIX35 · Sürüm/cache kimlikleri tekleştirildi; kart tıklama ve kaydırma olayları tek pointer sistemine alındı.",
   "updateUrl": "",
-  "build": "20260927-HANE-V0.15.17-FIX34-INTEGRATION-CLEAN",
+  "build": "20260927-HANE-V0.15.17-FIX35-INTEGRATION-CLEAN",
   "version": "0.15.17"
 }
