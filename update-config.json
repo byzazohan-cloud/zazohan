@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.17-work-v10",
-  "minimumVersion": "0.15.17-work-v10",
+  "latestVersion": "0.15.17-work-v12",
+  "minimumVersion": "0.15.17-work-v12",
   "force": true,
-  "message": "WORK V10 · Çalışma takviminde Mesai, Saatlik ve Ödeme göstergeleri gün kartının alt kenarından yükselen gerçek çapraz şeritlere dönüştürüldü.",
+  "message": "WORK V12 · V11 kompakt ayrıntı korunarak Mesai, Saatlik ve Ödeme göstergeleri gün kartının altından yükselen belirgin çapraz şeritlere dönüştürüldü.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V10-DIAGONAL-BOTTOM-RIBBONS",
-  "version": "0.15.17-work-v10"
+  "build": "20260927-HANE-WORK-V12-DIAGONAL-BOTTOM-RIBBONS",
+  "version": "0.15.17-work-v12"
 }
