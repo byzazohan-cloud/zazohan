@@ -4233,3 +4233,24 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .haneIdentityBody{position:relative;z-index:1;display:grid;grid-template-columns:82px minmax(0,1fr);gap:13px;align-items:center;padding:14px 13px}.haneIdentityPhoto{width:80px;height:94px;overflow:hidden;display:grid;place-items:center;border:2px solid var(--mc);border-radius:15px 15px 21px 15px;background:#070b0f;box-shadow:0 0 22px color-mix(in srgb,var(--mc) 22%,transparent);font-size:31px}.haneIdentityPhoto img{width:100%;height:100%;object-fit:cover}.haneIdentityData{min-width:0}.haneIdentityData>small{font-size:7px;font-weight:900;letter-spacing:.12em;color:#74828e}.haneIdentityData h3{margin:3px 0 1px;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.haneIdentityData>p{margin:0 0 11px;color:#8d9aa5;font-size:9px}.haneIdentityData>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}.haneIdentityData>div span{min-width:0;padding:7px 8px;border:1px solid #26333d;border-radius:9px;background:#080e13}.haneIdentityData>div small,.haneIdentityData>div b{display:block}.haneIdentityData>div small{color:#64727e;font-size:6px;font-weight:900;letter-spacing:.08em}.haneIdentityData>div b{margin-top:3px;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .haneIdentityFoot{border-top:1px solid #24313a;background:#070b0f}.haneIdentityFoot span{display:flex;align-items:center;gap:6px;color:#a7b3bd;font-size:7px;font-weight:900;letter-spacing:.08em}.haneIdentityFoot span i{width:7px;height:7px;border-radius:50%;background:var(--mc);box-shadow:0 0 9px var(--mc)}.haneIdentityFoot>b{font-size:6px;letter-spacing:.16em;color:#65727d}
 @media(max-width:390px){.haneIdentityBody{grid-template-columns:72px minmax(0,1fr);gap:10px;padding:12px}.haneIdentityPhoto{width:70px;height:82px}.haneIdentityData h3{font-size:18px}.memberProfileQuick{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* HANE WORK V26 — road fee quick entry + calendar marker. V21 lock screen untouched. */
+.personWorkCalendar .zCalDay .roadFeeMark{
+  position:absolute!important;
+  top:6px!important;
+  left:24px!important;
+  width:13px!important;
+  height:4px!important;
+  z-index:31!important;
+  display:block!important;
+  border-radius:4px!important;
+  background:linear-gradient(90deg,#2fbcae,#72f2df)!important;
+  box-shadow:0 0 7px rgba(77,214,199,.65)!important;
+  transform:skewX(-24deg)!important;
+  pointer-events:none!important;
+}
+.personWorkCalendar .premiumWorkKey .roadFee{background:#4dd6c7!important;color:#4dd6c7!important;box-shadow:0 0 7px rgba(77,214,199,.45)!important}
+.zDayRecord.roadFee{border-color:rgba(77,214,199,.28)!important;background:linear-gradient(145deg,rgba(77,214,199,.09),rgba(6,11,14,.96))!important}
+.zDayRecord.roadFee>div:first-child>b{color:#72f2df!important}
+.zDayAddGrid .roadFeeAdd{border-color:rgba(77,214,199,.42)!important;color:#72f2df!important;background:linear-gradient(155deg,rgba(77,214,199,.12),#081014)!important}
+@media(max-width:390px){.personWorkCalendar .zCalDay .roadFeeMark{top:5px!important;left:22px!important;width:11px!important;height:3px!important}}
