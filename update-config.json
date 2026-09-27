@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.32-work-v73",
-  "minimumVersion": "0.15.32-work-v73",
+  "latestVersion": "0.15.32-work-v76",
+  "minimumVersion": "0.15.32-work-v76",
   "force": true,
-  "message": "V75: TEB/SADE ekstre motoru banka bazında izole edildi. Fiziksel sayaç yalnız tam tarihli işlem satırlarını sayar; faiz oranı metinleri işlem adayı değildir. TEB için satır sonundaki gerçek TL tutarını kullanan fixed parser birincil yapıldı, tarih-segment parserı yalnız yedek kaldı. Önceki Dönemden Devir Edilen Tutar işlem sayılmaz; CEPTETEB ÖDEME gerçek ödeme olarak korunur; BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI banka harcama toplamı olarak doğrulanır. Ziraat V74 kuralları değiştirilmedi.",
+  "message": "V76: TEB 5 ekstre regresyon düzeltmesi. TEB için fiziksel tablo satırı motoru eklendi; tarih-tutar-açıklama ve tarih-açıklama-tutar PDF düzleşmeleri ayrı ayrı okunur. GENEL TOPLAM, TEB işlem tablosunun öncelikli banka harcama toplamı olarak doğrulanır; son hareket tutarının BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI alanına taşınması engellenir. V75 ile düzelmiş TEB kuralları ve Ziraat V74 3/3 doğrulama kuralları değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V75-TEB-ISOLATED-PARSER-FIX",
-  "version": "WORK-V75"
+  "build": "20260927-HANE-WORK-V76-TEB-5STATEMENT-REGRESSION-FIX",
+  "version": "WORK-V76"
 }
