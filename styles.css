@@ -3784,3 +3784,44 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
  .personWorkCalendar .eventBadge{height:16px!important;min-height:16px!important;font-size:3.4px!important;line-height:5px!important;padding-bottom:2px!important}
  .personWorkCalendar .eventBadge::before{height:15px!important}
 }
+
+/* HANE WORK V13 — Mesai + Saatlik + Ödeme: her biri ayrı ve gerçek çapraz alt şerit */
+.personWorkCalendar .zCalDay .eventDots{
+  position:absolute!important;
+  left:2px!important;right:2px!important;bottom:0!important;top:auto!important;
+  height:21px!important;
+  display:flex!important;flex-direction:row!important;align-items:flex-end!important;
+  gap:1px!important;overflow:visible!important;z-index:6!important;pointer-events:none!important;
+}
+.personWorkCalendar .eventBadge{
+  position:relative!important;
+  flex:1 1 0!important;min-width:0!important;width:auto!important;
+  height:20px!important;min-height:20px!important;
+  padding:0 0 1px!important;margin:0!important;
+  display:flex!important;align-items:flex-end!important;justify-content:center!important;
+  background:transparent!important;border:0!important;clip-path:none!important;
+  color:#fff!important;font-size:3.7px!important;line-height:5px!important;font-weight:950!important;
+  white-space:nowrap!important;overflow:visible!important;text-shadow:0 1px 2px #000!important;
+  isolation:isolate!important;
+}
+.personWorkCalendar .eventBadge::before{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;right:0!important;bottom:0!important;
+  height:20px!important;
+  z-index:-1!important;
+  /* Her kayıt kendi hücresinde alt-soldan üst-sağa çıkan saf çapraz şerit. */
+  clip-path:polygon(0 100%,0 72%,100% 0,100% 28%)!important;
+  opacity:1!important;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))!important;
+}
+.personWorkCalendar .eventBadge.overtime::before{background:linear-gradient(135deg,#c85b0b,#ffad45)!important}
+.personWorkCalendar .eventBadge.hourly::before{background:linear-gradient(135deg,#6425a9,#bd72ff)!important}
+.personWorkCalendar .eventBadge.payment::before{background:linear-gradient(135deg,#0574a8,#4dd6ff)!important}
+.personWorkCalendar .zCalDay>b{position:relative!important;z-index:12!important;color:#aab4bd!important;background:transparent!important}
+.personWorkCalendar .zCalDay .dayKind{position:relative!important;z-index:11!important}
+@media(max-width:390px){
+ .personWorkCalendar .zCalDay .eventDots{height:19px!important}
+ .personWorkCalendar .eventBadge{height:18px!important;min-height:18px!important;font-size:3.2px!important}
+ .personWorkCalendar .eventBadge::before{height:18px!important}
+}
