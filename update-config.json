@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.17-work-v23",
-  "minimumVersion": "0.15.17-work-v23",
+  "latestVersion": "0.15.18-work-v24",
+  "minimumVersion": "0.15.18-work-v24",
   "force": true,
-  "message": "WORK V23 · Ana sayfa sağ üst kimlik ikonu doğrudan admin profilini açar. Tema Stüdyosu ana menüye eklendi. V21 parola ekranı ve V22 Nakit Para yapısı korunur.",
+  "message": "WORK V24 · Hane Üyeleri sayfası ve üye profil detayları yeniden tasarlandı. Admin profili Hane Üyeleri yönetimine bağlandı. V21 parola ekranı ve V22 Nakit Para yapısı korunur.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V23-ADMIN-PROFILE-THEME-MENU",
-  "version": "0.15.17-work-v23"
+  "build": "20260927-HANE-WORK-V24-HANE-UYELERI-PROFIL-SAYFASI",
+  "version": "0.15.18-work-v24"
 }
