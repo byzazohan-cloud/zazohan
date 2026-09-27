@@ -2,8 +2,8 @@
   "latestVersion": "0.15.17",
   "minimumVersion": "0.15.17",
   "force": true,
-  "message": "FIX24 · Kartlar sekmesi 10 numaralı fütüristik premium tasarıma geçirildi; 8 kart stili ayrı gerçek görsellerle eşleştirildi.",
+  "message": "FIX26 · Kartlar sekmesi 10 numaralı fütüristik premium tasarıma geçirildi; 8 kart stili ayrı gerçek görsellerle eşleştirildi.",
   "updateUrl": "",
-  "build": "20260926-HANE-V0.15.17-FIX24-CARDS-X",
+  "build": "20260926-HANE-V0.15.17-FIX26-CARDS-X",
   "version": "0.15.17"
 }
