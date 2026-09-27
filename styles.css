@@ -3393,3 +3393,49 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
  .hplPanel{padding:18px 22px 14px!important}.hplBrand{margin-bottom:7px!important}.hplBrandLogo{width:82px!important;height:82px!important}.hplBrandText strong{font-size:25px!important}.hplBrandText span{font-size:8px!important}.hplGreeting small{font-size:9px!important}.hplGreeting b{font-size:18px!important}.hplQuote{margin:5px 0 9px!important}.hplQuote p{font-size:9px!important}.hplPortraitShell{height:clamp(190px,25svh,245px)!important;max-height:245px!important}.hplPortrait .portraitFallback{font-size:82px!important}.hplDots{margin:9px 0!important}.hplKeypad{gap:8px!important}.hplKeypad button{height:54px!important;font-size:22px!important}.hplFooter{margin-top:9px!important;padding-top:5px!important}.hplFooter span{font-size:9px!important}
 }
 @media(max-width:360px){.hplPanel{padding-left:14px!important;padding-right:14px!important}.hplPortraitShell,.hplKeypad,.hplFooter{width:92%!important}}
+
+/* FIX31 — LOCK SCREEN: exact approved artwork as visual shell; live profile + PIN hit targets layered above it. */
+.hanePremiumLock.lock{
+  min-height:100dvh!important;height:100dvh!important;width:100%!important;
+  display:grid!important;place-items:center!important;overflow:hidden!important;
+  background:#020405!important;padding:0!important;
+}
+.hanePremiumLock .hplAura{display:none!important}
+.hanePremiumLock .hplPanel{
+  position:relative!important;width:min(100vw,430px)!important;height:100dvh!important;min-height:0!important;
+  margin:0 auto!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:0!important;
+  background:#020405 url('./icons/hane-lock-reference.png') center center/100% 100% no-repeat!important;
+  box-shadow:0 0 0 1px rgba(71,191,255,.12),0 0 70px #000!important;
+  clip-path:none!important;
+}
+/* The approved artwork supplies logo, title, quote, metal frame, keypad faces and footer. */
+.hanePremiumLock .hplBrand,.hanePremiumLock .hplGreeting,.hanePremiumLock .hplQuote,.hanePremiumLock .hplFooter{display:none!important}
+/* Live user photo replaces only the portrait plate in the approved artwork. */
+.hanePremiumLock .hplPortraitShell{
+  position:absolute!important;left:30.3%!important;top:29.8%!important;width:39.5%!important;height:20.8%!important;
+  margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;
+  clip-path:polygon(8% 0,92% 0,100% 8%,100% 92%,92% 100%,8% 100%,0 92%,0 8%)!important;z-index:5!important;
+}
+.hanePremiumLock .hplPortrait{width:100%!important;height:100%!important;border:0!important;background:#151719!important;overflow:hidden!important;clip-path:inherit!important}
+.hanePremiumLock .hplPortrait img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;filter:none!important}
+.hanePremiumLock .hplPortrait .portraitFallback{width:100%!important;height:100%!important;display:grid!important;place-items:center!important;background:linear-gradient(145deg,#171a1d,#090b0d)!important;color:#f4f6f7!important;font-size:clamp(44px,13vw,78px)!important;font-weight:950!important}
+/* Functional PIN dots are layered over the four drawn dots. */
+.hanePremiumLock .hplDots{
+  position:absolute!important;left:39.7%!important;top:52.15%!important;width:20.6%!important;height:2.4%!important;
+  margin:0!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:10%!important;align-items:center!important;z-index:8!important;
+}
+.hanePremiumLock .hplDots i{width:100%!important;aspect-ratio:1!important;border-radius:50%!important;border:1px solid rgba(218,230,234,.75)!important;background:#050708!important;box-shadow:none!important}
+.hanePremiumLock .hplDots i.on{background:#19e9a0!important;border-color:#7dffe0!important;box-shadow:0 0 10px rgba(25,233,160,.8)!important}
+/* Keep the real buttons, but make their faces transparent: the exact approved keypad remains visible below. */
+.hanePremiumLock .hplKeypad{
+  position:absolute!important;left:21.7%!important;top:55.55%!important;width:56.6%!important;height:35.1%!important;
+  margin:0!important;padding:0!important;display:grid!important;grid-template-columns:repeat(3,1fr)!important;grid-template-rows:repeat(4,1fr)!important;
+  column-gap:7.2%!important;row-gap:3.7%!important;z-index:10!important;background:none!important;
+}
+.hanePremiumLock .hplKeypad button{
+  width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;
+  border:0!important;background:transparent!important;box-shadow:none!important;clip-path:none!important;border-radius:0!important;
+  color:transparent!important;font-size:0!important;outline:none!important;-webkit-tap-highlight-color:transparent!important;touch-action:manipulation!important;
+}
+.hanePremiumLock .hplKeypad button:active{background:rgba(255,255,255,.08)!important;clip-path:polygon(10% 0,90% 0,100% 14%,100% 86%,90% 100%,10% 100%,0 86%,0 14%)!important}
+@media (max-width:480px){.hanePremiumLock .hplPanel{width:100vw!important;height:100dvh!important}}
