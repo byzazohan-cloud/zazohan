@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.20-work-v60",
-  "minimumVersion": "0.15.20-work-v60",
+  "latestVersion": "0.15.22-work-v63",
+  "minimumVersion": "0.15.22-work-v63",
   "force": true,
-  "message": "Ekstre ekranı kompakt mutabakat düzenine alındı; kartlarda ortak limit görünümü eklendi; Raporlar üst sekmeleri tek segment oldu, özet sadeleştirildi, gider ve kart raporları yeniden düzenlendi.",
+  "message": "HAN 3.0: ortak limit, günlük kategori yoğunluğu, değişen kayıtların yeniden denetimi, iadeli ekstre denklemi, tam filtreler ve yeni HAN ikonu.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V61-RAPOR-ACILIS-FIX",
-  "version": "WORK-V60"
+  "build": "20260927-HANE-WORK-V63-HAN-4-0",
+  "version": "WORK-V63"
 }
