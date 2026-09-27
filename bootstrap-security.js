@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260927-HANE-V0.15.17-FIX36-LOCK-RESPONSIVE';
+  const BUILD='20260927-HANE-V0.15.17-FIX37-STATEMENT-REGRESSION';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
