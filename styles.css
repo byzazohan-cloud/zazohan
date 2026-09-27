@@ -3439,3 +3439,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 }
 .hanePremiumLock .hplKeypad button:active{background:rgba(255,255,255,.08)!important;clip-path:polygon(10% 0,90% 0,100% 14%,100% 86%,90% 100%,10% 100%,0 86%,0 14%)!important}
 @media (max-width:480px){.hanePremiumLock .hplPanel{width:100vw!important;height:100dvh!important}}
+
+/* FIX33: card stage owns horizontal gestures; vertical page scroll remains native */
+.cardsV4Stage,.financeCarousel{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.premiumHanePhysical{touch-action:pan-y}
