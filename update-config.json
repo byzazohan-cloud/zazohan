@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.24-work-v65",
-  "minimumVersion": "0.15.24-work-v65",
+  "latestVersion": "0.15.28-work-v69",
+  "minimumVersion": "0.15.28-work-v69",
   "force": true,
-  "message": "V66: Ekstre Motoru 3.1; Halkbank/Paraf bonus-puan iptalleri harcamadan ayrıldı, Ziraat hata teşhisi fiziksel aday örnekleriyle güçlendirildi ve banka doğrulama katmanı genişletildi.",
+  "message": "V69: Ziraat/Bankkart harcama mutabakatı güçlendirildi. Özet harcama alanı faiz/ücret dahil veya PDF hücre sırası bozuksa, yalnız fiziksel satırlar eksiksiz ve dönem borcu denklemi doğrulanıyorsa işlem satırı toplamıyla güvenli biçimde onarılır; gerçek eksik satırlar gizlenmez.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V66-EKSTRE-ZIRAAT-HALKBANK",
-  "version": "WORK-V66"
+  "build": "20260927-HANE-WORK-V69-ZIRAAT-HARCAMA-MUTABAKAT-FIX",
+  "version": "WORK-V69"
 }
