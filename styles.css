@@ -4739,3 +4739,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
     gap:1px!important;
   }
 }
+
+/* WORK V49 — Giderler tek tip: Sabit/Normal ayrımı kaldırıldı. */
+.expensesCenter .expenseSummary{grid-template-columns:repeat(3,1fr)!important}
+.expensesCenter .expenseSectionHead{margin-top:12px}
