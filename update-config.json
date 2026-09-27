@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.37-work-v85",
-  "minimumVersion": "0.15.37-work-v85",
+  "latestVersion": "0.15.37-work-v86",
+  "minimumVersion": "0.15.37-work-v86",
   "force": true,
-  "message": "V85: İş Bankası Maximum fiziksel aday denetimi düzeltildi. Parser satırları Devreden Bakiye -> Dönem Borcu muhasebe denklemini tam sağladığında MaxiPuan/taksit yardımcı kolonlarından doğan sahte çözümlenemeyen adaylar temizlenir. V84 TEB, V83 DenizBank ve V74 Ziraat düzeltmeleri korunur.",
+  "message": "V86: TEB ve Halkbank fiziksel aday denetimi parserın gerçek işlem tablosuyla aynı kaynağa bağlandı. TEB SADE ekstrelerinde faiz oranı/üstbilgi tarihleri; Halkbank Paraf ekstrelerinde özet/limit/son ödeme tarihleri artık sahte çözümlenemeyen işlem üretmez. V85 İş Bankası, V83 DenizBank ve V74 Ziraat düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V85-ISBANK-AUDIT-FIX",
-  "version": "WORK-V85"
+  "build": "20260928-HANE-WORK-V86-TEB-HALKBANK-PHYSICAL-AUDIT-FIX",
+  "version": "WORK-V86"
 }
