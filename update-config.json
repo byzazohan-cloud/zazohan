@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.18-work-v31",
-  "minimumVersion": "0.15.18-work-v31",
+  "latestVersion": "0.15.18-work-v24",
+  "minimumVersion": "0.15.18-work-v24",
   "force": true,
-  "message": "WORK V32 · Boş çalışma günleri artık kayıt ekranını açar; yol ücreti tek gerçek form-submit zinciriyle kaydolur ve gün ekranına geri döner; Nakit/Kredi Kartı seçimi korunur; kimlik kartının üstündeki kişi aktif/seçili HANE üyesini takip eder. V21 parola tasarımı değiştirilmedi.",
+  "message": "WORK V33 · V25 kilit tabanı üzerinden temiz düzeltme: boş çalışma gününe kayıt ekleme, bağımsız Yol Ücreti (Nakit/Kredi Kartı), takvim yol şeridi ve HANE Üyeleri ekranında seçili kişinin kimlik kartı üstte. V21 parola tasarımı korunur.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V32-WORKDAY-ROAD-IDENTITY-FIX",
-  "version": "V32"
+  "build": "20260927-HANE-WORK-V33-V25-TEMIZ-TABAN-YOL-KIMLIK",
+  "version": "0.15.17-WORK-V33"
 }

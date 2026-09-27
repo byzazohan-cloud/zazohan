@@ -4233,44 +4233,16 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .haneIdentityBody{position:relative;z-index:1;display:grid;grid-template-columns:82px minmax(0,1fr);gap:13px;align-items:center;padding:14px 13px}.haneIdentityPhoto{width:80px;height:94px;overflow:hidden;display:grid;place-items:center;border:2px solid var(--mc);border-radius:15px 15px 21px 15px;background:#070b0f;box-shadow:0 0 22px color-mix(in srgb,var(--mc) 22%,transparent);font-size:31px}.haneIdentityPhoto img{width:100%;height:100%;object-fit:cover}.haneIdentityData{min-width:0}.haneIdentityData>small{font-size:7px;font-weight:900;letter-spacing:.12em;color:#74828e}.haneIdentityData h3{margin:3px 0 1px;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.haneIdentityData>p{margin:0 0 11px;color:#8d9aa5;font-size:9px}.haneIdentityData>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}.haneIdentityData>div span{min-width:0;padding:7px 8px;border:1px solid #26333d;border-radius:9px;background:#080e13}.haneIdentityData>div small,.haneIdentityData>div b{display:block}.haneIdentityData>div small{color:#64727e;font-size:6px;font-weight:900;letter-spacing:.08em}.haneIdentityData>div b{margin-top:3px;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .haneIdentityFoot{border-top:1px solid #24313a;background:#070b0f}.haneIdentityFoot span{display:flex;align-items:center;gap:6px;color:#a7b3bd;font-size:7px;font-weight:900;letter-spacing:.08em}.haneIdentityFoot span i{width:7px;height:7px;border-radius:50%;background:var(--mc);box-shadow:0 0 9px var(--mc)}.haneIdentityFoot>b{font-size:6px;letter-spacing:.16em;color:#65727d}
 @media(max-width:390px){.haneIdentityBody{grid-template-columns:72px minmax(0,1fr);gap:10px;padding:12px}.haneIdentityPhoto{width:70px;height:82px}.haneIdentityData h3{font-size:18px}.memberProfileQuick{grid-template-columns:repeat(2,minmax(0,1fr))}}
-
-/* HANE WORK V26 — road fee quick entry + calendar marker. V21 lock screen untouched. */
-.personWorkCalendar .zCalDay .roadFeeMark{
-  position:absolute!important;
-  top:6px!important;
-  left:24px!important;
-  width:13px!important;
-  height:4px!important;
-  z-index:31!important;
-  display:block!important;
-  border-radius:4px!important;
-  background:linear-gradient(90deg,#2fbcae,#72f2df)!important;
-  box-shadow:0 0 7px rgba(77,214,199,.65)!important;
-  transform:skewX(-24deg)!important;
-  pointer-events:none!important;
-}
-.personWorkCalendar .premiumWorkKey .roadFee{background:#4dd6c7!important;color:#4dd6c7!important;box-shadow:0 0 7px rgba(77,214,199,.45)!important}
-.zDayRecord.roadFee{border-color:rgba(77,214,199,.28)!important;background:linear-gradient(145deg,rgba(77,214,199,.09),rgba(6,11,14,.96))!important}
-.zDayRecord.roadFee>div:first-child>b{color:#72f2df!important}
-.zDayAddGrid .roadFeeAdd{border-color:rgba(77,214,199,.42)!important;color:#72f2df!important;background:linear-gradient(155deg,rgba(77,214,199,.12),#081014)!important}
-@media(max-width:390px){.personWorkCalendar .zCalDay .roadFeeMark{top:5px!important;left:22px!important;width:11px!important;height:3px!important}}
-
-/* HANE WORK V27 — selected member identity + road save action. V21 lock untouched. */
-.selectedMemberIdentity{margin:0 0 14px}.selectedMemberIdentity .haneIdentityCard{margin:0}
-
-/* HANE WORK V28 — road fee submit reliability fix; V21 lock layout untouched. */
-\n\n/* HANE WORK V29 — road payment choice + selected member identity. V21 lock untouched. */
-.roadPayChoice{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:7px}
-.roadPayChoice button{min-height:66px;padding:9px 7px;border:1px solid #2a3944;border-radius:14px;background:linear-gradient(145deg,#101820,#080d12);color:#9cabb6;display:grid;grid-template-columns:26px 1fr;grid-template-rows:auto auto;align-items:center;text-align:left;column-gap:7px}
-.roadPayChoice button i{grid-row:1/3;width:26px;height:26px;display:grid;place-items:center;border-radius:8px;background:#111b22;color:#778995;font-style:normal;font-size:16px}
-.roadPayChoice button b{font-size:10px;letter-spacing:.04em}.roadPayChoice button small{font-size:7px;color:#657581}
-.roadPayChoice button.active{border-color:#44dcff;color:#e9fbff;background:linear-gradient(145deg,#0d2530,#08141a);box-shadow:0 0 0 1px #44dcff22 inset,0 0 18px #20cfff18}
-.roadPayChoice button.active i{color:#5ce8ff;background:#0b303b}
-.identityMemberPage{display:grid;gap:11px}.identityMemberTitle{display:flex;align-items:end;justify-content:space-between;padding:0 2px}.identityMemberTitle small{font-size:7px;color:#71818e;font-weight:900;letter-spacing:.12em}.identityMemberTitle b{font-size:10px;color:#dce9f1;letter-spacing:.08em}
-.identityMemberListTitle{display:flex;justify-content:space-between;align-items:center;margin-top:3px;padding:8px 2px 3px;border-top:1px solid #202b33}.identityMemberListTitle b{font-size:9px}.identityMemberListTitle span{font-size:7px;color:#71808c}
-.identityMemberList{display:grid;gap:6px}.identityMemberList>button{display:grid;grid-template-columns:42px minmax(0,1fr) 18px;gap:9px;align-items:center;min-height:54px;padding:6px 9px;border:1px solid #25333d;border-radius:12px;background:#090f14;color:#dce8ef;text-align:left}.identityMemberList>button.active{border-color:var(--mc);box-shadow:0 0 0 1px color-mix(in srgb,var(--mc) 22%,transparent) inset}.identityMemberMiniPhoto{width:40px;height:40px;border-radius:11px;overflow:hidden;display:grid;place-items:center;border:1px solid var(--mc);background:#060a0e}.identityMemberMiniPhoto img{width:100%;height:100%;object-fit:cover}.identityMemberList b,.identityMemberList small{display:block}.identityMemberList b{font-size:10px}.identityMemberList small{font-size:7px;color:#73828e;margin-top:2px}.identityMemberList i{font-style:normal;color:var(--mc);font-size:14px;text-align:center}
-.selectedIdentityLabel{display:flex;align-items:center;justify-content:space-between;margin:0 2px 7px}.selectedIdentityLabel b{font-size:8px;letter-spacing:.1em;color:#8d9ba6}.selectedIdentityLabel span{font-size:8px;color:#dce9f1}.selectedIdentitySwitch{display:flex;gap:6px;overflow-x:auto;padding:8px 1px 2px;scrollbar-width:none}.selectedIdentitySwitch::-webkit-scrollbar{display:none}.selectedIdentitySwitch button{flex:0 0 auto;display:flex;align-items:center;gap:5px;max-width:118px;padding:5px 8px 5px 5px;border:1px solid #25333d;border-radius:999px;background:#080e13;color:#9aa9b4}.selectedIdentitySwitch button.active{border-color:var(--mc);color:#eefaff}.selectedIdentitySwitch img,.selectedIdentitySwitch button>span{width:24px;height:24px;border-radius:50%;object-fit:cover;display:grid;place-items:center;background:#101820}.selectedIdentitySwitch b{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* WORK V30 — Yol ücreti ödeme seçimi: gerçek radio state, görünür Nakit/Kredi Kartı */
-.roadPayField{border:0;padding:0;margin:0}.roadPayField legend{font-size:9px;font-weight:900;letter-spacing:.08em;color:#9fb0bc;margin-bottom:7px}
-.roadPayChoice label{position:relative;min-height:66px;padding:9px 7px;border:1px solid #2a3944;border-radius:14px;background:linear-gradient(145deg,#101820,#080d12);color:#9cabb6;display:grid;grid-template-columns:26px 1fr;align-items:center;text-align:left;column-gap:7px;cursor:pointer}
-.roadPayChoice label input{position:absolute;opacity:0;pointer-events:none}.roadPayChoice label i{width:26px;height:26px;display:grid;place-items:center;border-radius:8px;background:#111b22;color:#778995;font-style:normal;font-size:16px}.roadPayChoice label span{display:grid;gap:2px}.roadPayChoice label b{font-size:10px;letter-spacing:.04em}.roadPayChoice label small{font-size:7px;color:#657581}.roadPayChoice label.active{border-color:#44dcff;color:#e9fbff;background:linear-gradient(145deg,#0d2530,#08141a);box-shadow:0 0 0 1px #44dcff22 inset,0 0 18px #20cfff18}.roadPayChoice label.active i{color:#5ce8ff;background:#0b303b}
+/* WORK V33 — V25 temiz taban: Yol Ücreti + seçili kimlik. V21 parola stillerine dokunmaz. */
+.zCalDay{position:relative}
+.zCalDay .roadDayStripe{position:absolute;top:7px;left:27px;width:13px;height:4px;border-radius:4px;background:#22d3ee;box-shadow:0 0 8px rgba(34,211,238,.75);z-index:3}
+.zCalKey .road{background:#22d3ee!important;box-shadow:0 0 8px rgba(34,211,238,.6)}
+.zDayRecord.road{border-color:rgba(34,211,238,.38)}
+.zDayRecord.road>div:first-child>b{color:#67e8f9}
+.roadPayChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.roadPayChoice label{position:relative;cursor:pointer}
+.roadPayChoice input{position:absolute;opacity:0;pointer-events:none}
+.roadPayChoice span{display:flex;align-items:center;justify-content:center;min-height:46px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.04);font-weight:900;font-size:12px;letter-spacing:.4px}
+.roadPayChoice input:checked+span{border-color:#22d3ee;background:rgba(34,211,238,.13);box-shadow:inset 0 0 0 1px rgba(34,211,238,.15),0 0 12px rgba(34,211,238,.12)}
+.selectedIdentityTop{margin:0 0 14px}
+.selectedIdentityTop .haneIdentityCard{margin:0}
