@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.17-work-v20",
-  "minimumVersion": "0.15.17-work-v20",
+  "latestVersion": "0.15.17-work-v21",
+  "minimumVersion": "0.15.17-work-v21",
   "force": true,
-  "message": "WORK V20 · Parola ekranında dengeli dikey boşluklar: ne sıkışık ne dağınık. Büyük yatay HANE logosu, profil tema stüdyosu ve çalışan sistemler korunur.",
+  "message": "WORK V21 · Parola ekranında dengeli dikey boşluklar: ne sıkışık ne dağınık. Büyük yatay HANE logosu, profil tema stüdyosu ve çalışan sistemler korunur.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V20-BALANCED-LOCK",
-  "version": "0.15.17-work-v20"
+  "build": "20260927-HANE-WORK-V21-BALANCED-LOCK",
+  "version": "0.15.17-work-v21"
 }

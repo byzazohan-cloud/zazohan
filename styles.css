@@ -4131,3 +4131,80 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
   .hanePremiumLock .hplPanel{row-gap:11px!important;padding-top:max(16px,env(safe-area-inset-top))!important}
   .hanePremiumLock .hplFooter{padding-top:3px!important}
 }
+
+/* HANE WORK V21 — approved lock layout.
+   Order: brand > daily motivation > portrait > welcome/name > PIN > larger keypad > micro footer. */
+.hanePremiumLock.haneLockV21 .hplPanel{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:auto auto auto auto auto auto auto!important;
+  align-content:start!important;
+  justify-items:center!important;
+  row-gap:clamp(7px,1.05dvh,11px)!important;
+  padding-top:max(10px,env(safe-area-inset-top))!important;
+  padding-bottom:max(9px,env(safe-area-inset-bottom))!important;
+}
+.haneLockV21 .hplBrand.hplBrandUnified{grid-row:1!important;margin:0!important;width:100%!important}
+.haneLockV21 .hplUnifiedBrandLogo{width:min(91vw,385px)!important;max-height:112px!important;object-fit:contain!important;margin:0!important}
+.haneLockV21 .hplQuote{display:none!important}
+.haneLockV21 .hplDailyQuote{
+  grid-row:2!important;width:min(88vw,350px)!important;min-height:50px!important;
+  display:grid!important;grid-template-columns:38px minmax(0,1fr)!important;align-items:center!important;gap:8px!important;
+  padding:6px 12px 6px 7px!important;box-sizing:border-box!important;
+  clip-path:polygon(11px 0,calc(100% - 11px) 0,100% 11px,100% calc(100% - 11px),calc(100% - 11px) 100%,11px 100%,0 calc(100% - 11px),0 11px)!important;
+  background:linear-gradient(145deg,#39434a 0,#11171b 7%,#080c0f 54%,#151b1f 93%,#3d474e 100%)!important;
+  box-shadow:inset 0 0 0 1px rgba(178,201,214,.32),inset 2px 0 #20dfa0,inset -2px 0 #ff4658,0 7px 16px rgba(0,0,0,.35)!important;
+  color:#f2f6f7!important;
+}
+.haneLockV21 .hplQuoteMark{
+  width:34px!important;height:34px!important;display:grid!important;place-items:center!important;
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)!important;
+  background:#0b1114!important;box-shadow:inset 0 0 0 1px #354149!important;
+  color:#20dfa0!important;font-size:25px!important;font-weight:900!important;line-height:1!important;
+}
+.haneLockV21 .hplDailyQuote p{margin:0!important;font-size:clamp(9px,2.6vw,11px)!important;line-height:1.25!important;letter-spacing:.025em!important;font-weight:800!important;text-align:left!important;text-transform:none!important}
+.haneLockV21 .hplPortraitShell{grid-row:3!important;width:min(61vw,248px)!important;aspect-ratio:1.16/1!important;margin:0!important}
+.haneLockV21 .hplGreeting{grid-row:4!important;margin:0!important}
+.haneLockV21 .hplGreeting small{font-size:clamp(8px,2.3vw,10px)!important;letter-spacing:.22em!important;line-height:1!important}
+.haneLockV21 .hplGreeting b{font-size:clamp(19px,5.4vw,24px)!important;margin-top:4px!important;line-height:1!important}
+.haneLockV21 .hplDots{grid-row:5!important;margin:1px 0 2px!important;width:112px!important;gap:14px!important}
+.haneLockV21 .hplDots i{width:12px!important;height:12px!important}
+.haneLockV21 .hplKeypad{
+  grid-row:6!important;width:min(88vw,350px)!important;margin:0!important;
+  grid-template-columns:repeat(3,1fr)!important;grid-template-rows:repeat(4,clamp(58px,7dvh,68px))!important;
+  gap:9px!important;
+}
+.haneLockV21 .hplKeypad button{font-size:clamp(23px,6vw,29px)!important;clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px)!important}
+.haneLockV21 .hplFooter{
+  grid-row:7!important;width:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:7px!important;margin:1px 0 0!important;padding:0!important;
+}
+.haneLockV21 .hplFooter i{display:none!important}
+.haneLockV21 .hplFooter span{
+  flex:0 0 auto!important;width:auto!important;min-width:0!important;height:19px!important;line-height:19px!important;
+  padding:0 8px!important;margin:0!important;font-size:7px!important;letter-spacing:.12em!important;font-weight:900!important;
+  border:1px solid #303a40!important;background:#090d10!important;
+  clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)!important;
+}
+.haneLockV21 .hplFooter span:first-child{color:#22dfa0!important;border-left-color:#22dfa0!important}
+.haneLockV21 .hplFooter span:nth-child(2){color:#8d9ba4!important}
+.haneLockV21 .hplFooter span:last-child{color:#ff5061!important;border-right-color:#ff5061!important}
+@media(max-height:760px){
+  .hanePremiumLock.haneLockV21 .hplPanel{row-gap:4px!important;padding-top:4px!important;padding-bottom:4px!important}
+  .haneLockV21 .hplUnifiedBrandLogo{width:min(78vw,315px)!important;max-height:80px!important}
+  .haneLockV21 .hplDailyQuote{width:min(76vw,300px)!important;min-height:38px!important;padding:4px 9px 4px 5px!important;grid-template-columns:29px minmax(0,1fr)!important;gap:6px!important}
+  .haneLockV21 .hplQuoteMark{width:27px!important;height:27px!important;font-size:19px!important}
+  .haneLockV21 .hplDailyQuote p{font-size:7.5px!important;line-height:1.15!important}
+  .haneLockV21 .hplPortraitShell{width:min(49vw,194px)!important}
+  .haneLockV21 .hplGreeting small{font-size:7px!important}.haneLockV21 .hplGreeting b{font-size:15px!important;margin-top:2px!important}
+  .haneLockV21 .hplDots{margin:0!important}.haneLockV21 .hplDots i{width:9px!important;height:9px!important}
+  .haneLockV21 .hplKeypad{width:min(78vw,310px)!important;grid-template-rows:repeat(4,44px)!important;gap:6px!important}
+  .haneLockV21 .hplKeypad button{font-size:18px!important}
+  .haneLockV21 .hplFooter{gap:5px!important;margin-top:0!important}
+  .haneLockV21 .hplFooter span{height:15px!important;line-height:15px!important;padding:0 6px!important;font-size:5.8px!important}
+}
+@media(min-height:900px){
+  .hanePremiumLock.haneLockV21 .hplPanel{row-gap:10px!important;padding-top:max(14px,env(safe-area-inset-top))!important}
+  .haneLockV21 .hplPortraitShell{width:min(63vw,258px)!important}
+  .haneLockV21 .hplKeypad{grid-template-rows:repeat(4,68px)!important}
+}

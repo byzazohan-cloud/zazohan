@@ -2891,12 +2891,49 @@ async function changePin(){
 }
 function schedule(){clearTimeout(timer);if(state)timer=setTimeout(lock,Math.max(1,+state.settings.lockMinutes||15)*60000)}function lock(){state=null;key=null;pin='';renderLock()}
 function renderSetup(){$('#app').innerHTML=`<div class="setup premiumSetup"><div class="setupOfficialLogo">${haneFullLogo("setupBrandLogo")}</div><p class="setupBrandLine">HAYATINA DENGE KAT</p><form class="form" id="setupForm" style="width:100%"><button type="button" class="btn" id="photoBtn">PROFİL RESMİNİ DEĞİŞTİR</button>${input('name','İsim','')}${input('pin','4 Haneli PIN','','password','inputmode="numeric" maxlength="4"')}${input('pin2','PIN Tekrar','','password','inputmode="numeric" maxlength="4"')}<button class="btn gold">HANE’Yİ KUR</button></form><div class="notice" style="margin-top:12px;width:100%">İlk kurulumda tüm tutarlar ₺0 başlar.</div></div>`;$('#photoBtn').onclick=()=>$('#profileInput').click();$('#setupForm').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());if(!/^\d{4}$/.test(d.pin)||d.pin!==d.pin2){alert('PIN 4 haneli ve aynı olmalı');return}const st=def();st.profile.name=upper(d.name||'HANE');st.profile.photo=setupPhoto;await setup(d.pin,st);render();schedule()}}
+function dailyLockQuote(){
+  const quotes=[
+    'Küçük adımlar, büyük değişimler başlatır.',
+    'Bugünün disiplini, yarının özgürlüğüdür.',
+    'İstikrar, motivasyonun yetişemediği yerde devam eder.',
+    'Planını sade tut, ilerlemeni görünür kıl.',
+    'Her gün biraz daha iyi, uzun vadede çok daha güçlü.',
+    'Kontrol edebildiğine odaklan, gerisini bırak.',
+    'Bir hedefi büyüten şey, her gün atılan küçük adımdır.',
+    'Başlamak cesaret, sürdürmek disiplindir.',
+    'Bugün yaptığın seçimler yarının düzenini kurar.',
+    'Az ama sürekli ilerlemek, hızlı başlayıp durmaktan iyidir.',
+    'Net hedef, sakin zihin, düzenli adım.',
+    'Kendinle yarış; dünkü halinden bir adım öne geç.',
+    'Düzen kurulduğunda karar vermek kolaylaşır.',
+    'Büyük sonuçlar, tekrar edilen küçük doğrulardan doğar.',
+    'Zamanını yöneten, yönünü de yönetir.',
+    'Bugünün emeği yarının rahatlığıdır.',
+    'Kararlılık, zor günlerde de plana sadık kalmaktır.',
+    'İlerlemenin sırrı kusursuzluk değil, devamlılıktır.',
+    'Hedefini hatırla, adımını bugün at.',
+    'Bir gün değil, her gün.',
+    'Sabırla kurulan düzen kalıcı olur.',
+    'Küçük kazanımları biriktir, büyük farkı zaman oluştursun.',
+    'Enerjini dağıtma; önemli olana yönelt.',
+    'Planla, takip et, geliştir.',
+    'Daha iyi bir yarın, düzenli bir bugünle başlar.',
+    'İyi alışkanlıklar sessizce büyük sonuçlar üretir.',
+    'Bugün tamamladığın iş, yarının yükünü azaltır.',
+    'Hızdan önce yönünü doğru seç.',
+    'Her tekrar seni hedefe biraz daha yaklaştırır.',
+    'Kendine verdiğin sözü tut.',
+    'İlerlemeni ölç; emeğini küçümseme.'
+  ];
+  const d=new Date(),stamp=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()),day=Math.floor(stamp/86400000);
+  return quotes[((day%quotes.length)+quotes.length)%quotes.length];
+}
 function renderLock(){
   if(!meta()){renderSetup();return}
   pin='';
   const preview=state?.profile||getLockPreview()||{},photo=(preview.photo||''),initial=esc(((preview.name||'H')+'').trim()[0]||'H');
-  const motto=esc(preview.motto||'Disiplin bugün, özgürlük yarın.');
-  $('#app').innerHTML=`<div class="lock hanePremiumLock"><div class="hplAura hplAuraLeft"></div><div class="hplAura hplAuraRight"></div><main class="hplPanel"><div class="hplBrand hplBrandUnified"><img class="hplUnifiedBrandLogo" src="icons/hane-brand-lock-horizontal.jpg?v=lock-v19" alt="HANE · HAYATINA DENGE KAT"></div><div class="hplGreeting"><small>HOŞ GELDİN</small><b>${esc(preview.name||'PROFİL ADI')}</b></div><div class="hplQuote"><i></i><p>“${motto}”</p><i></i></div><div class="hplPortraitShell"><div class="hplPortrait">${photo?`<img src="${photo}" alt="Profil" data-lock-profile-image>`:`<div class="portraitFallback">${initial}</div>`}</div></div><div class="pinDots hplDots">${[0,1,2,3].map(i=>`<i data-dot="${i}"></i>`).join('')}</div><div class="keypad hplKeypad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-key="${n}">${n}</button>`).join('')}<button type="button" class="backKey" data-key="del">←</button><button type="button" data-key="0">0</button><button type="button" class="del" data-key="del">⌫</button></div><div class="hplFooter"><span>PLANLA</span><i></i><span>TAKİP ET</span><i></i><span>GELİŞ</span></div></main></div>`;
+  const dailyQuote=esc(dailyLockQuote());
+  $('#app').innerHTML=`<div class="lock hanePremiumLock haneLockV21"><div class="hplAura hplAuraLeft"></div><div class="hplAura hplAuraRight"></div><main class="hplPanel"><div class="hplBrand hplBrandUnified"><img class="hplUnifiedBrandLogo" src="icons/hane-brand-lock-horizontal.jpg?v=lock-v21" alt="HANE · HAYATINA DENGE KAT"></div><div class="hplDailyQuote"><span class="hplQuoteMark">“</span><p>${dailyQuote}</p></div><div class="hplPortraitShell"><div class="hplPortrait">${photo?`<img src="${photo}" alt="Profil" data-lock-profile-image>`:`<div class="portraitFallback">${initial}</div>`}</div></div><div class="hplGreeting"><small>HOŞ GELDİN</small><b>${esc(preview.name||'PROFİL ADI')}</b></div><div class="pinDots hplDots">${[0,1,2,3].map(i=>`<i data-dot="${i}"></i>`).join('')}</div><div class="keypad hplKeypad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-key="${n}">${n}</button>`).join('')}<button type="button" class="backKey" data-key="del">←</button><button type="button" data-key="0">0</button><button type="button" class="del" data-key="del">⌫</button></div><div class="hplFooter"><span>PLANLA</span><span>TAKİP ET</span><span>GELİŞ</span></div></main></div>`;
   const lockImg=$('[data-lock-profile-image]');
   if(lockImg)lockImg.addEventListener('error',()=>{lockImg.remove();const p=document.querySelector('.hplPortrait');if(p)p.innerHTML=`<div class="portraitFallback">${initial}</div>`});
   $$('[data-key]').forEach(b=>b.onclick=()=>{pinKey(b.dataset.key)});
