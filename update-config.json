@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.17",
-  "minimumVersion": "0.15.17",
+  "latestVersion": "0.15.18",
+  "minimumVersion": "0.15.18",
   "force": true,
-  "message": "FIX33 · Sürüm/cache kimlikleri tekleştirildi; kart tıklama ve kaydırma olayları tek pointer sistemine alındı.",
+  "message": "FIX34 · Sade premium parola ekranı uygulandı; FIX33 kart etkileşim düzeltmeleri korundu.",
   "updateUrl": "",
-  "build": "20260927-HANE-V0.15.17-FIX33-INTEGRATION-CLEAN",
-  "version": "0.15.17"
+  "build": "20260927-HANE-V0.15.18-FIX34-CLEAN-LOCK",
+  "version": "0.15.18"
 }
