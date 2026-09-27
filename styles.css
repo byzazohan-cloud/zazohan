@@ -3344,25 +3344,124 @@ body{background:radial-gradient(circle at 50% -12%,rgba(33,118,154,.12),transpar
 .cardsXActions button{pointer-events:auto!important;cursor:pointer!important;position:relative!important;z-index:5!important}
 .cardsV4Nav{pointer-events:auto!important}.cardsV4Nav button{pointer-events:auto!important;cursor:pointer!important}
 
+/* FIX26 — kilit ekranı: seçilen HANE gunmetal / H-N geometrisi */
+.hanePremiumLock{max-width:430px!important;padding:calc(var(--safeT) + 10px) 10px calc(var(--safeB) + 10px)!important;background:radial-gradient(circle at 0 32%,rgba(0,255,154,.09),transparent 30%),radial-gradient(circle at 100% 32%,rgba(255,40,57,.10),transparent 30%),linear-gradient(180deg,#050708,#000)!important}
+.hplPanel{min-height:calc(100svh - var(--safeT) - var(--safeB) - 20px);box-sizing:border-box;justify-content:center;padding:14px 18px 16px!important;border-radius:0!important;border:1px solid rgba(110,125,134,.20)!important;background:linear-gradient(160deg,rgba(12,15,17,.98),rgba(1,2,3,.99))!important;clip-path:polygon(26px 0,calc(100% - 26px) 0,100% 26px,100% calc(100% - 26px),calc(100% - 26px) 100%,26px 100%,0 calc(100% - 26px),0 26px)!important}
+.hplPanel:before,.hplPanel:after{height:3px!important;width:42%!important}.hplBrand{margin-bottom:10px!important}.hplBrandLogo{width:72px!important;height:72px!important;border-radius:18px!important}.hplBrandText strong{font-size:25px!important}.hplGreeting{order:2;margin:2px 0 0!important}.hplGreeting small{font-size:10px!important}.hplGreeting b{font-size:20px!important;margin-top:3px!important}.hplQuote{order:3;margin:8px 0 12px!important}.hplQuote p{font-size:11px!important;letter-spacing:.06em!important}.hplPortraitShell{order:4;width:min(88%,310px)!important;height:210px!important;border-radius:0!important;padding:3px!important;background:linear-gradient(135deg,#20e39b 0 12%,#30383e 12% 48%,#151a1d 48% 72%,#ff4354 72% 100%)!important;clip-path:polygon(18px 0,calc(100% - 18px) 0,100% 18px,100% calc(100% - 18px),calc(100% - 18px) 100%,18px 100%,0 calc(100% - 18px),0 18px)!important}.hplPortraitShell:before{display:none!important}.hplPortrait{border-radius:0!important;border:4px solid #06090b!important;clip-path:inherit!important}.hplPortrait .portraitFallback{font-size:78px!important}.hplDots{order:5;margin:12px 0 11px!important}.hplDots i{width:11px!important;height:11px!important;background:#06090b!important}.hplDots i.on{background:#25e1a0!important;border-color:#7fffd1!important;box-shadow:0 0 13px rgba(37,225,160,.65)!important}.hplKeypad{order:6;width:min(100%,286px)!important;gap:8px!important}.hplKeypad button{width:auto!important;height:54px!important;border-radius:0!important;clip-path:polygon(14px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 14px),calc(100% - 14px) 100%,7px 100%,0 calc(100% - 7px),0 14px)!important;background:linear-gradient(145deg,#14191c 0%,#050708 52%,#111518 100%)!important;border:1px solid rgba(122,135,143,.42)!important;box-shadow:inset 3px 0 0 rgba(31,218,143,.12),inset -3px 0 0 rgba(255,67,84,.10),0 6px 14px rgba(0,0,0,.45)!important}.hplKeypad button:nth-child(3n+1){border-left-color:rgba(31,218,143,.68)!important}.hplKeypad button:nth-child(3n){border-right-color:rgba(255,67,84,.68)!important}.hplKeypad .backKey{color:#22dc92!important;font-size:23px!important}.hplKeypad .del{color:#ff4657!important}.hplFooter{order:7;margin-top:13px!important}.hplFooter span:first-child{color:#2bd48e!important}.hplFooter span:last-child{color:#ff616d!important}
+@media(max-height:760px){.hplBrandLogo{width:54px!important;height:54px!important}.hplBrandText strong{font-size:20px!important}.hplPortraitShell{width:min(82%,260px)!important;height:150px!important}.hplPortrait .portraitFallback{font-size:58px!important}.hplGreeting b{font-size:16px!important}.hplQuote{margin:5px 0 8px!important}.hplKeypad{width:min(100%,245px)!important;gap:6px!important}.hplKeypad button{height:40px!important}.hplDots{margin:8px 0!important}.hplFooter{margin-top:8px!important}}
+
+/* FIX27 — PASSWORD SCREEN REBUILT, reference HANE H/N metal geometry */
+.hanePremiumLock{min-height:100svh!important;max-width:430px!important;margin:auto!important;padding:0!important;background:#020304!important;overflow:hidden!important}
+.hplAura{display:none!important}
+.hplPanel{position:relative!important;min-height:100svh!important;width:100%!important;box-sizing:border-box!important;justify-content:flex-start!important;padding:clamp(22px,5svh,48px) 24px 20px!important;border:0!important;border-radius:0!important;background:
+linear-gradient(125deg,transparent 0 10%,rgba(34,220,146,.14) 10.2% 10.8%,transparent 11% 100%),
+linear-gradient(235deg,transparent 0 10%,rgba(255,70,87,.15) 10.2% 10.8%,transparent 11% 100%),
+radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear-gradient(180deg,#070a0c 0%,#020304 60%,#000 100%)!important;clip-path:none!important;box-shadow:none!important}
+.hplPanel:before,.hplPanel:after{content:""!important;position:absolute!important;top:0!important;bottom:0!important;width:86px!important;height:auto!important;pointer-events:none!important;opacity:.85!important}
+.hplPanel:before{left:0!important;background:linear-gradient(145deg,transparent 0 12%,#20272b 12.5% 18%,transparent 18.5% 30%,rgba(27,219,144,.55) 30.5% 31.2%,transparent 31.7% 62%,#14191c 62.5% 69%,transparent 69.5%)!important;clip-path:polygon(0 0,100% 0,56% 12%,95% 22%,48% 35%,92% 49%,52% 64%,100% 78%,58% 89%,85% 100%,0 100%)!important}
+.hplPanel:after{right:0!important;background:linear-gradient(215deg,transparent 0 12%,#20272b 12.5% 18%,transparent 18.5% 30%,rgba(255,65,82,.58) 30.5% 31.2%,transparent 31.7% 62%,#14191c 62.5% 69%,transparent 69.5%)!important;clip-path:polygon(100% 0,0 0,44% 12%,5% 22%,52% 35%,8% 49%,48% 64%,0 78%,42% 89%,15% 100%,100% 100%)!important}
+.hplBrand{position:relative!important;z-index:2!important;display:flex!important;flex-direction:column!important;gap:4px!important;margin:0 0 14px!important}
+.hplBrandLogo{width:112px!important;height:112px!important;border-radius:24px!important;filter:drop-shadow(-7px 7px 16px rgba(26,222,143,.12)) drop-shadow(7px 7px 16px rgba(255,63,79,.12))!important}
+.hplBrandText{align-items:center!important}.hplBrandText strong{font-size:32px!important;letter-spacing:.18em!important}.hplBrandText span{font-size:10px!important;letter-spacing:.17em!important}
+.hplGreeting{position:relative!important;z-index:2!important;order:2!important;margin:0!important}.hplGreeting small{font-size:11px!important;letter-spacing:.22em!important}.hplGreeting b{font-size:22px!important;letter-spacing:.08em!important;margin-top:2px!important}
+.hplQuote{position:relative!important;z-index:2!important;order:3!important;width:min(92%,330px)!important;margin:7px 0 14px!important}.hplQuote p{font-size:11px!important;font-weight:800!important;letter-spacing:.055em!important}.hplQuote i{height:1px!important;background:linear-gradient(90deg,transparent,#4d5b62)!important}.hplQuote i:last-child{background:linear-gradient(90deg,#4d5b62,transparent)!important}
+.hplPortraitShell{position:relative!important;z-index:2!important;order:4!important;width:min(88vw,330px)!important;height:clamp(205px,28svh,285px)!important;max-height:285px!important;padding:3px!important;border-radius:0!important;background:linear-gradient(135deg,#23e49a 0 8%,#343d42 8.3% 49%,#1a2024 49.3% 72%,#ff4053 72.3% 100%)!important;clip-path:polygon(20px 0,calc(100% - 20px) 0,100% 20px,100% calc(100% - 20px),calc(100% - 20px) 100%,20px 100%,0 calc(100% - 20px),0 20px)!important;box-shadow:-10px 8px 25px rgba(25,221,142,.09),10px 8px 25px rgba(255,64,83,.09)!important}
+.hplPortraitShell:before{display:none!important}.hplPortrait{border:4px solid #06090b!important;border-radius:0!important;clip-path:inherit!important;background:radial-gradient(circle at 50% 30%,#20262a,#0d1114 54%,#050607 100%)!important}.hplPortrait .portraitFallback{font-size:92px!important}.hplPortrait img{object-fit:cover!important}
+.hplDots{position:relative!important;z-index:2!important;order:5!important;margin:12px 0 12px!important;gap:13px!important}.hplDots i{width:11px!important;height:11px!important;border:1px solid #75838b!important;background:#030506!important}.hplDots i.on{background:#24dfa0!important;border-color:#a3ffe0!important;box-shadow:0 0 14px rgba(36,223,160,.75)!important}
+.hplKeypad{position:relative!important;z-index:2!important;order:6!important;width:min(88vw,330px)!important;gap:9px!important}.hplKeypad button{height:58px!important;border:1px solid rgba(129,143,151,.38)!important;border-radius:0!important;clip-path:polygon(14px 0,58% 0,66% 9px,calc(100% - 8px) 9px,100% 17px,100% calc(100% - 14px),calc(100% - 14px) 100%,42% 100%,34% calc(100% - 9px),8px calc(100% - 9px),0 calc(100% - 17px),0 14px)!important;background:linear-gradient(145deg,#151a1d,#050708 55%,#101416)!important;font-size:22px!important;font-weight:900!important;box-shadow:inset 2px 0 0 rgba(37,224,151,.16),inset -2px 0 0 rgba(255,64,83,.14),0 7px 15px rgba(0,0,0,.45)!important}
+.hplKeypad button:before{content:"";position:absolute;inset:7px;pointer-events:none;background:linear-gradient(135deg,transparent 0 44%,rgba(52,61,66,.42) 44.5% 51%,transparent 51.5% 100%);clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+.hplKeypad button:nth-child(3n+1){border-left-color:#1bdc91!important}.hplKeypad button:nth-child(3n){border-right-color:#ff4053!important}.hplKeypad .backKey{color:#25e29a!important;font-size:25px!important}.hplKeypad .del{color:#ff4557!important;font-size:22px!important}
+.hplFooter{position:relative!important;z-index:2!important;order:7!important;margin-top:auto!important;padding-top:14px!important;width:min(88vw,330px)!important}.hplFooter span{font-size:10px!important;letter-spacing:.13em!important}.hplFooter span:first-child{color:#2be09b!important}.hplFooter span:last-child{color:#ff5867!important}
+@media(max-height:820px){.hplPanel{padding-top:16px!important}.hplBrandLogo{width:76px!important;height:76px!important}.hplBrandText strong{font-size:23px!important}.hplBrandText span{font-size:8px!important}.hplGreeting small{font-size:9px!important}.hplGreeting b{font-size:17px!important}.hplQuote{margin:4px 0 8px!important}.hplQuote p{font-size:9px!important}.hplPortraitShell{height:165px!important;width:min(80vw,280px)!important}.hplPortrait .portraitFallback{font-size:62px!important}.hplDots{margin:8px 0!important}.hplKeypad{width:min(78vw,275px)!important;gap:6px!important}.hplKeypad button{height:43px!important;font-size:17px!important}.hplFooter{padding-top:8px!important;width:min(78vw,275px)!important}}
+
+/* FIX29 — PASSWORD VIEWPORT PROPORTIONS: no miniature keypad on short desktop previews */
+.hanePremiumLock{height:100svh!important;min-height:100svh!important;overflow:hidden!important}
+.hplPanel{height:100svh!important;min-height:0!important;padding:10px 20px 9px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important}
+.hplBrand{margin:0 0 3px!important;gap:1px!important;flex:0 0 auto!important}
+.hplBrandLogo{width:64px!important;height:64px!important;border-radius:15px!important}
+.hplBrandText strong{font-size:21px!important}.hplBrandText span{font-size:7px!important}
+.hplGreeting{margin:0!important;flex:0 0 auto!important}.hplGreeting small{font-size:8px!important}.hplGreeting b{font-size:15px!important;margin-top:0!important}
+.hplQuote{margin:3px 0 6px!important;width:min(92%,340px)!important;flex:0 0 auto!important}.hplQuote p{font-size:8px!important;line-height:1.15!important}
+.hplPortraitShell{width:min(86%,340px)!important;height:clamp(145px,24svh,205px)!important;min-height:145px!important;flex:1 1 190px!important;max-height:205px!important}
+.hplPortrait .portraitFallback{font-size:70px!important}
+.hplDots{margin:6px 0 7px!important;gap:14px!important;flex:0 0 auto!important}
+.hplDots i{width:10px!important;height:10px!important}
+.hplKeypad{width:min(86%,340px)!important;gap:7px!important;flex:0 0 auto!important}
+.hplKeypad button{height:48px!important;font-size:20px!important}
+.hplFooter{width:min(86%,340px)!important;margin-top:6px!important;padding-top:3px!important;flex:0 0 auto!important}.hplFooter span{font-size:8px!important}
+@media(min-height:760px){
+ .hplPanel{padding:18px 22px 14px!important}.hplBrand{margin-bottom:7px!important}.hplBrandLogo{width:82px!important;height:82px!important}.hplBrandText strong{font-size:25px!important}.hplBrandText span{font-size:8px!important}.hplGreeting small{font-size:9px!important}.hplGreeting b{font-size:18px!important}.hplQuote{margin:5px 0 9px!important}.hplQuote p{font-size:9px!important}.hplPortraitShell{height:clamp(190px,25svh,245px)!important;max-height:245px!important}.hplPortrait .portraitFallback{font-size:82px!important}.hplDots{margin:9px 0!important}.hplKeypad{gap:8px!important}.hplKeypad button{height:54px!important;font-size:22px!important}.hplFooter{margin-top:9px!important;padding-top:5px!important}.hplFooter span{font-size:9px!important}
+}
+@media(max-width:360px){.hplPanel{padding-left:14px!important;padding-right:14px!important}.hplPortraitShell,.hplKeypad,.hplFooter{width:92%!important}}
+
+/* FIX31 — LOCK SCREEN: exact approved artwork as visual shell; live profile + PIN hit targets layered above it. */
+.hanePremiumLock.lock{
+  min-height:100dvh!important;height:100dvh!important;width:100%!important;
+  display:grid!important;place-items:center!important;overflow:hidden!important;
+  background:#020405!important;padding:0!important;
+}
+.hanePremiumLock .hplAura{display:none!important}
+.hanePremiumLock .hplPanel{
+  position:relative!important;width:min(100vw,430px)!important;height:100dvh!important;min-height:0!important;
+  margin:0 auto!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:0!important;
+  background:#020405 url('./icons/hane-lock-reference.png') center center/100% 100% no-repeat!important;
+  box-shadow:0 0 0 1px rgba(71,191,255,.12),0 0 70px #000!important;
+  clip-path:none!important;
+}
+/* The approved artwork supplies logo, title, quote, metal frame, keypad faces and footer. */
+.hanePremiumLock .hplBrand,.hanePremiumLock .hplGreeting,.hanePremiumLock .hplQuote,.hanePremiumLock .hplFooter{display:none!important}
+/* Live user photo replaces only the portrait plate in the approved artwork. */
+.hanePremiumLock .hplPortraitShell{
+  position:absolute!important;left:30.3%!important;top:29.8%!important;width:39.5%!important;height:20.8%!important;
+  margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;
+  clip-path:polygon(8% 0,92% 0,100% 8%,100% 92%,92% 100%,8% 100%,0 92%,0 8%)!important;z-index:5!important;
+}
+.hanePremiumLock .hplPortrait{width:100%!important;height:100%!important;border:0!important;background:#151719!important;overflow:hidden!important;clip-path:inherit!important}
+.hanePremiumLock .hplPortrait img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;filter:none!important}
+.hanePremiumLock .hplPortrait .portraitFallback{width:100%!important;height:100%!important;display:grid!important;place-items:center!important;background:linear-gradient(145deg,#171a1d,#090b0d)!important;color:#f4f6f7!important;font-size:clamp(44px,13vw,78px)!important;font-weight:950!important}
+/* Functional PIN dots are layered over the four drawn dots. */
+.hanePremiumLock .hplDots{
+  position:absolute!important;left:39.7%!important;top:52.15%!important;width:20.6%!important;height:2.4%!important;
+  margin:0!important;display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:10%!important;align-items:center!important;z-index:8!important;
+}
+.hanePremiumLock .hplDots i{width:100%!important;aspect-ratio:1!important;border-radius:50%!important;border:1px solid rgba(218,230,234,.75)!important;background:#050708!important;box-shadow:none!important}
+.hanePremiumLock .hplDots i.on{background:#19e9a0!important;border-color:#7dffe0!important;box-shadow:0 0 10px rgba(25,233,160,.8)!important}
+/* Keep the real buttons, but make their faces transparent: the exact approved keypad remains visible below. */
+.hanePremiumLock .hplKeypad{
+  position:absolute!important;left:21.7%!important;top:55.55%!important;width:56.6%!important;height:35.1%!important;
+  margin:0!important;padding:0!important;display:grid!important;grid-template-columns:repeat(3,1fr)!important;grid-template-rows:repeat(4,1fr)!important;
+  column-gap:7.2%!important;row-gap:3.7%!important;z-index:10!important;background:none!important;
+}
+.hanePremiumLock .hplKeypad button{
+  width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;
+  border:0!important;background:transparent!important;box-shadow:none!important;clip-path:none!important;border-radius:0!important;
+  color:transparent!important;font-size:0!important;outline:none!important;-webkit-tap-highlight-color:transparent!important;touch-action:manipulation!important;
+}
+.hanePremiumLock .hplKeypad button:active{background:rgba(255,255,255,.08)!important;clip-path:polygon(10% 0,90% 0,100% 14%,100% 86%,90% 100%,10% 100%,0 86%,0 14%)!important}
+@media (max-width:480px){.hanePremiumLock .hplPanel{width:100vw!important;height:100dvh!important}}
+
 /* FIX33: card stage owns horizontal gestures; vertical page scroll remains native */
 .cardsV4Stage,.financeCarousel{touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .premiumHanePhysical{touch-action:pan-y}
 
-/* HANE FIX37 — isolated lock screen. No legacy lock rule below this point. */
-#app:has(> .hanePremiumLock){width:100%;min-height:100dvh;background:#020405;overflow:hidden}
-.hanePremiumLock,.hanePremiumLock *{box-sizing:border-box!important}
-.hanePremiumLock.lock{position:relative!important;width:100%!important;max-width:430px!important;height:100dvh!important;min-height:100dvh!important;margin:0 auto!important;padding:0!important;overflow:hidden!important;background:#020405!important;color:#f4f7f8!important;font-family:var(--hane-font,Arial,sans-serif)!important;display:block!important}
-.hanePremiumLock .hplAura{display:none!important}
-.hanePremiumLock .hplPanel{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;padding:max(12px,var(--safeT,0px)) 22px max(10px,var(--safeB,0px))!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:0!important;overflow:hidden!important;background:linear-gradient(180deg,#080c0f 0%,#030506 52%,#010203 100%)!important;border:0!important;clip-path:none!important;transform:none!important}
-.hanePremiumLock .hplPanel:before,.hanePremiumLock .hplPanel:after{content:""!important;position:absolute!important;top:8%!important;bottom:5%!important;width:2px!important;pointer-events:none!important;opacity:.7!important}
-.hanePremiumLock .hplPanel:before{left:14px!important;background:linear-gradient(transparent,#17d99a 18%,#17d99a 82%,transparent)!important}.hanePremiumLock .hplPanel:after{right:14px!important;background:linear-gradient(transparent,#ff4052 18%,#ff4052 82%,transparent)!important}
-.hanePremiumLock .hplBrand,.hanePremiumLock .hplGreeting,.hanePremiumLock .hplQuote,.hanePremiumLock .hplPortraitShell,.hanePremiumLock .hplDots,.hanePremiumLock .hplKeypad,.hanePremiumLock .hplFooter{position:relative!important;inset:auto!important;z-index:2!important;transform:none!important;order:initial!important;flex:none!important}
-.hanePremiumLock .hplBrand{height:58px!important;margin:0 0 5px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:9px!important}.hanePremiumLock .hplBrandLogo{display:block!important;width:50px!important;height:50px!important;object-fit:cover!important;border-radius:11px!important}.hanePremiumLock .hplBrandText{display:flex!important;flex-direction:column!important;align-items:flex-start!important}.hanePremiumLock .hplBrandText strong{font-size:20px!important;line-height:1!important;letter-spacing:.16em!important}.hanePremiumLock .hplBrandText span{font-size:6.5px!important;line-height:1!important;letter-spacing:.14em!important;margin-top:5px!important}
-.hanePremiumLock .hplGreeting{margin:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;line-height:1!important}.hanePremiumLock .hplGreeting small{font-size:8px!important;letter-spacing:.2em!important}.hanePremiumLock .hplGreeting b{font-size:19px!important;letter-spacing:.06em!important;margin-top:4px!important}
-.hanePremiumLock .hplQuote{width:min(92%,340px)!important;height:24px!important;margin:5px 0 7px!important;display:flex!important;align-items:center!important;justify-content:center!important}.hanePremiumLock .hplQuote i{display:block!important;flex:1!important;height:1px!important;background:#354047!important}.hanePremiumLock .hplQuote p{margin:0 9px!important;font-size:8px!important;line-height:1!important;letter-spacing:.035em!important;white-space:nowrap!important;color:#eef3f4!important}
-.hanePremiumLock .hplPortraitShell{width:min(68vw,260px)!important;height:auto!important;aspect-ratio:1.28/1!important;margin:0 auto 7px!important;padding:3px!important;background:linear-gradient(135deg,#18dda0 0 12%,#566067 12% 49%,#333b40 49% 70%,#ff4052 70% 100%)!important;clip-path:polygon(15px 0,calc(100% - 15px) 0,100% 15px,100% calc(100% - 15px),calc(100% - 15px) 100%,15px 100%,0 calc(100% - 15px),0 15px)!important;overflow:hidden!important}.hanePremiumLock .hplPortrait{width:100%!important;height:100%!important;display:grid!important;place-items:center!important;background:linear-gradient(145deg,#192024,#0b0e10)!important;border:3px solid #050708!important;clip-path:inherit!important;overflow:hidden!important}.hanePremiumLock .portraitGeneric{display:block!important;width:40%!important;aspect-ratio:1!important;position:relative!important;opacity:.7!important}.hanePremiumLock .portraitGenericHead{position:absolute!important;width:34%!important;aspect-ratio:1!important;border-radius:50%!important;background:#aab3b8!important;left:33%!important;top:7%!important}.hanePremiumLock .portraitGenericBody{position:absolute!important;width:68%!important;height:37%!important;border-radius:50% 50% 14% 14%!important;background:#aab3b8!important;left:16%!important;bottom:10%!important}
-.hanePremiumLock .hplDots{width:auto!important;height:18px!important;margin:0 0 7px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:13px!important}.hanePremiumLock .hplDots i{display:block!important;width:10px!important;height:10px!important;aspect-ratio:1!important;border-radius:50%!important;border:1px solid #aeb8bd!important;background:#040607!important}.hanePremiumLock .hplDots i.on{background:#19e6a0!important;border-color:#78ffe0!important;box-shadow:0 0 8px #19e6a088!important}
-.hanePremiumLock .hplKeypad{width:min(82vw,310px)!important;height:auto!important;margin:0!important;padding:0!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-rows:48px!important;gap:7px!important;background:none!important}.hanePremiumLock .hplKeypad button{display:grid!important;place-items:center!important;width:100%!important;height:48px!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;border:1px solid #414c53!important;border-radius:0!important;clip-path:polygon(11px 0,calc(100% - 11px) 0,100% 11px,100% calc(100% - 11px),calc(100% - 11px) 100%,11px 100%,0 calc(100% - 11px),0 11px)!important;background:linear-gradient(145deg,#161b1e,#07090a)!important;color:#eef3f5!important;font-size:19px!important;line-height:1!important;font-weight:850!important;box-shadow:none!important;touch-action:manipulation!important}.hanePremiumLock .hplKeypad button:nth-child(3n+1){border-left-color:#19e6a0!important}.hanePremiumLock .hplKeypad button:nth-child(3n){border-right-color:#ff4354!important}.hanePremiumLock .hplKeypad .backKey{color:#19e6a0!important}.hanePremiumLock .hplKeypad .del{color:#ff4354!important}.hanePremiumLock .hplKeypad button:active{filter:brightness(1.3)!important}
-.hanePremiumLock .hplFooter{width:min(82vw,310px)!important;height:24px!important;margin:auto 0 0!important;padding-top:7px!important;display:grid!important;grid-template-columns:auto 1fr auto 1fr auto!important;align-items:center!important;gap:8px!important}.hanePremiumLock .hplFooter span{font-size:8px!important;line-height:1!important;letter-spacing:.11em!important;white-space:nowrap!important}.hanePremiumLock .hplFooter span:first-child{color:#19e6a0!important}.hanePremiumLock .hplFooter span:last-child{color:#ff4354!important}.hanePremiumLock .hplFooter i{display:block!important;height:1px!important;background:#394349!important}
-@media(max-height:700px){.hanePremiumLock .hplPanel{padding-top:max(6px,var(--safeT,0px))!important;padding-bottom:max(5px,var(--safeB,0px))!important}.hanePremiumLock .hplBrand{height:43px!important;margin-bottom:2px!important}.hanePremiumLock .hplBrandLogo{width:38px!important;height:38px!important}.hanePremiumLock .hplBrandText strong{font-size:16px!important}.hanePremiumLock .hplBrandText span{font-size:5.5px!important}.hanePremiumLock .hplGreeting small{font-size:7px!important}.hanePremiumLock .hplGreeting b{font-size:15px!important;margin-top:2px!important}.hanePremiumLock .hplQuote{height:18px!important;margin:2px 0 4px!important}.hanePremiumLock .hplQuote p{font-size:7px!important}.hanePremiumLock .hplPortraitShell{width:min(50vw,190px)!important;margin-bottom:3px!important}.hanePremiumLock .hplDots{height:14px!important;margin-bottom:4px!important;gap:10px!important}.hanePremiumLock .hplDots i{width:8px!important;height:8px!important}.hanePremiumLock .hplKeypad{width:min(68vw,260px)!important;grid-auto-rows:37px!important;gap:5px!important}.hanePremiumLock .hplKeypad button{height:37px!important;font-size:16px!important}.hanePremiumLock .hplFooter{width:min(68vw,260px)!important;height:18px!important;padding-top:4px!important}.hanePremiumLock .hplFooter span{font-size:7px!important}}
-@media(min-width:650px){.hanePremiumLock.lock{box-shadow:0 0 0 1px #20292e,0 0 50px #000!important}}
+/* FIX34 — approved clean premium lock artwork + live profile data */
+.hanePremiumLock .hplPanel{
+  background:#020405 url('./icons/hane-lock-premium-clean.png') center center/100% 100% no-repeat!important;
+}
+/* Replace the artwork's sample name with the active HANE profile name. */
+.hanePremiumLock .hplGreeting{
+  display:block!important;position:absolute!important;left:23%!important;top:22.0%!important;width:54%!important;height:6.2%!important;
+  margin:0!important;padding:0!important;text-align:center!important;z-index:12!important;background:#030607!important;
+}
+.hanePremiumLock .hplGreeting small{display:block!important;color:#98a3aa!important;font-size:clamp(10px,2.8vw,13px)!important;letter-spacing:.22em!important;font-weight:850!important;line-height:1.25!important}
+.hanePremiumLock .hplGreeting b{display:block!important;margin-top:2px!important;color:#f4f6f7!important;font-size:clamp(21px,6vw,30px)!important;letter-spacing:.06em!important;line-height:1.05!important}
+/* Live profile photo exactly occupies the artwork's neutral portrait plate. */
+.hanePremiumLock .hplPortraitShell{
+  left:22.1%!important;top:31.2%!important;width:55.8%!important;height:20.1%!important;
+  clip-path:polygon(9% 0,91% 0,100% 9%,100% 91%,91% 100%,9% 100%,0 91%,0 9%)!important;
+}
+.hanePremiumLock .hplPortrait{background:#12171a!important}
+.hanePremiumLock .hplPortrait .portraitFallback{font-size:0!important;background:#12171a!important}
+.hanePremiumLock .hplPortrait .portraitFallback:before{content:'👤';font-size:clamp(54px,18vw,92px)!important;filter:grayscale(1);opacity:.62}
+.hanePremiumLock .hplDots{left:36.2%!important;top:53.0%!important;width:27.6%!important;height:2.4%!important;gap:12%!important}
+.hanePremiumLock .hplKeypad{left:11.8%!important;top:57.0%!important;width:76.4%!important;height:31.2%!important;column-gap:2.7%!important;row-gap:2.4%!important}
