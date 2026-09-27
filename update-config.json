@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.23-work-v64",
-  "minimumVersion": "0.15.23-work-v64",
+  "latestVersion": "0.15.24-work-v65",
+  "minimumVersion": "0.15.24-work-v65",
   "force": true,
-  "message": "V64: HAN denetim düzeltmeleri, çalışma/taksit yanlış alarm onarımı, ekstre iade mutabakatı, ortak limit projeksiyonu ve sabit giderden normal Gider migrasyonu.",
+  "message": "V66: Ekstre Motoru 3.1; Halkbank/Paraf bonus-puan iptalleri harcamadan ayrıldı, Ziraat hata teşhisi fiziksel aday örnekleriyle güçlendirildi ve banka doğrulama katmanı genişletildi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V64-HAN-AUDIT-FIX",
-  "version": "WORK-V64"
+  "build": "20260927-HANE-WORK-V66-EKSTRE-ZIRAAT-HALKBANK",
+  "version": "WORK-V66"
 }
