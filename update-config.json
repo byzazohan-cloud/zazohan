@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.17-work-v21",
-  "minimumVersion": "0.15.17-work-v21",
+  "latestVersion": "0.15.17-work-v22",
+  "minimumVersion": "0.15.17-work-v22",
   "force": true,
-  "message": "WORK V21 · Parola ekranında dengeli dikey boşluklar: ne sıkışık ne dağınık. Büyük yatay HANE logosu, profil tema stüdyosu ve çalışan sistemler korunur.",
+  "message": "WORK V22 · Nakit Para Raporlardan çıkarıldı ve Ana Sayfa Hızlı Erişim'e alındı. Aylık Hesap hızlı erişimden kaldırıldı. Kira, Aidat ve diğer nakit giderler otomatik ve ayrı gruplarda tutulur. V21 parola ekranı korunur.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V21-BALANCED-LOCK",
-  "version": "0.15.17-work-v21"
+  "build": "20260927-HANE-WORK-V22-CASH-QUICK-INDEPENDENT",
+  "version": "0.15.17-work-v22"
 }
