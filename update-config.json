@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.34-work-v82",
-  "minimumVersion": "0.15.34-work-v82",
+  "latestVersion": "0.15.37-work-v85",
+  "minimumVersion": "0.15.37-work-v85",
   "force": true,
-  "message": "V82: TEB sayfa-sınırı eksik satır düzeltmesi. TEB fiziksel parserı bağımsız audit ile aynı satır penceresini kullanır ve sayfa bazlı fiziksel sayı birleşik PDF metninde kaybolmaz. V79 9/8 düzeltmesi, DenizBank V81 ve Ziraat kuralları korunur.",
+  "message": "V85: İş Bankası Maximum fiziksel aday denetimi düzeltildi. Parser satırları Devreden Bakiye -> Dönem Borcu muhasebe denklemini tam sağladığında MaxiPuan/taksit yardımcı kolonlarından doğan sahte çözümlenemeyen adaylar temizlenir. V84 TEB, V83 DenizBank ve V74 Ziraat düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V84-TEB-PAGE-OVERLAP-AUDIT-FIX",
-  "version": "WORK-V82"
+  "build": "20260928-HANE-WORK-V85-ISBANK-AUDIT-FIX",
+  "version": "WORK-V85"
 }
