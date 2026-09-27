@@ -2,8 +2,8 @@
   "latestVersion": "0.15.18-work-v31",
   "minimumVersion": "0.15.18-work-v31",
   "force": true,
-  "message": "WORK V31 · Yol ücreti kayıt butonu doğrudan kayıt aksiyonuna bağlı; Nakit/Kredi Kartı gerçek seçim; kimlik kartı seçimi aktif çalışma profilinden ayrıldı; tüm cache/build kimlikleri V31 ile eşitlendi. V21 parola ekranı korunur.",
+  "message": "WORK V32 · Boş çalışma günleri artık kayıt ekranını açar; yol ücreti tek gerçek form-submit zinciriyle kaydolur ve gün ekranına geri döner; Nakit/Kredi Kartı seçimi korunur; kimlik kartının üstündeki kişi aktif/seçili HANE üyesini takip eder. V21 parola tasarımı değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V31-ROAD-IDENTITY-REALFIX",
-  "version": "V31"
+  "build": "20260927-HANE-WORK-V32-WORKDAY-ROAD-IDENTITY-FIX",
+  "version": "V32"
 }

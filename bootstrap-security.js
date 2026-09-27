@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260927-HANE-WORK-V31-ROAD-IDENTITY-REALFIX';
+  const BUILD='20260927-HANE-WORK-V32-WORKDAY-ROAD-IDENTITY-FIX';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
