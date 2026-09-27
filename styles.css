@@ -4682,3 +4682,60 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
     line-height:9px!important;font-size:3.4px!important;padding:0 4px!important;
   }
 }
+
+/* WORK V48 — kompakt takvim: boş gün kısa, şeritler gün sayısının hemen altında. */
+.personWorkCalendar .zCalDay{
+  min-height:54px!important;
+  height:54px!important;
+}
+/* Kayıt sayısına göre yalnız gerekli gün hücresi uzar; şerit kalınlığı değişmez. */
+.personWorkCalendar .zCalDay:has(>span.eventDots.count-1){min-height:54px!important;height:54px!important}
+.personWorkCalendar .zCalDay:has(>span.eventDots.count-2){min-height:54px!important;height:54px!important}
+.personWorkCalendar .zCalDay:has(>span.eventDots.count-3){min-height:58px!important;height:58px!important}
+.personWorkCalendar .zCalDay:has(>span.eventDots.count-4){min-height:68px!important;height:68px!important}
+.personWorkCalendar .zCalDay:has(>span.eventDots.count-5){min-height:78px!important;height:78px!important}
+.personWorkCalendar .zCalDay:has(>span.eventDots.count-6){min-height:88px!important;height:88px!important}
+.personWorkCalendar .zCalDay>span.eventDots,
+.personWorkCalendar .zCalDay>span.eventDots.count-1,
+.personWorkCalendar .zCalDay>span.eventDots.count-2,
+.personWorkCalendar .zCalDay>span.eventDots.count-3,
+.personWorkCalendar .zCalDay>span.eventDots.count-4,
+.personWorkCalendar .zCalDay>span.eventDots.count-5,
+.personWorkCalendar .zCalDay>span.eventDots.count-6{
+  top:21px!important;
+  right:2px!important;
+  bottom:auto!important;
+  left:2px!important;
+  inset:auto 2px auto 2px!important;
+  height:auto!important;
+  min-height:0!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:none!important;
+  grid-auto-rows:9px!important;
+  align-content:start!important;
+  gap:1px!important;
+  overflow:visible!important;
+}
+@media(max-width:390px){
+  .personWorkCalendar .zCalDay{min-height:52px!important;height:52px!important}
+  .personWorkCalendar .zCalDay:has(>span.eventDots.count-1),
+  .personWorkCalendar .zCalDay:has(>span.eventDots.count-2){min-height:52px!important;height:52px!important}
+  .personWorkCalendar .zCalDay:has(>span.eventDots.count-3){min-height:56px!important;height:56px!important}
+  .personWorkCalendar .zCalDay:has(>span.eventDots.count-4){min-height:66px!important;height:66px!important}
+  .personWorkCalendar .zCalDay:has(>span.eventDots.count-5){min-height:76px!important;height:76px!important}
+  .personWorkCalendar .zCalDay:has(>span.eventDots.count-6){min-height:86px!important;height:86px!important}
+  .personWorkCalendar .zCalDay>span.eventDots,
+  .personWorkCalendar .zCalDay>span.eventDots.count-1,
+  .personWorkCalendar .zCalDay>span.eventDots.count-2,
+  .personWorkCalendar .zCalDay>span.eventDots.count-3,
+  .personWorkCalendar .zCalDay>span.eventDots.count-4,
+  .personWorkCalendar .zCalDay>span.eventDots.count-5,
+  .personWorkCalendar .zCalDay>span.eventDots.count-6{
+    top:20px!important;
+    inset:auto 2px auto 2px!important;
+    grid-auto-rows:9px!important;
+    align-content:start!important;
+    gap:1px!important;
+  }
+}
