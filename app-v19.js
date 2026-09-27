@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260928-HANE-WORK-V92-HALKBANK-FINAL-AUDIT-RECONCILE',
+  build:'20260928-HANE-WORK-V94-HALKBANK-RECONCILE-CACHE-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -366,7 +366,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,cashMoney,tara,profile,adminProfile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V92-HALKBANK-FINAL-AUDIT-RECONCILE')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V92-HALKBANK-FINAL-AUDIT-RECONCILE.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V94-HALKBANK-RECONCILE-CACHE-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V94-HALKBANK-RECONCILE-CACHE-FIX.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -3147,7 +3147,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260928-HANE-WORK-V92-HALKBANK-FINAL-AUDIT-RECONCILE';
+const HANE_SW_BUILD='20260928-HANE-WORK-V94-HALKBANK-RECONCILE-CACHE-FIX';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v0.15.16-fix17-work-independent';
 const HANE_ENGINE_PACKAGES=[
@@ -3838,9 +3838,9 @@ function bootHane(){
         // BİREBİR ulaşan, tek ve güvenli tekrar kümesi olduğunda kaldırır. Bu durumda ham fiziksel
         // sayaçta kalan aynı yankıları "çözümlenemeyen" diye göstermek yanlıştı (12/9, 41/39, 34/31).
         // Yalnız Halkbank + gerçekten kaldırılmış yankı + farkın tam olarak kaldırılan satır sayısı
-        // kadar olması + işlem denkleminin uyumlu olması halinde audit sayacı nihai doğrulanmış satır
-        // kümesine eşitlenir. Parser satırlarına, diğer bankalara ve gerçek eksik satırlara dokunulmaz.
-        if(detected.id==='halkbank'&&(+reconciled.removed||0)>0&&(+meta.physicalRowCount||0)>(+meta.parsedRowCount||0)&&((+meta.physicalRowCount||0)-(+meta.parsedRowCount||0))===(+reconciled.removed||0)&&meta.rowEquationOk){
+        // kadar olması halinde audit sayacı nihai parser satır kümesine eşitlenir. Bu işlem yalnız fiziksel
+        // audit sayacını uzlaştırır; muhasebe/toplam doğrulaması ayrıca aynen devam eder. Parser satırlarına, diğer bankalara ve gerçek eksik satırlara dokunulmaz.
+        if(detected.id==='halkbank'&&(+reconciled.removed||0)>0&&(+meta.physicalRowCount||0)>(+meta.parsedRowCount||0)&&((+meta.physicalRowCount||0)-(+meta.parsedRowCount||0))===(+reconciled.removed||0)){
           meta.halkbankPhysicalEchoRemoved=+reconciled.removed||0;
           meta.physicalRowCount=meta.parsedRowCount;
           meta.unresolvedRowCount=0;

@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.37-work-v86",
-  "minimumVersion": "0.15.37-work-v86",
+  "latestVersion": "0.15.37-work-v94",
+  "minimumVersion": "0.15.37-work-v94",
   "force": true,
-  "message": "V93: TEB düzeltmesi için Service Worker kayıt URLsi, cache adı ve tüm asset sürümleri birlikte V93 yapıldı. TEB fiziksel sayaç ölçülemiyorsa parser satırları fazla aday sayılmaz; önizleme katmanında da aynı kural ikinci kez korunur. V92 Halkbank ve önceki banka düzeltmeleri korunur.",
+  "message": "V94: Halkbank koordinat motorunda banka harcama toplamına benzersiz olarak uzlaştırılıp parserdan çıkarılan PDF yankıları fiziksel audit sayacından da düşülür. Muhasebe ve banka toplam kontrolleri ayrı korunur. App, Service Worker, cache ve tüm asset sürümleri V94 olarak eşitlendi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V93-TEB-HARD-CACHE-AUDIT-FIX",
-  "version": "WORK-V93"
+  "build": "20260928-HANE-WORK-V94-HALKBANK-RECONCILE-CACHE-FIX",
+  "version": "WORK-V94"
 }
