@@ -3856,3 +3856,58 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
   .personWorkCalendar .eventBadge:nth-child(2){bottom:9px!important}
   .personWorkCalendar .eventBadge:nth-child(3){bottom:16px!important}
 }
+
+/* WORK V15 — approved lock composition + Profile Theme Studio entry. Isolated overrides only. */
+.hanePremiumLock .hplBrand.hplBrandUnified{
+  display:flex!important;
+  width:100%!important;
+  height:auto!important;
+  margin:0 0 clamp(7px,1.1dvh,11px)!important;
+  padding:0!important;
+  justify-content:center!important;
+  align-items:center!important;
+  background:none!important;
+}
+.hanePremiumLock .hplUnifiedBrandLogo{
+  display:block!important;
+  width:min(66vw,270px)!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  object-fit:contain!important;
+  margin:-18% 0 -17%!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  filter:drop-shadow(-4px 0 10px rgba(32,218,143,.10)) drop-shadow(4px 0 10px rgba(255,68,84,.10))!important;
+}
+.hanePremiumLock .hplBrandText{display:none!important}
+.hanePremiumLock .hplPortraitShell{
+  width:min(70vw,286px)!important;
+  aspect-ratio:1.34/1!important;
+}
+.hanePremiumLock .hplGreeting{margin-top:0!important}
+.hanePremiumLock .hplQuote{margin-top:clamp(7px,1.1dvh,10px)!important;margin-bottom:clamp(9px,1.4dvh,13px)!important}
+.hanePremiumLock .hplDots{margin:clamp(10px,1.5dvh,14px) 0 clamp(12px,1.8dvh,16px)!important}
+@media(max-height:760px){
+  .hanePremiumLock .hplUnifiedBrandLogo{width:min(55vw,220px)!important;margin:-17% 0 -16%!important}
+  .hanePremiumLock .hplPortraitShell{width:min(58vw,238px)!important}
+}
+@media(min-height:900px){
+  .hanePremiumLock .hplUnifiedBrandLogo{width:min(68vw,278px)!important}
+  .hanePremiumLock .hplPortraitShell{width:min(72vw,294px)!important}
+}
+.profileThemeStudioBtn{
+  width:100%!important;
+  min-height:58px!important;
+  display:grid!important;
+  grid-template-columns:34px minmax(0,1fr) 18px!important;
+  align-items:center!important;
+  gap:10px!important;
+  text-align:left!important;
+  border-color:color-mix(in srgb,var(--theme-accent,#47bfff) 48%,#26303a)!important;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--theme-accent,#47bfff) 12%,#10151a),#080b0e)!important;
+}
+.profileThemeStudioBtn>span:nth-child(2){display:flex!important;flex-direction:column!important;gap:3px!important;font-weight:900!important;letter-spacing:.05em!important}
+.profileThemeStudioBtn small{display:block!important;font-size:9px!important;letter-spacing:.02em!important;color:#8e9aa4!important;font-weight:700!important}
+.profileThemeStudioBtn>b{font-size:24px!important;color:var(--theme-accent,#47bfff)!important}
+.profileThemeDot{width:28px!important;height:28px!important;border-radius:50%!important;background:conic-gradient(var(--theme-income,#2bd48e),var(--theme-accent,#47bfff),var(--theme-expense,#ff616d),var(--theme-remain,#58c7ff),var(--theme-income,#2bd48e))!important;box-shadow:0 0 18px color-mix(in srgb,var(--theme-accent,#47bfff) 28%,transparent)!important;border:3px solid #0a0e12!important;outline:1px solid rgba(255,255,255,.13)!important}
