@@ -2,8 +2,8 @@
   "latestVersion": "0.15.32-work-v73",
   "minimumVersion": "0.15.32-work-v73",
   "force": true,
-  "message": "V73: Ziraat/Bankkart özet doğrulayıcı düzeltildi. Alt özet tablosundaki Devreden Bakiye, Harcamalar, Faiz/Ücret, Ödemeler ve Dönem Borcu TL sütunları etiketli bloktan sırayla okunur; devreden bakiye harcama, yüzde faiz oranı da faiz tutarı olarak kullanılamaz. V72 işlem parserı ve sayfa overlap motoru korunur.",
+  "message": "V74: Ziraat/Bankkart özet doğrulayıcı düzeltildi. Alt özet tablosundaki Devreden Bakiye, Harcamalar, Faiz/Ücret, Ödemeler ve Dönem Borcu TL sütunları etiketli bloktan sırayla okunur; devreden bakiye harcama, yüzde faiz oranı da faiz tutarı olarak kullanılamaz. V72 işlem parserı ve sayfa overlap motoru korunur.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V73-ZIRAAT-OZET-DOGRULAMA-FIX",
-  "version": "WORK-V73"
+  "build": "20260927-HANE-WORK-V74-ZIRAAT-FINAL-AUDIT-FIX",
+  "version": "WORK-V74"
 }
