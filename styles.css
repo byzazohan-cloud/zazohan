@@ -4254,3 +4254,6 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .zDayRecord.roadFee>div:first-child>b{color:#72f2df!important}
 .zDayAddGrid .roadFeeAdd{border-color:rgba(77,214,199,.42)!important;color:#72f2df!important;background:linear-gradient(155deg,rgba(77,214,199,.12),#081014)!important}
 @media(max-width:390px){.personWorkCalendar .zCalDay .roadFeeMark{top:5px!important;left:22px!important;width:11px!important;height:3px!important}}
+
+/* HANE WORK V27 — selected member identity + road save action. V21 lock untouched. */
+.selectedMemberIdentity{margin:0 0 14px}.selectedMemberIdentity .haneIdentityCard{margin:0}
