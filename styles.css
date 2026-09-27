@@ -3995,3 +3995,97 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
   .hanePremiumLock .hplKeypad{grid-template-rows:repeat(4,54px)!important;gap:8px!important}
   .hanePremiumLock .hplFooter{margin-top:10px!important}
 }
+
+/* HANE WORK V19 — LOCK COMPACT STACK FIX.
+   Root cause repair: use a real content stack so no legacy flex spacing can push the brand/greeting apart. */
+.hanePremiumLock .hplPanel{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:auto auto auto auto auto auto auto!important;
+  align-content:start!important;
+  justify-items:center!important;
+  row-gap:0!important;
+  padding-top:max(6px,env(safe-area-inset-top))!important;
+  padding-bottom:max(6px,env(safe-area-inset-bottom))!important;
+}
+.hanePremiumLock .hplBrand.hplBrandUnified{
+  grid-row:1!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0 0 4px!important;
+  padding:0!important;
+  align-self:start!important;
+}
+.hanePremiumLock .hplUnifiedBrandLogo{
+  width:min(90vw,380px)!important;
+  max-height:112px!important;
+  aspect-ratio:auto!important;
+  object-fit:contain!important;
+  margin:0!important;
+}
+.hanePremiumLock .hplGreeting{
+  grid-row:2!important;
+  position:relative!important;
+  width:auto!important;height:auto!important;
+  margin:0!important;padding:0!important;
+  align-self:start!important;
+}
+.hanePremiumLock .hplQuote{
+  grid-row:3!important;
+  margin:5px 0 7px!important;
+  align-self:start!important;
+}
+.hanePremiumLock .hplPortraitShell{
+  grid-row:4!important;
+  width:min(68vw,276px)!important;
+  aspect-ratio:1.38/1!important;
+  height:auto!important;
+  margin:0!important;
+  align-self:start!important;
+}
+.hanePremiumLock .hplDots{
+  grid-row:5!important;
+  margin:7px 0 8px!important;
+  align-self:start!important;
+}
+.hanePremiumLock .hplKeypad{
+  grid-row:6!important;
+  width:min(82vw,320px)!important;
+  grid-template-rows:repeat(4,48px)!important;
+  gap:7px!important;
+  margin:0!important;
+  align-self:start!important;
+}
+.hanePremiumLock .hplFooter{
+  grid-row:7!important;
+  width:min(82vw,320px)!important;
+  margin:8px 0 0!important;
+  padding:0!important;
+  align-self:start!important;
+}
+@media(max-height:760px){
+  .hanePremiumLock .hplPanel{padding-top:4px!important;padding-bottom:4px!important}
+  .hanePremiumLock .hplUnifiedBrandLogo{width:min(80vw,320px)!important;max-height:93px!important}
+  .hanePremiumLock .hplBrand.hplBrandUnified{margin-bottom:2px!important}
+  .hanePremiumLock .hplGreeting small{font-size:8px!important}
+  .hanePremiumLock .hplGreeting b{font-size:16px!important;margin-top:1px!important}
+  .hanePremiumLock .hplQuote{margin:3px 0 5px!important}
+  .hanePremiumLock .hplQuote p{font-size:8px!important}
+  .hanePremiumLock .hplPortraitShell{width:min(55vw,220px)!important}
+  .hanePremiumLock .hplDots{margin:5px 0 6px!important}
+  .hanePremiumLock .hplDots i{width:9px!important;height:9px!important}
+  .hanePremiumLock .hplKeypad{width:min(74vw,292px)!important;grid-template-rows:repeat(4,39px)!important;gap:5px!important}
+  .hanePremiumLock .hplKeypad button{font-size:17px!important}
+  .hanePremiumLock .hplFooter{width:min(74vw,292px)!important;margin-top:5px!important}
+  .hanePremiumLock .hplFooter span{font-size:6.5px!important}
+}
+@media(min-height:900px){
+  .hanePremiumLock .hplPanel{padding-top:max(12px,env(safe-area-inset-top))!important}
+  .hanePremiumLock .hplUnifiedBrandLogo{width:min(92vw,395px)!important;max-height:116px!important}
+  .hanePremiumLock .hplBrand.hplBrandUnified{margin-bottom:5px!important}
+  .hanePremiumLock .hplPortraitShell{width:min(70vw,286px)!important}
+  .hanePremiumLock .hplDots{margin:9px 0 10px!important}
+  .hanePremiumLock .hplKeypad{grid-template-rows:repeat(4,54px)!important;gap:8px!important}
+  .hanePremiumLock .hplFooter{margin-top:9px!important}
+}
