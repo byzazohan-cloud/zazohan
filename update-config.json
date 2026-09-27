@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.17",
-  "minimumVersion": "0.15.17",
+  "latestVersion": "0.15.17-work-v9",
+  "minimumVersion": "0.15.17-work-v9",
   "force": true,
-  "message": "STABLE39 · Stabilizasyon: yalnız build/cache kimlikleri tekleştirildi; finans, kart, çalışma, ekstre parser ve parola işlev kodları değiştirilmedi.",
+  "message": "WORK V9 · Yalnız Çalışma Kazanılan/Alınan/Kalan ayrıntı pencereleri kompakt yatay düzene alındı.",
   "updateUrl": "",
-  "build": "20260927-HANE-V0.15.17-STABLE39",
-  "version": "0.15.17"
+  "build": "20260927-HANE-WORK-V9-COMPACT-DETAIL",
+  "version": "0.15.17-work-v9"
 }
