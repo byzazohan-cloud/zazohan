@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.18-work-v38",
-  "minimumVersion": "0.15.18-work-v38",
+  "latestVersion": "0.15.19-work-v57",
+  "minimumVersion": "0.15.19-work-v57",
   "force": true,
-  "message": "V49 gider yapısı korunarak Çalışma takvimi şeritleri alttan yukarı dizildi; normal Takvim bağımsız finans verileriyle aynı şerit görsel diline geçirildi.",
+  "message": "Kartlar sekmesi yenilendi: kart stili yalnız Kartı Düzenle içinde, kartlar sağa/sola kaydırılabilir, karta dokununca ekstre açılır, hızlı işlemler 2x2 ve Banka Ekstresi seçili karta taşındı.",
   "updateUrl": "",
-  "build": "20260927-HANE-WORK-V55-KART-SEKMESI-YENI-TASARIM",
-  "version": "WORK-V55"
+  "build": "20260927-HANE-WORK-V57-KART-AKIS-FIX",
+  "version": "WORK-V57"
 }
