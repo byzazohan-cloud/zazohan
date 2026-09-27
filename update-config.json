@@ -2,8 +2,8 @@
   "latestVersion": "0.15.17",
   "minimumVersion": "0.15.17",
   "force": true,
-  "message": "FIX28 · Kart detayları, ekstre, hareketler, ayarlar ve kart kaydırma etkileşimleri geri yüklendi.",
+  "message": "FIX29 · Kart detayları, ekstre, hareketler, ayarlar ve kart kaydırma etkileşimleri geri yüklendi.",
   "updateUrl": "",
-  "build": "20260927-HANE-V0.15.17-FIX28-CARD-DETAIL-RESTORE",
+  "build": "20260927-HANE-V0.15.17-FIX29-CARD-DETAIL-RESTORE",
   "version": "0.15.17"
 }

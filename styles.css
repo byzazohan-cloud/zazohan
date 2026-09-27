@@ -3373,3 +3373,23 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .hplKeypad button:nth-child(3n+1){border-left-color:#1bdc91!important}.hplKeypad button:nth-child(3n){border-right-color:#ff4053!important}.hplKeypad .backKey{color:#25e29a!important;font-size:25px!important}.hplKeypad .del{color:#ff4557!important;font-size:22px!important}
 .hplFooter{position:relative!important;z-index:2!important;order:7!important;margin-top:auto!important;padding-top:14px!important;width:min(88vw,330px)!important}.hplFooter span{font-size:10px!important;letter-spacing:.13em!important}.hplFooter span:first-child{color:#2be09b!important}.hplFooter span:last-child{color:#ff5867!important}
 @media(max-height:820px){.hplPanel{padding-top:16px!important}.hplBrandLogo{width:76px!important;height:76px!important}.hplBrandText strong{font-size:23px!important}.hplBrandText span{font-size:8px!important}.hplGreeting small{font-size:9px!important}.hplGreeting b{font-size:17px!important}.hplQuote{margin:4px 0 8px!important}.hplQuote p{font-size:9px!important}.hplPortraitShell{height:165px!important;width:min(80vw,280px)!important}.hplPortrait .portraitFallback{font-size:62px!important}.hplDots{margin:8px 0!important}.hplKeypad{width:min(78vw,275px)!important;gap:6px!important}.hplKeypad button{height:43px!important;font-size:17px!important}.hplFooter{padding-top:8px!important;width:min(78vw,275px)!important}}
+
+/* FIX29 — PASSWORD VIEWPORT PROPORTIONS: no miniature keypad on short desktop previews */
+.hanePremiumLock{height:100svh!important;min-height:100svh!important;overflow:hidden!important}
+.hplPanel{height:100svh!important;min-height:0!important;padding:10px 20px 9px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important}
+.hplBrand{margin:0 0 3px!important;gap:1px!important;flex:0 0 auto!important}
+.hplBrandLogo{width:64px!important;height:64px!important;border-radius:15px!important}
+.hplBrandText strong{font-size:21px!important}.hplBrandText span{font-size:7px!important}
+.hplGreeting{margin:0!important;flex:0 0 auto!important}.hplGreeting small{font-size:8px!important}.hplGreeting b{font-size:15px!important;margin-top:0!important}
+.hplQuote{margin:3px 0 6px!important;width:min(92%,340px)!important;flex:0 0 auto!important}.hplQuote p{font-size:8px!important;line-height:1.15!important}
+.hplPortraitShell{width:min(86%,340px)!important;height:clamp(145px,24svh,205px)!important;min-height:145px!important;flex:1 1 190px!important;max-height:205px!important}
+.hplPortrait .portraitFallback{font-size:70px!important}
+.hplDots{margin:6px 0 7px!important;gap:14px!important;flex:0 0 auto!important}
+.hplDots i{width:10px!important;height:10px!important}
+.hplKeypad{width:min(86%,340px)!important;gap:7px!important;flex:0 0 auto!important}
+.hplKeypad button{height:48px!important;font-size:20px!important}
+.hplFooter{width:min(86%,340px)!important;margin-top:6px!important;padding-top:3px!important;flex:0 0 auto!important}.hplFooter span{font-size:8px!important}
+@media(min-height:760px){
+ .hplPanel{padding:18px 22px 14px!important}.hplBrand{margin-bottom:7px!important}.hplBrandLogo{width:82px!important;height:82px!important}.hplBrandText strong{font-size:25px!important}.hplBrandText span{font-size:8px!important}.hplGreeting small{font-size:9px!important}.hplGreeting b{font-size:18px!important}.hplQuote{margin:5px 0 9px!important}.hplQuote p{font-size:9px!important}.hplPortraitShell{height:clamp(190px,25svh,245px)!important;max-height:245px!important}.hplPortrait .portraitFallback{font-size:82px!important}.hplDots{margin:9px 0!important}.hplKeypad{gap:8px!important}.hplKeypad button{height:54px!important;font-size:22px!important}.hplFooter{margin-top:9px!important;padding-top:5px!important}.hplFooter span{font-size:9px!important}
+}
+@media(max-width:360px){.hplPanel{padding-left:14px!important;padding-right:14px!important}.hplPortraitShell,.hplKeypad,.hplFooter{width:92%!important}}
