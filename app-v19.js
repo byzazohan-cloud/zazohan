@@ -961,7 +961,7 @@ function zCalendarBody(memberId){
    const ds=`${m}-${String(d).padStart(2,'0')}`,rows=dailyRows.filter(x=>x.date===ds),base=rows.find(x=>x.type==='daily'),ot=rows.some(x=>x.type==='overtime'||x.dayStatus==='overtime'),hourly=rows.some(x=>x.type==='hourly'),pay=pays.some(x=>x.date===ds);
    let status='',label='',icon='',dayKind='';
    if(base?.dayStatus==='leave'){const lt=base.leaveType||mem?.leavePolicy||'unpaid';status=lt==='paid'?'leavePaid':'leaveUnpaid';label=lt==='paid'?'Ücretli izin':'Ücretsiz izin';icon='☂';dayKind=lt==='paid'?'ÜCRETLİ':'ÜCRETSİZ'}
-   else if(base){status='worked';label='Tam gün çalışma';icon='▣';dayKind='TAM GÜN'}
+   else if(base){status='worked';label='Tam gün çalışma';icon='';dayKind='TAM GÜN'}
    else if(hourly){status='hourly';label='Saatlik iş';icon='▥';dayKind='SAATLİK'}
    if(ot){status=status?status+' hasOvertime':'overtime';label+=(label?' + ':'')+'Mesai';icon=icon||'◷';if(!dayKind)dayKind='MESAİ'}
    if(hourly&&base){status=status+' hasHourly';label+=' + Saatlik iş'}
