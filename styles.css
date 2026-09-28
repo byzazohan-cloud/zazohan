@@ -5003,3 +5003,92 @@ html.lightMode .modal{background:rgba(30,27,21,.38)!important}
 .debtDonutCard{margin:12px 14px 18px;padding:14px;border:1px solid color-mix(in srgb,var(--skin-accent) 30%,transparent);border-radius:18px;background:color-mix(in srgb,var(--skin-surface) 92%,transparent)}
 .debtDonutWrap{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;align-items:center}.debtDonut{width:128px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 18px rgba(0,0,0,.25)}.debtDonutCenter{width:72%;aspect-ratio:1;border-radius:50%;background:var(--skin-surface);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid color-mix(in srgb,var(--skin-accent) 20%,transparent)}.debtDonutCenter small{font-size:8px;color:var(--skin-muted)}.debtDonutCenter b{font-size:11px;color:var(--skin-text);margin-top:3px}.debtDonutLegend{display:grid;gap:6px;min-width:0}.debtDonutLegend button{appearance:none;border:0;background:transparent;color:var(--skin-text);display:grid;grid-template-columns:10px minmax(0,1fr);gap:7px;text-align:left;padding:3px 0;min-width:0}.debtDonutLegend i{width:9px;height:9px;border-radius:50%;margin-top:3px}.debtDonutLegend span{min-width:0}.debtDonutLegend b{display:block;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.debtDonutLegend small{display:block;font-size:8px;color:var(--skin-muted);margin-top:2px}
 @media(max-width:390px){.debtDonutWrap{grid-template-columns:112px minmax(0,1fr)}.debtDonut{width:108px}}
+
+/* V118 LIGHT MODE COMPLETE — isolated presentation layer only */
+html.lightMode{
+ --light-bg:#f4f1ea;--light-panel:#ffffff;--light-panel2:#faf8f3;--light-line:#d8d1c5;
+ --light-text:#171717;--light-muted:#6b665f;--light-soft:#eee9df;
+ --skin-bg:#f4f1ea!important;--skin-surface:#fff!important;--skin-surface-2:#faf8f3!important;
+ --skin-text:#171717!important;--skin-muted:#6b665f!important;--skin-border:#d8d1c5!important;
+ --skin-passive-bg-1:#faf8f3!important;--skin-passive-bg-2:#fff!important;--skin-passive-text:#6b665f!important;
+}
+html.lightMode body,html.lightMode #app,html.lightMode .phone,html.lightMode .content,html.lightMode main,
+html.lightMode .page,html.lightMode .appShell,html.lightMode .calendarWrap,html.lightMode .reportsPremium,
+html.lightMode .reportV54,html.lightMode .financeWrap{background:var(--light-bg)!important;color:var(--light-text)!important}
+
+/* Panels and data surfaces. Credit-card artwork intentionally excluded. */
+html.lightMode .card:not(.credit),html.lightMode .sum,html.lightMode .item,html.lightMode .setting,
+html.lightMode .notice,html.lightMode .sheet,html.lightMode .calendarDayDetail,html.lightMode .monthlyPreview,
+html.lightMode .monthlyLedger,html.lightMode .monthlyLedgerTotal,html.lightMode .monthlyLedgerRow,
+html.lightMode .reportCard,html.lightMode .chartCard,html.lightMode .reportModeShell,
+html.lightMode .reportCompareTableBtn,html.lightMode .reportMetricTotal,html.lightMode .reportCardMetricStack>button,
+html.lightMode .reportBottomStack>button,html.lightMode .reportBarRow.large,html.lightMode .expenseLegend span,
+html.lightMode .cashSplit,html.lightMode .debtDonutCard,html.lightMode .debtGraph,
+html.lightMode .statementHero,html.lightMode .statementTotals,html.lightMode .cardsV57BankStatement,
+html.lightMode .collapsibleExpenseHead,html.lightMode .reco,html.lightMode .hanRuleNote,html.lightMode .hanExplain{
+ background:linear-gradient(180deg,var(--light-panel),var(--light-panel2))!important;
+ color:var(--light-text)!important;border-color:var(--light-line)!important;
+ box-shadow:0 7px 20px rgba(65,52,31,.07)!important
+}
+
+/* Home monthly account rows */
+html.lightMode .monthlyPreviewHead,html.lightMode .monthlyPreviewTotal{background:transparent!important;color:var(--light-text)!important}
+html.lightMode .monthlyPreviewRow{border-color:#e5dfd5!important}
+html.lightMode .monthlyPreviewRow span,html.lightMode .monthlyPreviewRow b,
+html.lightMode .monthlyLedgerInfo b,html.lightMode .monthlyLedgerRow strong{color:var(--light-text)!important}
+html.lightMode .monthlyPreviewHead small,html.lightMode .monthlyLedgerInfo small{color:var(--light-muted)!important}
+html.lightMode .monthlyPreviewTotal{border-top-color:#d8d1c5!important;background:#f7f3eb!important}
+
+/* Calendar: keep transaction semantics, make containers readable */
+html.lightMode .calendarDayDetail .item,html.lightMode .calendarDayDetail .detailCat{background:#fff!important;color:#171717!important;border-color:#ddd6ca!important}
+html.lightMode .calendarDayDetail .item small,html.lightMode .calendarDayDetail .detailCat span{color:#6b665f!important}
+
+/* Reports — late V54/V97 rules previously forced dark colors */
+html.lightMode .reportPeriodV97 button,html.lightMode .reportModeTabs button,
+html.lightMode .reportV54 .reportModeTabs button,html.lightMode .reportCategoryRange button{
+ background:#fff!important;color:#514d47!important;border-color:#d8d1c5!important
+}
+html.lightMode .reportPeriodV97 button.active,html.lightMode .reportModeTabs button.active,
+html.lightMode .reportV54 .reportModeTabs button.active,html.lightMode .reportCategoryRange button.active{
+ background:color-mix(in srgb,var(--theme-accent,#47bfff) 16%,#fff)!important;
+ color:#14212a!important;border-color:var(--theme-accent,#47bfff)!important;
+ box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--theme-accent,#47bfff) 45%,transparent)!important
+}
+html.lightMode .reportTotalBar,html.lightMode .reportCompareTableTitle,
+html.lightMode .reportCompareTable>*,html.lightMode .reportCardMetricStack>button,
+html.lightMode .reportMetricTotal,html.lightMode .reportV54 .reportBarRow.large{
+ color:#171717!important;border-color:#ddd6ca!important
+}
+html.lightMode .reportCompareTableTitle small,html.lightMode .reportCompareTable small,
+html.lightMode .reportCardMetricStack small,html.lightMode .reportMetricTotal small,
+html.lightMode .reportV54 .expenseLegend small{color:#6b665f!important}
+html.lightMode .reportV54 .expenseLegend span{background:#fff!important;border-color:#ddd6ca!important;color:#171717!important}
+html.lightMode .reportV54 .reportBarRow.large{background:#fff!important}
+html.lightMode .reportCompareTable>*{border-right-color:#e5dfd5!important;border-bottom-color:#e5dfd5!important}
+
+/* Payment split cards from screenshot */
+html.lightMode .cashSplit button,html.lightMode .cashSplit>div,html.lightMode .cashRow,
+html.lightMode .paymentSplit button,html.lightMode .paymentSplit>div{background:#fff!important;color:#171717!important;border-color:#d8d1c5!important}
+html.lightMode .cashSplit b,html.lightMode .cashSplit strong,html.lightMode .cashRow b{color:#171717!important}
+html.lightMode .cashSplit small,html.lightMode .cashSplit span,html.lightMode .cashRow span{color:#6b665f!important}
+
+/* Forms / buttons / navigation */
+html.lightMode input,html.lightMode select,html.lightMode textarea{background:#fff!important;color:#171717!important;border-color:#d1c9bc!important}
+html.lightMode .btn:not(.gold),html.lightMode .quick button,html.lightMode .monthAction{background:#fff!important;color:#171717!important;border-color:#d8d1c5!important}
+html.lightMode .nav,html.lightMode .bottomNav{background:rgba(255,255,255,.98)!important;border-color:#d8d1c5!important}
+html.lightMode .nav button{color:#66625c!important}
+html.lightMode .nav button.active{color:#a66d00!important}
+
+/* Text contrast; semantic colors remain semantic */
+html.lightMode h1,html.lightMode h2,html.lightMode h3,html.lightMode h4,
+html.lightMode .title,html.lightMode .section b,html.lightMode .item b,html.lightMode .item strong,
+html.lightMode .reportCard b,html.lightMode .chartCard b{color:#171717!important}
+html.lightMode small,html.lightMode .muted,html.lightMode .sub{color:#6b665f!important}
+html.lightMode .income,html.lightMode .incomeAmount,html.lightMode .incomeValue,html.lightMode .reportTotalBar.inc b{color:var(--hane-income,var(--theme-income,#17885e))!important}
+html.lightMode .expense,html.lightMode .expenseAmount,html.lightMode .expenseValue,html.lightMode .reportTotalBar.exp b{color:var(--hane-expense,var(--theme-expense,#c83f4b))!important}
+html.lightMode .remain,html.lightMode .remainValue,html.lightMode .netValue,html.lightMode .reportTotalBar.net b{color:var(--hane-remain,#9a6c00)!important}
+
+/* Donut center follows light panel while slices keep card colors */
+html.lightMode .debtDonutCenter{background:#fff!important;border-color:#d8d1c5!important}
+html.lightMode .debtDonutCenter b,html.lightMode .debtDonutLegend b{color:#171717!important}
+html.lightMode .debtDonutCenter small,html.lightMode .debtDonutLegend small{color:#6b665f!important}

@@ -2,8 +2,8 @@
   "latestVersion": "0.15.51-work-v117",
   "minimumVersion": "0.15.51-work-v117",
   "force": true,
-  "message": "V117: Çalışma formundaki Yol Gideri Ekle düğmesi güvenli doğrudan bağlama ile düzeltildi. Çalışma hesap mantığı, finans, parser, tema ve diğer çalışan sistemler korunmuştur.",
+  "message": "V118: Karanlık mod kapalıyken ana sayfa, takvim, raporlar, finans, modal, form ve liste yüzeyleri tam açık tema kontrastına geçirildi. Kredi kartı tasarımları ve tüm çalışma/finans/parser iş mantığı korunmuştur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V117-WORK-ROAD-SAFE-FIX",
-  "version": "WORK-V117"
+  "build": "20260928-HANE-WORK-V119-LIGHT-MODE-COMPLETE",
+  "version": "WORK-V119"
 }
