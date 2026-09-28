@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.50-work-v116",
-  "minimumVersion": "0.15.50-work-v116",
+  "latestVersion": "0.15.51-work-v117",
+  "minimumVersion": "0.15.51-work-v117",
   "force": true,
-  "message": "V116: V113 açılış zinciri ve Service Worker uygulama dosyası referansı düzeltildi. Tema, donut ve çalışma mantığı korunmuştur.",
+  "message": "V117: Çalışma formundaki Yol Gideri Ekle düğmesi güvenli doğrudan bağlama ile düzeltildi. Çalışma hesap mantığı, finans, parser, tema ve diğer çalışan sistemler korunmuştur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V116-CARD-STATEMENT-CLEAN",
-  "version": "WORK-V116"
+  "build": "20260928-HANE-WORK-V117-WORK-ROAD-SAFE-FIX",
+  "version": "WORK-V117"
 }
