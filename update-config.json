@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.47-work-v113",
-  "minimumVersion": "0.15.47-work-v113",
+  "latestVersion": "0.15.49-work-v115",
+  "minimumVersion": "0.15.49-work-v115",
   "force": true,
-  "message": "V113: Tema Stüdyosu 15 farklı hazır tasarımla genişletildi; klasik siyah, beyaz ve monokrom temalar eklendi. Borçlar sekmesine kart renklerine göre dinamik donut borç dağılımı eklendi. Çalışma mantığı değiştirilmedi.",
+  "message": "V115: V113 açılış zinciri ve Service Worker uygulama dosyası referansı düzeltildi. Tema, donut ve çalışma mantığı korunmuştur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V113-THEME-DEBT-DONUT",
-  "version": "WORK-V113"
+  "build": "20260928-HANE-WORK-V115-STARTUP-RECOVERY",
+  "version": "WORK-V115"
 }
