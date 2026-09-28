@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260929-HANE-WORK-V145-TEB-STRICT-MUTABAKAT';
+  const BUILD='20260928-HANE-WORK-V141-CARD-VISUAL-ACTIONS';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;

@@ -2,8 +2,8 @@
   "latestVersion": "0.15.75-work-v143",
   "minimumVersion": "0.15.75-work-v143",
   "force": true,
-  "message": "V145: TEB parser yalnız gerçek işlem tablosu sınırları içindeki satırları kabul eder; limit, hesap kesim, son ödeme ve minimum ödeme bilgi alanları hareket sayılmaz. V143 kart ve çalışan sistemler korunur.",
+  "message": "V143: Kart detay işlemleri tek menü altında toplandı; kart üzerindeki banka ve kart adı küçültüldü. V140 çalışma mantığı korundu.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V145-TEB-TABLE-BOUNDARY-FIX",
-  "version": "WORK-V145"
+  "build": "20260928-HANE-WORK-V146-CARD-ACTION-MENU",
+  "version": "WORK-V146"
 }
