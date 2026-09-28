@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.75-work-v142",
-  "minimumVersion": "0.15.75-work-v142",
+  "latestVersion": "0.15.75-work-v143",
+  "minimumVersion": "0.15.75-work-v143",
   "force": true,
-  "message": "V142: Kart detay işlemleri tek menü altında toplandı; kart üzerindeki banka ve kart adı küçültüldü. V140 çalışma mantığı korundu.",
+  "message": "V143: Kart detay işlemleri tek menü altında toplandı; kart üzerindeki banka ve kart adı küçültüldü. V140 çalışma mantığı korundu.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V142-CARD-ACTION-MENU",
-  "version": "WORK-V142"
+  "build": "20260928-HANE-WORK-V143-CARD-ACTION-MENU",
+  "version": "WORK-V143"
 }
