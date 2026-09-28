@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.38-work-v95",
-  "minimumVersion": "0.15.38-work-v95",
+  "latestVersion": "0.15.38-work-v96",
+  "minimumVersion": "0.15.38-work-v96",
   "force": true,
-  "message": "V95: TEB için eski app-v19 asset zinciri kırıldı; uygulama benzersiz app-v95.js ile yüklenir. Fiziksel sayaç kullanılamıyorsa TEB önizleme katmanı da eski meta değerlerinden bağımsız olarak Fazla Aday/Çözümlenemeyen değerlerini 0 gösterir. V94 banka düzeltmeleri korunur.",
+  "message": "V96: TEB için eski app-v19 asset zinciri kırıldı; uygulama benzersiz app-v96.js ile yüklenir. Fiziksel sayaç kullanılamıyorsa TEB önizleme katmanı da eski meta değerlerinden bağımsız olarak Fazla Aday/Çözümlenemeyen değerlerini 0 gösterir. V94 banka düzeltmeleri korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V95-TEB-STALE-ASSET-HARD-FIX",
-  "version": "WORK-V95"
+  "build": "20260928-HANE-WORK-V96-TEB-STALE-ASSET-HARD-FIX",
+  "version": "WORK-V96"
 }

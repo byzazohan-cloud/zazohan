@@ -4952,3 +4952,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 .statementV65Audit.ok{border-color:rgba(54,211,153,.38);box-shadow:inset 0 0 0 1px rgba(54,211,153,.08)}
 .statementV65Audit.review{border-color:rgba(255,170,60,.38)}
 .statementV65Audit>b{display:block;margin-bottom:10px;letter-spacing:.04em}
+/* V96 semantic finance colors */
+:root{--hane-income:#2bd48e;--hane-expense:#ff616d;--hane-remain:#f0bd59;--hane-debt:#ff9f43;--hane-payment:#35a7ff;--hane-fee:#b66cff;--hane-refund:#29d3c2;--hane-warning:#f0bd59;--hane-critical:#ff616d;--hane-ok:#2bd48e}
+.reportTotalBar.inc b,.incomeAmount,.incomeValue{color:var(--hane-income)!important}.reportTotalBar.exp b,.expenseCenterRight b,.expenseAmount{color:var(--hane-expense)!important}.reportTotalBar.net b,.remainValue,.netValue{color:var(--hane-remain)!important}
+.reportPeriodV96{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:8px 0 14px}.reportPeriodV96 button{min-width:0;padding:9px 2px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);color:rgba(255,255,255,.72);font-size:10px;font-weight:800}.reportPeriodV96 button.active{color:#fff;border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:rgba(71,191,255,.12)}
