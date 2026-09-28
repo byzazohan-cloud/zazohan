@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.68-work-v135",
-  "minimumVersion": "0.15.68-work-v135",
+  "latestVersion": "0.15.69-work-v136",
+  "minimumVersion": "0.15.69-work-v136",
   "force": true,
-  "message": "V135: TEB doğrulanmış satırlar MUTABIK; SW/manifest/cache kimlikleri temizlendi ve tek build altında eşitlendi.",
+  "message": "V136: TEB fiziksel aday sayacı PDF koordinatlarından doğrulanır; açılış dosya yolu eski Service Worker ile uyumlu sabit tutulur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V135-TEB-STATUS-CACHE-CLEAN",
-  "version": "WORK-V135"
+  "build": "20260928-HANE-WORK-V136-TEB-PHYSICAL-CACHE-FINAL",
+  "version": "WORK-V136"
 }

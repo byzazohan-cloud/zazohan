@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260928-HANE-WORK-V135-TEB-STATUS-CACHE-CLEAN',
+  build:'20260928-HANE-WORK-V136-TEB-PHYSICAL-CACHE-FINAL',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -369,7 +369,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,cashMoney,tara,profile,adminProfile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V135-TEB-STATUS-CACHE-CLEAN')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V135-TEB-STATUS-CACHE-CLEAN.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V136-TEB-PHYSICAL-CACHE-FINAL')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V136-TEB-PHYSICAL-CACHE-FINAL.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -1097,7 +1097,7 @@ function upcomingPayments(){
 function paymentBucket(x){if(x.paid)return'ÖDENDİ';if(x.days<0)return'GECİKMİŞ';if(x.days===0)return'BUGÜN';if(x.days===1)return'YARIN';if(x.days<=7)return'BU HAFTA';return'YAKLAŞIYOR'}
 function alerts(){const all=upcomingPayments(),groups=['GECİKMİŞ','BUGÜN','YARIN','BU HAFTA','YAKLAŞIYOR','ÖDENDİ'];return `<div class="section"><b>YAKLAŞAN ÖDEMELER</b><span>${all.filter(x=>!x.paid).length} BEKLEYEN</span></div>${groups.map(g=>{const a=all.filter(x=>paymentBucket(x)===g);if(!a.length)return'';return `<div class="paymentGroup"><div class="section"><b>${g}</b><span>${a.length}</span></div>${a.map(x=>`<div class="item paymentDue ${x.paid?'isPaid':''}"><div class="ico premiumIco">${x.kind==='fixed'?'🧾':x.kind==='card'?'💳':'🏦'}</div><div><b>${esc(x.title)}</b><small>${prettyDate(x.date)} · ${x.kind==='fixed'?'GİDER':x.kind==='card'?'KREDİ KARTI':'ESNEK HESAP'}</small></div><div class="reportMoveRight"><b>${money(x.amount)}</b><small>${g}</small></div></div>`).join('')}</div>`}).join('')||'<div class="notice">YAKLAŞAN ÖDEME YOK.</div>'}`}
 
-function about(){return`<div class="profile"><div class="aboutV5Logo">${haneFullLogo("aboutV5")}</div><p>SÜRÜM 0.15.68 · V135 TEB STATUS + CACHE CLEAN</p><p>PREMİUM EV BÜTÇEN.<br>VERİLERİN CİHAZINDA ŞİFRELİ SAKLANIR.</p></div>`}
+function about(){return`<div class="profile"><div class="aboutV5Logo">${haneFullLogo("aboutV5")}</div><p>SÜRÜM 0.15.69 · V136 TEB PHYSICAL + CACHE FINAL</p><p>PREMİUM EV BÜTÇEN.<br>VERİLERİN CİHAZINDA ŞİFRELİ SAKLANIR.</p></div>`}
 function memberExpenseRows(memberId,m=state.selectedMonth){
   return actualExpenseEntriesForMonth(m).filter(x=>(x.memberId||'')===(memberId||''));
 }
@@ -3253,7 +3253,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260928-HANE-WORK-V135-TEB-STATUS-CACHE-CLEAN';
+const HANE_SW_BUILD='20260928-HANE-WORK-V136-TEB-PHYSICAL-CACHE-FINAL';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v4.10-stable';
 const HANE_ENGINE_PACKAGES=[
@@ -3508,7 +3508,46 @@ async function stmtPdfPageTexts(pg){
     halkPhysicalCount=tx.length;
     halkLayout=[...hbSummaryLines,'__HANE_HALKBANK_TABLE_ENGINE__','İşlem Tarihi Açıklama TUTAR(TL) ParafPara',...tx].join('\n');
   }
-  return{raw,layout,halkLayout,hasHalkTable,hasHalkSummary,halkPhysicalCount}
+
+  // V136 — TEB fiziksel aday sayacı doğrudan PDF koordinatlarından.
+  // SADE/Zengin Ekstre metin sırası bozulsa bile görsel tablodaki tarih+tutar çiftleri sayılır.
+  // Parserdan bağımsızdır; yalnız işlem tablosu başlığından sonraki gerçek satırlar kabul edilir.
+  let tebPhysicalCount=0;
+  if(/TEB|TÜRK EKONOMİ BANKASI|TURK EKONOMI BANKASI/i.test(layout)){
+    const upperLines=lines.map(l=>l.items.map(i=>String(i.s||'')).join(' ').replace(/\s+/g,' ').trim().toLocaleUpperCase('tr-TR'));
+    let head=upperLines.findIndex(t=>/(?:İŞLEM|ISLEM)\s*TAR[İI]H[İI]/.test(t)&&/(?:AÇIKLAMA|ACIKLAMA)/.test(t));
+    if(head<0)head=upperLines.findIndex(t=>/(?:İŞLEM|ISLEM)\s*TAR[İI]H[İI]/.test(t));
+    if(head>=0){
+      let end=lines.length;
+      for(let k=head+1;k<lines.length;k++){
+        if(/BU\s+KARTINIZLA\s+YAPILAN\s+(?:İŞLEM|ISLEM)\s+TOPLAMLARI|GENEL\s+TOPLAM/.test(upperLines[k])){end=k;break}
+      }
+      const dateRe=/^\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2})$/;
+      const moneyRe=/^(?:[+\-]?\s*(?:TL|TRY|₺)[. ]*)?[+\-]?\s*(?:\d{1,3}(?:[.,]\d{3})*|\d+)(?:[.,]\d{2}|[.,]-)$/i;
+      const dates=[],money=[];
+      for(let k=head+1;k<end;k++){
+        const li=lines[k];
+        for(const it of li.items){
+          const raw=String(it.s||'').trim(),x=Number(it.x),y=Number(li.y);
+          if(dateRe.test(raw))dates.push({k,x,y,raw});
+          if(moneyRe.test(raw)&&!/^(?:0[.,]00|0[.,]-)$/.test(raw.replace(/[^0-9,.-]/g,'')))money.push({k,x,y,raw});
+        }
+      }
+      const used=new Set();
+      for(const d of dates){
+        let bi=-1,bd=Infinity;
+        for(let i=0;i<money.length;i++){
+          if(used.has(i))continue;const m=money[i];
+          // Tutar sütunu tarihin sağında ve aynı görsel satırda olmalı.
+          if(m.x<=d.x+18)continue;
+          const dy=Math.abs(m.y-d.y),dk=Math.abs(m.k-d.k);
+          if(dy<=12&&dk<=2&&dy<bd){bi=i;bd=dy}
+        }
+        if(bi>=0){used.add(bi);tebPhysicalCount++}
+      }
+    }
+  }
+  return{raw,layout,halkLayout,hasHalkTable,hasHalkSummary,halkPhysicalCount,tebPhysicalCount}
 }
 
 // V72 — Ziraat / Bankkart sayfa sınırı tekrar temizliği.
@@ -3611,9 +3650,9 @@ async function readStatementFile(file){
     const pe=document.getElementById('statementImportProgress');if(pe)pe.textContent='PDF MOTORU HAZIRLANIYOR...';
     await ensurePdfEngineReady();
     const pdfjs=await getStatementPdfRuntime();
-    const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;let rawText='',layoutText='',halkText='',pages=[],pageLayouts=[],pageHalkLayouts=[],pageHalkPhysicalCounts=[];
+    const pdf=await pdfjs.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;let rawText='',layoutText='',halkText='',pages=[],pageLayouts=[],pageHalkLayouts=[],pageHalkPhysicalCounts=[],pageTebPhysicalCounts=[];
     for(let n=1;n<=Math.min(pdf.numPages,12);n++){
-      const pg=await pdf.getPage(n),pt=await stmtPdfPageTexts(pg);pages.push(pg);pageLayouts.push(pt.layout);pageHalkLayouts.push(pt.halkLayout||pt.layout);pageHalkPhysicalCounts.push(+pt.halkPhysicalCount||0);rawText+='\n'+pt.raw;layoutText+='\n'+pt.layout;
+      const pg=await pdf.getPage(n),pt=await stmtPdfPageTexts(pg);pages.push(pg);pageLayouts.push(pt.layout);pageHalkLayouts.push(pt.halkLayout||pt.layout);pageHalkPhysicalCounts.push(+pt.halkPhysicalCount||0);pageTebPhysicalCounts.push(+pt.tebPhysicalCount||0);rawText+='\n'+pt.raw;layoutText+='\n'+pt.layout;
       // Özet sayfalarını aynen, işlem tablosu olan sayfaları yalnız koordinat-doğrulanmış satırlarla taşı.
       halkText+='\n'+((pt.hasHalkTable||pt.hasHalkSummary)?pt.halkLayout:pt.layout)
     }
@@ -3631,7 +3670,10 @@ async function readStatementFile(file){
     const finalBank=stmtDetectBank(text,statementImportCardId);let pageAudit,physicalRowCount,overlapRemoved=0;
     if(finalBank.id==='ziraat'&&ziraatClean){pageAudit=ziraatClean.pageAudit;physicalRowCount=ziraatClean.physicalRowCount;overlapRemoved=ziraatClean.overlapRemoved||0}
     else if(finalBank.id==='teb'){
-      const tebPageAudit=stmtTebPageOverlapAudit(pageLayouts);pageAudit=tebPageAudit.pageAudit;physicalRowCount=tebPageAudit.physicalRowCount;overlapRemoved=tebPageAudit.overlapRemoved||0;
+      // V136: Öncelik PDF koordinat tablosudur. Böylece TEB'de FİZİKSEL ADAY artık “—” kalmaz.
+      const coordCounts=pageTebPhysicalCounts||[],coordTotal=coordCounts.reduce((a,n)=>a+(+n||0),0);
+      if(coordTotal>0){pageAudit=coordCounts.map((n,i)=>({page:i+1,candidates:+n||0,overlapRemoved:0}));physicalRowCount=coordTotal;overlapRemoved=0;}
+      else{const tebPageAudit=stmtTebPageOverlapAudit(pageLayouts);pageAudit=tebPageAudit.pageAudit;physicalRowCount=tebPageAudit.physicalRowCount;overlapRemoved=tebPageAudit.overlapRemoved||0;}
     }
     else if(finalBank.id==='halkbank'){
       // V88: Koordinat-doğrulanmış Halkbank satırlarını kullan; yalnız gerçek sayfa-sonu/başı
