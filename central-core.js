@@ -28,13 +28,14 @@
   function importRutin(o,label='RUTIN yedeği'){const c=convertRutin(o),db=read(),before={expenses:db.finance.expenses.length};mergeConverted(db,c);const entry={id:uid(),type:'RUTIN-BACKUP-V3',label,importedAt:now(),counts:{expenses:c.finance.expenses.length,incomes:c.finance.incomes.length,cards:c.finance.cards.length,notes:c.organization.notes.length}};db.imports.rutin.push(entry);db.migration.log.push({...entry,action:'IMPORT'});write(db);return {ok:true,...entry,before,after:{expenses:db.finance.expenses.length}}}
   const APP_BINDINGS={profile:'profile',settings:'settings'};
   const APPSTATE_BINDINGS={selectedMonth:'selectedMonth',theme:'theme',homeLayout:'homeLayout',homeHidden:'homeHidden'};
-  const ORG_BINDINGS={notes:'notes',members:'members'};
-  const FINANCE_BINDINGS={expenses:'expenses',incomes:'incomes',cards:'cards',flexAccounts:'flexAccounts',accounts:'accounts',customCategories:'customCategories',categoryMeta:'categoryMeta',categoryRegistry:'categoryRegistry',statementImports:'statementImports',statementCategoryRules:'statementCategoryRules',cardTransactions:'cardTransactions',cardPayments:'cardPayments',flexTransactions:'flexTransactions',installments:'installments'};
+  const ORG_BINDINGS={notes:'notes',reminders:'reminders',members:'members'};
+  const FINANCE_BINDINGS={expenses:'expenses',incomes:'incomes',cards:'cards',flexAccounts:'flexAccounts',accounts:'accounts',customCategories:'customCategories',categoryMeta:'categoryMeta',categoryRegistry:'categoryRegistry',statements:'statements',investments:'investments',statementImports:'statementImports',statementCategoryRules:'statementCategoryRules',cardTransactions:'cardTransactions',cardPayments:'cardPayments',flexTransactions:'flexTransactions',installments:'installments'};
   function attachFinanceState(s){
     if(!s||typeof s!=='object')return null;
     const db=read();
     // V109: Finance Core is the owner. Çalışma (work/workRoads/workPayments/workDeductions)
     // and Nakit Para (cashGiven/cashManual/cashExcluded) intentionally stay outside.
+    // SAFETY: Do not add work*, cash* fields to any binding map in this file.
     for(const [prop,key] of Object.entries(FINANCE_BINDINGS)){
       const current=s[prop];
       if(Array.isArray(db.finance[key]))db.finance[key]=Array.isArray(current)?current:[];
@@ -48,6 +49,7 @@
     db.appState.homeLayout=Array.isArray(s.homeLayout)?s.homeLayout:[];
     db.appState.homeHidden=Array.isArray(s.homeHidden)?s.homeHidden:[];
     db.organization.notes=Array.isArray(s.notes)?s.notes:[];
+    db.organization.reminders=Array.isArray(s.reminders)?s.reminders:[];
     db.organization.members=Array.isArray(s.members)?s.members:[];
     db.migration.lastHaneSyncAt=now();
     volatileDb=normalize(db);attachedState=s;

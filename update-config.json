@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.54-work-v123",
-  "minimumVersion": "0.15.54-work-v123",
+  "latestVersion": "0.15.58-work-v127",
+  "minimumVersion": "0.15.58-work-v127",
   "force": true,
-  "message": "V123: Çalışma takviminde Tam Gün, Saatlik İş ve Mesai gün hücreleri aynı aktif profil rengini kullanır; kayıt türü şeritlerden ayrılır. Hesaplama ve diğer çalışan sistemler değiştirilmedi.",
+  "message": "V127: V126 runtime, Service Worker, cache ve force-update kimlikleri tek sürüm altında eşitlendi. Çalışma, Nakit Para, banka parserları ve finans hesaplama mantığı değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V123-WORK-COLOR-SAFE",
-  "version": "WORK-V123"
+  "build": "20260928-HANE-WORK-V127-CENTRAL-CLEAN-SAFE",
+  "version": "WORK-V127"
 }
