@@ -4963,3 +4963,13 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 /* V106 category detail management */
 .fixedCatManageHero{width:100%;text-align:left;color:inherit;cursor:pointer;font:inherit}.fixedCatManageHero>strong{margin-left:auto}.fixedCatManageHero:active{transform:scale(.995)}
 .calendarDayManageRow{display:flex;align-items:center;justify-content:space-between;gap:10px}.calendarDayManageRow>div:first-child{min-width:0;flex:1}.calendarDayManageActions{display:flex;gap:6px;flex-shrink:0}.calendarDayManageActions .btn{width:auto;margin:0;padding:9px 10px;font-size:11px}.calendarDayManageActions .danger{border-color:rgba(255,97,109,.55);color:var(--red,#ff616d)}
+/* V110 · Finance segmented control, statement month swipe, debt graph */
+.financeSegmented{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:10px 14px 16px;padding:5px;border:1px solid rgba(71,191,255,.25);border-radius:16px;background:rgba(7,15,23,.82)}
+.financeSegmented button{min-height:42px;border:0;border-radius:11px;background:transparent;color:#8093a5;font-weight:900;font-size:11px;letter-spacing:.35px}
+.financeSegmented button.active{color:#57c8ff;background:linear-gradient(180deg,rgba(40,153,211,.22),rgba(14,48,68,.48));box-shadow:inset 0 0 0 1px rgba(71,191,255,.48),0 0 18px rgba(30,150,220,.12)}
+.cardsStatementSwipe{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:6px;align-items:stretch;margin:0 14px}
+.cardsStatementSwipe .cardsV57BankStatement{margin:0;width:100%;min-width:0}
+.statementArrow{border:1px solid rgba(71,191,255,.42);border-radius:13px;background:rgba(8,20,29,.9);color:#5bc9ff;font-size:23px;font-weight:900}.statementArrow:disabled{opacity:.25}
+.debtGraph{margin:12px 14px 18px;padding:14px;border:1px solid rgba(71,191,255,.24);border-radius:17px;background:rgba(8,16,24,.78)}
+.debtGraphTitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.debtGraphTitle b{font-size:12px}.debtGraphTitle span{font-size:9px;color:#7f94a6}
+.debtGraphRow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(80px,1fr) auto;gap:8px;align-items:center;margin:9px 0}.debtGraphRow>span{font-size:9px;color:#aebbc6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.debtGraphRow>div{height:7px;background:#13212c;border-radius:9px;overflow:hidden}.debtGraphRow i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#24a9e8,#59d2ff)}.debtGraphRow>b{font-size:9px;color:#e6f7ff}
