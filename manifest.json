@@ -1,7 +1,7 @@
 {
-  "name": "HANE V0.15.69",
+  "name": "HANE V0.15.70",
   "short_name": "HANE",
-  "start_url": "./?v=WORK-V136",
+  "start_url": "./?v=WORK-V137",
   "scope": "./",
   "display": "standalone",
   "background_color": "#05080d",
@@ -34,5 +34,5 @@
     "productivity",
     "utilities"
   ],
-  "version": "0.15.69"
+  "version": "0.15.70"
 }
