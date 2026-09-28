@@ -4959,3 +4959,7 @@ radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 31%),linear
 /* V97 category/work polish */
 .v2WorkActions.personWorkActions{grid-template-columns:repeat(2,minmax(0,1fr))}.v2WorkActions.personWorkActions button:last-child{grid-column:1/-1;border-color:rgba(255,97,109,.35)}
 .categoryIconPicker{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-height:310px;overflow:auto}.categoryIconChoice{min-height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#10151c;color:#fff}.categoryIconChoice.active{outline:2px solid var(--accent)}
+
+/* V106 category detail management */
+.fixedCatManageHero{width:100%;text-align:left;color:inherit;cursor:pointer;font:inherit}.fixedCatManageHero>strong{margin-left:auto}.fixedCatManageHero:active{transform:scale(.995)}
+.calendarDayManageRow{display:flex;align-items:center;justify-content:space-between;gap:10px}.calendarDayManageRow>div:first-child{min-width:0;flex:1}.calendarDayManageActions{display:flex;gap:6px;flex-shrink:0}.calendarDayManageActions .btn{width:auto;margin:0;padding:9px 10px;font-size:11px}.calendarDayManageActions .danger{border-color:rgba(255,97,109,.55);color:var(--red,#ff616d)}

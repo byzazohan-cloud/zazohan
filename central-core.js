@@ -1,4 +1,4 @@
-/* HANE V0.3 - CENTRAL WORKFLOW
+/* HANE V105 - CENTRAL WORKFLOW
    Finans için tek merkezi veri sahibi. Çalışma ve Nakit Para bu modelin dışındadır;
    finans alanları uygulama state üzerinde erişim köprüsüyle bu çekirdeğe yönlendirilir. */
 (()=>{
@@ -29,7 +29,7 @@
   function attachFinanceState(s){
     if(!s||typeof s!=='object')return null;
     const db=read();
-    // V103: Finance Core is the owner. Çalışma (work/workRoads/workPayments/workDeductions)
+    // V105: Finance Core is the owner. Çalışma (work/workRoads/workPayments/workDeductions)
     // and Nakit Para (cashGiven/cashManual/cashExcluded) intentionally stay outside.
     for(const [prop,key] of Object.entries(FINANCE_BINDINGS)){
       const current=s[prop];
