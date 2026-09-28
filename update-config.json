@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.45-work-v110",
-  "minimumVersion": "0.15.45-work-v110",
+  "latestVersion": "0.15.47-work-v113",
+  "minimumVersion": "0.15.47-work-v113",
   "force": true,
-  "message": "V111 CLEAN: Çalışma ve Nakit Para hariç finans verisinin tek sahibi Finance Core oldu. Eski state finans erişimleri canlı erişim köprüsüyle aynı merkezi dizilere yönlenir; paralel finans kopyası oluşturulmaz. Banka parser kuralları değiştirilmedi.",
+  "message": "V113: Tema Stüdyosu 15 farklı hazır tasarımla genişletildi; klasik siyah, beyaz ve monokrom temalar eklendi. Borçlar sekmesine kart renklerine göre dinamik donut borç dağılımı eklendi. Çalışma mantığı değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V111-CLEAN",
-  "version": "WORK-V111"
+  "build": "20260928-HANE-WORK-V113-THEME-DEBT-DONUT",
+  "version": "WORK-V113"
 }
