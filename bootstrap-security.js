@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260928-HANE-WORK-V132-TEB-RECON-CACHE-FIX';
+  const BUILD='20260928-HANE-WORK-V133-TEB-FINAL-CACHE-FIX';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
@@ -17,11 +17,10 @@
   }
 
   try{
-    if(localStorage.getItem(KEY)!==BUILD){
-      localStorage.setItem(KEY,BUILD);
-      checkForUpdate();
-    }
+    if(localStorage.getItem(KEY)!==BUILD) localStorage.setItem(KEY,BUILD);
   }catch(e){}
+  // V133: her sayfa açılışında SW güncellemesini hemen kontrol et; hard-refresh gerektirme.
+  checkForUpdate();
 
   if(!('serviceWorker' in navigator)) return;
   window.addEventListener('load',async()=>{
