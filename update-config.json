@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.72-work-v139",
-  "minimumVersion": "0.15.72-work-v139",
+  "latestVersion": "0.15.73-work-v139",
+  "minimumVersion": "0.15.73-work-v139",
   "force": true,
-  "message": "V139: TEB sınıflandırma denetimi; banka ücret/masraf satırları harcamadan ayrılır. Çalışan TEB satır yakalama, audit ve cache yapısı korunur.",
+  "message": "V140: TEB sınıflandırma denetimi; banka ücret/masraf satırları harcamadan ayrılır. Çalışan TEB satır yakalama, audit ve cache yapısı korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V139-TEB-CLASSIFICATION-AUDIT",
-  "version": "WORK-V139"
+  "build": "20260928-HANE-WORK-V140-CARD-VISUAL-ACTIONS",
+  "version": "WORK-V140"
 }
