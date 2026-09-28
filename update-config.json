@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.38-work-v97",
-  "minimumVersion": "0.15.38-work-v97",
+  "latestVersion": "0.15.39-work-v100",
+  "minimumVersion": "0.15.39-work-v100",
   "force": true,
-  "message": "V97: TEB için eski app-v19 asset zinciri kırıldı; uygulama benzersiz app-v97.js ile yüklenir. Fiziksel sayaç kullanılamıyorsa TEB önizleme katmanı da eski meta değerlerinden bağımsız olarak Fazla Aday/Çözümlenemeyen değerlerini 0 gösterir. V94 banka düzeltmeleri korunur.",
+  "message": "V100 CLEAN CORE: eski Sabit Gider/Sabit Gelir aktif hesap dalları temizlendi; kategori, kart bakiyesi ve raporlar tek Gider modeline bağlandı; çalışma yol giderleri tek workRoads kaynağından Gider/Rapor/Kart hesaplarına dahil edildi. Banka parser kuralları değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V97-TEB-STALE-ASSET-HARD-FIX",
-  "version": "WORK-V97"
+  "build": "20260928-HANE-WORK-V100-CLEAN-CORE",
+  "version": "WORK-V100"
 }
