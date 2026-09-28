@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.73-work-v139",
-  "minimumVersion": "0.15.73-work-v139",
+  "latestVersion": "0.15.75-work-v142",
+  "minimumVersion": "0.15.75-work-v142",
   "force": true,
-  "message": "V140: TEB sınıflandırma denetimi; banka ücret/masraf satırları harcamadan ayrılır. Çalışan TEB satır yakalama, audit ve cache yapısı korunur.",
+  "message": "V142: Kart detay işlemleri tek menü altında toplandı; kart üzerindeki banka ve kart adı küçültüldü. V140 çalışma mantığı korundu.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V140-CARD-VISUAL-ACTIONS",
-  "version": "WORK-V140"
+  "build": "20260928-HANE-WORK-V142-CARD-ACTION-MENU",
+  "version": "WORK-V142"
 }
