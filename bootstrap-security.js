@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260928-HANE-WORK-V134-TEB-STATUS-CACHE-FIX';
+  const BUILD='20260928-HANE-WORK-V135-TEB-STATUS-CACHE-CLEAN';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;

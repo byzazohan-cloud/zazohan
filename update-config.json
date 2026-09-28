@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.67-work-v134",
-  "minimumVersion": "0.15.67-work-v134",
+  "latestVersion": "0.15.68-work-v135",
+  "minimumVersion": "0.15.68-work-v135",
   "force": true,
-  "message": "V134: TEB doğrulanmış işlem satırlarında durum MUTABIK gösterilir; yeni sürüm cache/SW güncellemesi güçlendirildi.",
+  "message": "V135: TEB doğrulanmış satırlar MUTABIK; SW/manifest/cache kimlikleri temizlendi ve tek build altında eşitlendi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V134-TEB-STATUS-CACHE-FIX",
-  "version": "WORK-V134"
+  "build": "20260928-HANE-WORK-V135-TEB-STATUS-CACHE-CLEAN",
+  "version": "WORK-V135"
 }
