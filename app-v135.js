@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260928-HANE-WORK-V143-CARD-ACTION-MENU',
+  build:'20260928-HANE-WORK-V144-TEB-TABLE-BOUNDARY-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -369,7 +369,7 @@ function hanAudit(){
  const screenFns={home,transactions,fixed,cards,calendar,reports,cashMoney,tara,profile,adminProfile,backup,settings,categories,theme,alerts,about,monthSpent,monthPaid,members,homeEdit,notes,workCenter};Object.entries(screenFns).forEach(([k,v])=>{if(typeof v!=='function')add('bad','EKRANLAR','EKRAN FONKSİYONU EKSİK',`${k} ekranı oluşturulamıyor.`)});
  const requiredNav=['home','transactions','fixed','cards','calendar','reports','workCenter','tara','profile','backup','settings'];requiredNav.forEach(k=>{if(typeof screenFns[k]!=='function')add('bad','NAVİGASYON','NAVİGASYON HEDEFİ EKSİK',`${k} hedefi bulunamadı.`)});if(typeof goTo!=='function'||typeof goBack!=='function')add('bad','NAVİGASYON','GEZİNME MOTORU EKSİK','goTo/goBack fonksiyonlarından biri bulunamadı.');
  // CACHE-BUILD: bu paket içindeki çalışma sürümü tek kimlikte olmalı.
- const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V143-CARD-ACTION-MENU')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V143-CARD-ACTION-MENU.`);
+ const runtimeBuild=String(HANE_UI?.build||'');if(runtimeBuild!=='20260928-HANE-WORK-V144-TEB-TABLE-BOUNDARY-FIX')add('warn','CACHE-BUILD','BUILD KİMLİĞİ UYUŞMUYOR',`Çalışan arayüz kimliği: ${runtimeBuild||'yok'}. Beklenen: 20260928-HANE-WORK-V144-TEB-TABLE-BOUNDARY-FIX.`);
  if(!('serviceWorker' in navigator))add('warn','CACHE-BUILD','SERVICE WORKER DESTEĞİ YOK','Bu tarayıcı PWA önbellek denetimini desteklemiyor.');
  // YEDEK: şema ve şifreli depo için gerekli temel yapı.
  if(+state.version!==19)add('bad','YEDEK','VERİ ŞEMASI SÜRÜMÜ UYUŞMUYOR',`Beklenen şema 19, bulunan ${String(state.version)}`);if(!state.settings||!Array.isArray(state.expenses)||!Array.isArray(state.incomes)||!Array.isArray(state.cards))add('bad','YEDEK','YEDEK ŞEMASI EKSİK','Temel HANE veri alanlarından biri eksik.');try{const m=meta();if(!m||!m.salt)add('warn','YEDEK','ŞİFRELİ DEPO METASI EKSİK','PIN/şifreli veri metası doğrulanamadı.')}catch(e){add('warn','YEDEK','YEDEK METASI OKUNAMADI','Şifreli depo metası okunurken hata oluştu.')}
@@ -1808,11 +1808,29 @@ function stmtTebSummaryLike(blockText){
   return /(?:ONCEKI\s+DONEM(?:DEN)?\s+(?:DEVIR|DEVREDEN)(?:\s+EDILEN)?\s*(?:TUTAR|BAKIYE|BORC)?|DEVREDEN\s+BAKIYE|DEVIR\s+EDILEN\s+TUTAR|ONCEKI\s+DONEM\s+(?:BORCU|BAKIYESI))/.test(u)
     || /(?:DONEM\s+BORCU|ASGARI\s+ODEME(?:\s+TUTARI)?|TOPLAM\s+FAIZ\s+VE\s+UCRETLER|BU\s+KARTINIZLA\s+YAPILAN\s+ISLEM\s+TOPLAMLARI)/.test(u);
 }
+// V144 — TEB gerçek işlem tablosu sınırı ve bilgi satırı koruması.
+// Bazı TEB PDF'lerinde ekstre üst bilgisindeki Nakit Avans Limiti / sonraki hesap kesim tarihi
+// gibi tarih+tutar içeren alanlar PDF.js tarafından işlem satırı gibi düzleştirilebiliyor.
+// Bunlar hiçbir koşulda banka hareketi değildir.
+function stmtTebNonTransactionMetaLike(blockText){
+  const u=String(blockText||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G').replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C').replace(/\s+/g,' ').trim();
+  if(!u)return false;
+  return /NAKIT\s+AVANS\s+LIMITI|KART\s+LIMITI|KULLANILABILIR\s+LIMIT|BIR\s+SONRAKI\s+HESAP\s+KESIM\s+TARIHI|SONRAKI\s+HESAP\s+KESIM\s+TARIHI|HESAP\s+KESIM\s+TARIHI\s+NO|SON\s+ODEME\s+TARIHI|MINIMUM\s+ODEME|ASGARI\s+ODEME\s+ORANI/.test(u);
+}
+function stmtTebTableBounds(text){
+  const src=String(text||'').replace(/\r/g,'\n');
+  const header=/(?:İŞLEM|ISLEM)\s+TARİHİ\s+(?:İŞLEM|ISLEM)\s+(?:AÇIKLAMASI|ACIKLAMASI)\s+TUTAR(?:\s+BONUS)?/i;
+  const hm=header.exec(src);if(!hm)return{found:false,text:src,start:0,end:src.length};
+  const start=hm.index+hm[0].length,tail=src.slice(start);
+  const stop=/(?:BU\s+KARTINIZLA\s+YAPILAN\s+(?:İŞLEM|ISLEM)\s+TOPLAMLARI|GENEL\s+TOPLAM)/i;
+  const sm=stop.exec(tail),end=sm?start+sm.index:src.length;
+  return{found:true,text:src.slice(start,end),start,end};
+}
 function stmtTebPostProcess(rows){
   return (rows||[]).filter(r=>{
     const raw=`${r?.rawKey||''} ${r?.title||''}`;
-    // Ozet/devir satiri ne kadar faiz kelimesi tasirsa tasisin gercek faiz islemi olamaz.
-    if(stmtCarryForwardLike(raw)||stmtTebSummaryLike(raw))return false;
+    // Ozet/devir ve ekstre bilgi satirlari gercek hareket olamaz.
+    if(stmtCarryForwardLike(raw)||stmtTebSummaryLike(raw)||stmtTebNonTransactionMetaLike(raw))return false;
     return true;
   });
 }
@@ -2029,7 +2047,8 @@ function stmtParseHalkbankCoordinateEngine(text,cardId,profile){
 function stmtParseTebPhysicalEngine(text,cardId,profile){
   if(profile?.id!=='teb')return[];
   const anchor=stmtAnchorInfo(text),rows=[],seen={};
-  const lines=String(text||'').replace(/\r/g,'\n').replace(/\u00a0/g,' ').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+  const tebTable=stmtTebTableBounds(text),tebSource=tebTable.found?tebTable.text:String(text||'');
+  const lines=tebSource.replace(/\r/g,'\n').replace(/\u00a0/g,' ').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
   const dateRx=/\b\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2})\b/;
   const stopRx=/(?:BU\s+KARTINIZLA\s+YAPILAN\s+[İI][ŞS]LEM\s+TOPLAMLARI|GENEL\s+TOPLAM|D[ÖO]NEM\s+BORCU|ASGAR[İI]\s+[ÖO]DEME)/i;
   for(let i=0;i<lines.length;i++){
@@ -2045,7 +2064,7 @@ function stmtParseTebPhysicalEngine(text,cardId,profile){
     let src=parts.join(' ').replace(/\s+/g,' ').trim();
     const stop=src.search(stopRx);if(stop>0)src=src.slice(0,stop).trim();
     // Devir/özet satırı gerçek hareket değildir. Ancak ödeme açıklaması "TEŞEKKÜR EDERİZ" korunur.
-    if(stmtCarryForwardLike(src)||stmtTebSummaryLike(src))continue;
+    if(stmtCarryForwardLike(src)||stmtTebSummaryLike(src)||stmtTebNonTransactionMetaLike(src))continue;
     const vals=stmtAmountCandidates(src).filter(a=>Number.isFinite(a.value)&&Math.abs(a.value)>0);
     if(!vals.length)continue;
     const explicit=vals.filter(a=>['TL','TRY','₺'].includes(a.currency));
@@ -2067,11 +2086,11 @@ function stmtParseTebPhysicalEngine(text,cardId,profile){
 
 function stmtParseTebFixedEngine(text,cardId,profile){
   if(profile?.id!=='teb')return[];
-  const anchor=stmtAnchorInfo(text),rows=[],seen={},lines=String(text||'').replace(/\r/g,'\n').replace(/\u00a0/g,' ').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+  const anchor=stmtAnchorInfo(text),rows=[],seen={},tebTable=stmtTebTableBounds(text),tebSource=tebTable.found?tebTable.text:String(text||''),lines=tebSource.replace(/\r/g,'\n').replace(/\u00a0/g,' ').split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
   for(let i=0;i<lines.length;i++){
     const line=lines[i],m=line.match(/^(\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2}))\s+(.+)$/);if(!m)continue;
     const di=stmtDateInfo(m[1],anchor);if(!di)continue;
-    const rest=m[2].trim();if(stmtCarryForwardLike(rest)||stmtTebSummaryLike(rest))continue;
+    const rest=m[2].trim();if(stmtCarryForwardLike(rest)||stmtTebSummaryLike(rest)||stmtTebNonTransactionMetaLike(rest))continue;
     // TEB SADE ekstrelerinde gerçek hareket tutarı satırın sonundaki TL. tutarıdır.
     // Örn: TL.300,- / TL.2.297,40 / -TL.14.826,69. Başka sayıları tutar sayma.
     const end=rest.match(/([+-]?\s*(?:TL|TRY|₺)\.?\s*[+-]?\s*(?:(?:\d{1,3}(?:[.]\d{3})+|\d+)(?:,\d{2}|,-)?))\s*$/i);
@@ -2088,7 +2107,8 @@ function stmtParseTebFixedEngine(text,cardId,profile){
 function stmtParseTebSegmentEngine(text,cardId,profile){
   if(profile?.id!=='teb')return[];
   const anchor=stmtAnchorInfo(text),rows=[],seen={};
-  let flat=String(text||'').replace(/\r/g,' ').replace(/\n/g,' ').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+  const tebTable=stmtTebTableBounds(text);
+  let flat=(tebTable.found?tebTable.text:String(text||'')).replace(/\r/g,' ').replace(/\n/g,' ').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
   // V78 — TEB sayfa-sonu güvenli segment motoru.
   // Önceki sürümde son gerçek işlemden sonra aynı tarih segmentine yapışan
   // "BU KARTINIZLA... / GENEL TOPLAM" metni yüzünden gerçek son işlem komple atılabiliyordu.
@@ -2106,7 +2126,7 @@ function stmtParseTebSegmentEngine(text,cardId,profile){
     // Fakat özet metni segmentin SONUNA yapıştıysa önce kesilir; gerçek hareket korunur.
     if(stmtCarryForwardLike(body.slice(0,180)))continue;
     const stop=seg.search(stopRx);if(stop>dateRaw.length)seg=seg.slice(0,stop).trim();
-    if(!seg||stmtCarryForwardLike(seg))continue;
+    if(!seg||stmtCarryForwardLike(seg)||stmtTebNonTransactionMetaLike(seg))continue;
     const vals=[...seg.matchAll(/-?\s*(?:TL|TRY|₺)\.?\s*[+-]?\s*(?:(?:\d{1,3}(?:[.]\d{3})+|\d+)(?:,\d{2}|,-)?)/gi)];
     if(!vals.length)continue;
     // Ödeme satırında negatif TL önceliklidir; normal harcamada ilk açık TL hücresi kullanılır.
@@ -2800,17 +2820,18 @@ function stmtPhysicalRowAudit(text,bankId='generic'){
   // SATIR BAŞINDA tam tarih + aynı işlem bloğunda gerçek parasal tutardır. Özet/limit/faiz
   // satırları tarih ile başlamadığı için dışarıda kalır; toplam satırları da ayrıca kesilir.
   if(bankId==='teb'){
+    const tebTable=stmtTebTableBounds(src),tebLines=(tebTable.found?tebTable.text:src).split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
     const fullDate=/^(\d{1,2}[.\/-]\d{1,2}[.\/-](?:20\d{2}|\d{2}))\s+(.+)$/;
     const stopRx=/(?:BU\s+KARTINIZLA\s+YAPILAN\s+[İI][ŞS]LEM\s+TOPLAMLARI|GENEL\s+TOPLAM|D[ÖO]NEM\s+BORCU|ASGAR[İI]\s+[ÖO]DEME|FA[İI]Z\s+ORAN)/i;
     const signatures=[];
-    for(let i=0;i<lines.length;i++){
-      const m=lines[i].match(fullDate);if(!m)continue;
-      let block=lines[i];
-      for(let j=i+1;j<Math.min(lines.length,i+3);j++){
-        if(fullDate.test(lines[j])||stopRx.test(lines[j]))break;
-        block+=' '+lines[j];
+    for(let i=0;i<tebLines.length;i++){
+      const m=tebLines[i].match(fullDate);if(!m)continue;
+      let block=tebLines[i];
+      for(let j=i+1;j<Math.min(tebLines.length,i+3);j++){
+        if(fullDate.test(tebLines[j])||stopRx.test(tebLines[j]))break;
+        block+=' '+tebLines[j];
       }
-      if(stopRx.test(m[2])||stmtPhysicalSummaryLike(block,'teb')||stmtCarryForwardLike(block)||stmtTebSummaryLike(block))continue;
+      if(stopRx.test(m[2])||stmtPhysicalSummaryLike(block,'teb')||stmtCarryForwardLike(block)||stmtTebSummaryLike(block)||stmtTebNonTransactionMetaLike(block))continue;
       // Tarihi bloktan çıkar; böylece tarih rakamları hiçbir zaman tutar adayı olamaz.
       const body=block.replace(fullDate,'$2');
       const vals=stmtAmountCandidates(body).filter(a=>Number.isFinite(+a.value)&&Math.abs(+a.value)>.004);
@@ -3266,7 +3287,7 @@ const HANE_OCR_CORE='./__hane_engine__/tesseract/core';
 const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs';
 const HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs';
 let statementOcrWorker=null,statementOcrLabel='OCR',statementPdfjs=null,statementPdfWorker=null,statementPrivacyPrepared=false,statementPrivacyPreparePromise=null,statementEngineMode='local';
-const HANE_SW_BUILD='20260928-HANE-WORK-V143-CARD-ACTION-MENU';
+const HANE_SW_BUILD='20260928-HANE-WORK-V144-TEB-TABLE-BOUNDARY-FIX';
 const HANE_SW_URL='./sw.js?v='+encodeURIComponent(HANE_SW_BUILD);
 const HANE_ENGINE_CACHE='hane-engine-v4.10-stable';
 const HANE_ENGINE_PACKAGES=[
