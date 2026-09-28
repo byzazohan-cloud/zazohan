@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.70-work-v137",
-  "minimumVersion": "0.15.70-work-v137",
+  "latestVersion": "0.15.71-work-v137",
+  "minimumVersion": "0.15.71-work-v137",
   "force": true,
-  "message": "V137: TEB SADE/Zengin Ekstre fiziksel sayaçta 8 haneli DDMMYYYY tarih hücreleri desteklenir; çalışan parser ve cache açılış yapısı korunur.",
+  "message": "V138: TEB SADE/Zengin Ekstre fiziksel sayaçta 8 haneli DDMMYYYY tarih hücreleri desteklenir; çalışan parser ve cache açılış yapısı korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V137-TEB-8DIGIT-PHYSICAL-FIX",
-  "version": "WORK-V137"
+  "build": "20260928-HANE-WORK-V138-TEB-AUDIT-GATE-FIX",
+  "version": "WORK-V138"
 }
