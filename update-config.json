@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.71-work-v137",
-  "minimumVersion": "0.15.71-work-v137",
+  "latestVersion": "0.15.72-work-v139",
+  "minimumVersion": "0.15.72-work-v139",
   "force": true,
-  "message": "V138: TEB SADE/Zengin Ekstre fiziksel sayaçta 8 haneli DDMMYYYY tarih hücreleri desteklenir; çalışan parser ve cache açılış yapısı korunur.",
+  "message": "V139: TEB sınıflandırma denetimi; banka ücret/masraf satırları harcamadan ayrılır. Çalışan TEB satır yakalama, audit ve cache yapısı korunur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V138-TEB-AUDIT-GATE-FIX",
-  "version": "WORK-V138"
+  "build": "20260928-HANE-WORK-V139-TEB-CLASSIFICATION-AUDIT",
+  "version": "WORK-V139"
 }
