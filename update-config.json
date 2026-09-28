@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.39-work-v100",
-  "minimumVersion": "0.15.39-work-v100",
+  "latestVersion": "0.15.40-work-v101",
+  "minimumVersion": "0.15.40-work-v101",
   "force": true,
-  "message": "V100 CLEAN CORE: eski Sabit Gider/Sabit Gelir aktif hesap dalları temizlendi; kategori, kart bakiyesi ve raporlar tek Gider modeline bağlandı; çalışma yol giderleri tek workRoads kaynağından Gider/Rapor/Kart hesaplarına dahil edildi. Banka parser kuralları değiştirilmedi.",
+  "message": "V101 CENTRAL CORE: kategori ayrıntı eylemi eski Sabit Gider engelinden ayrıldı; Kira/Aidat kategori kaydı güçlendirildi; kategori yönetimi tek kayıt defterine bağlandı. Çalışma ve Nakit Para bağımsız bırakıldı; banka parser kuralları değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V100-CLEAN-CORE",
-  "version": "WORK-V100"
+  "build": "20260928-HANE-WORK-V101-CENTRAL-CORE",
+  "version": "WORK-V101"
 }
