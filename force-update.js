@@ -13,5 +13,5 @@
       await Promise.all(ks.filter(k=>k.startsWith('hane-')).map(k=>caches.delete(k)));
     }
   }catch(e){}
-  location.replace('./?v=WORK-V101&fresh='+Date.now());
+  location.replace('./?v=WORK-V103&fresh='+Date.now());
 })();

@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.40-work-v101",
-  "minimumVersion": "0.15.40-work-v101",
+  "latestVersion": "0.15.40-work-v103",
+  "minimumVersion": "0.15.40-work-v103",
   "force": true,
-  "message": "V101 CENTRAL CORE: kategori ayrıntı eylemi eski Sabit Gider engelinden ayrıldı; Kira/Aidat kategori kaydı güçlendirildi; kategori yönetimi tek kayıt defterine bağlandı. Çalışma ve Nakit Para bağımsız bırakıldı; banka parser kuralları değiştirilmedi.",
+  "message": "V103 CENTRAL OWNER: Çalışma ve Nakit Para hariç finans verisinin tek sahibi Finance Core oldu. Eski state finans erişimleri canlı erişim köprüsüyle aynı merkezi dizilere yönlenir; paralel finans kopyası oluşturulmaz. Banka parser kuralları değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V101-CENTRAL-CORE",
-  "version": "WORK-V101"
+  "build": "20260928-HANE-WORK-V103-CENTRAL-OWNER",
+  "version": "WORK-V103"
 }

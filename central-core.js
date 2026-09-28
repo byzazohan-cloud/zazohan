@@ -1,32 +1,57 @@
 /* HANE V0.3 - CENTRAL WORKFLOW
-   Tek merkezi veri modeli. HANE ve RUTIN kaynakları bu modele kopyalanır;
-   kaynak uygulama/yedek değiştirilmez. */
+   Finans için tek merkezi veri sahibi. Çalışma ve Nakit Para bu modelin dışındadır;
+   finans alanları uygulama state üzerinde erişim köprüsüyle bu çekirdeğe yönlendirilir. */
 (()=>{
   'use strict';
-  const KEY='HANE_CENTRAL_V3', LEGACY_KEY=['ZAZO','HAN_CENTRAL_V2'].join(''), SCHEMA=3;
+  const KEY='HANE_CENTRAL_V4', LEGACY_KEY=['ZAZO','HAN_CENTRAL_V2'].join(''), SCHEMA=4;
   const now=()=>new Date().toISOString();
   const uid=()=>crypto.randomUUID?.()||('z_'+Date.now().toString(36)+Math.random().toString(36).slice(2));
   const clone=v=>{try{return structuredClone(v)}catch(_){return JSON.parse(JSON.stringify(v))}};
   const blank=()=>({
     schema:SCHEMA,app:'HANE',createdAt:now(),updatedAt:now(),profile:{},settings:{},
-    finance:{expenses:[],incomes:[],cards:[],flexAccounts:[],accounts:[],fixedExpenses:[],categories:[],categoryMeta:{},statements:[],investments:[],cashTransactions:[],cardTransactions:[],cardPayments:[],statementImports:[],statementCategoryRules:{},fixedPayments:[],flexTransactions:[],installments:[],customCategories:[]},
-    work:{records:[],overtime:[],receivables:[],roadPayments:[],calendar:[]},
+    finance:{expenses:[],incomes:[],cards:[],flexAccounts:[],accounts:[],categories:[],categoryRegistry:{},categoryMeta:{},statements:[],investments:[],cardTransactions:[],cardPayments:[],statementImports:[],statementCategoryRules:{},flexTransactions:[],installments:[],customCategories:[]},
     organization:{notes:[],reminders:[],members:[]},
     links:[],imports:{hane:[],rutin:[]},han:{reviewed:[],findings:[]},migration:{log:[]}
   });
-  function normalize(db){const b=blank(),x=db&&typeof db==='object'?db:{};return {...b,...x,finance:{...b.finance,...(x.finance||{})},work:{...b.work,...(x.work||{})},organization:{...b.organization,...(x.organization||{})},imports:{...b.imports,...(x.imports||{})},han:{...b.han,...(x.han||{})},migration:{...b.migration,...(x.migration||{})},schema:SCHEMA,app:'HANE'};}
+  function normalize(db){const b=blank(),x=db&&typeof db==='object'?db:{};return {...b,...x,finance:{...b.finance,...(x.finance||{})},organization:{...b.organization,...(x.organization||{})},imports:{...b.imports,...(x.imports||{})},han:{...b.han,...(x.han||{})},migration:{...b.migration,...(x.migration||{})},schema:SCHEMA,app:'HANE'};}
   // SECURITY: The central model is a derived working view only. It must never create a
   // second plaintext copy of PIN-protected HANE/RUTIN financial data in Web Storage.
-  let volatileDb=null;
+  let volatileDb=null,attachedState=null;
   function read(){return normalize(volatileDb?clone(volatileDb):blank())}
   function write(v){const x=normalize(v);x.updatedAt=now();volatileDb=clone(x);return clone(x)}
   function detectBackup(o){if(o?.format==='RUTIN-BACKUP-V3'&&o.state)return 'RUTIN-BACKUP-V3';if(o?.state&&Array.isArray(o.state.expenses)&&Array.isArray(o.state.cards))return 'HANE-STATE';if(o&&Array.isArray(o.expenses)&&Array.isArray(o.cards))return 'HANE-STATE';return 'UNKNOWN'}
   const src=(x,source)=>({...clone(x),_source:source,_sourceId:String(x?.id??'')});
-  function convertRutin(o){if(detectBackup(o)!=='RUTIN-BACKUP-V3')throw new Error('RUTIN-BACKUP-V3 bekleniyor');const s=o.state||{},z=blank();z.profile=clone(s.profile||{});z.settings=clone(s.settings||{});z.work.records=(s.work||[]).map(x=>src(x,'RUTIN'));z.finance.expenses=(s.expenses||[]).map(x=>src(x,'RUTIN'));z.finance.incomes=(s.incomes||[]).map(x=>src(x,'RUTIN'));z.finance.cards=(s.cards||[]).map(x=>src(x,'RUTIN'));z.finance.flexAccounts=(s.flexAccounts||[]).map(x=>src(x,'RUTIN'));z.finance.accounts=clone(s.accounts||{});z.finance.categories=clone(s.categories||[]);z.finance.categoryMeta=clone(s.categoryMeta||{});z.finance.investments=(s.investments||[]).map(x=>src(x,'RUTIN'));z.finance.cashTransactions=(s.cashTransactions||[]).map(x=>src(x,'RUTIN'));z.organization.notes=(s.notes||[]).map(x=>src(x,'RUTIN'));z.organization.reminders=clone(s.manualReminders||[]);z.work.roadPayments=z.finance.expenses.filter(x=>String(x.category||'').toLocaleUpperCase('tr-TR')==='YOL'&&x.workId).map(clone);z.work.overtime=z.work.records.filter(x=>x.type==='overtime').map(clone);z.work.calendar=z.work.records.map(x=>({id:'cal_'+x._sourceId,date:x.date,type:'work',recordId:x._sourceId,title:x.title||'ÇALIŞMA',amount:Number(x.amount)||0,_source:'RUTIN'}));return z}
+  function convertRutin(o){if(detectBackup(o)!=='RUTIN-BACKUP-V3')throw new Error('RUTIN-BACKUP-V3 bekleniyor');const s=o.state||{},z=blank();z.profile=clone(s.profile||{});z.settings=clone(s.settings||{});z.finance.expenses=(s.expenses||[]).map(x=>src(x,'RUTIN'));z.finance.incomes=(s.incomes||[]).map(x=>src(x,'RUTIN'));z.finance.cards=(s.cards||[]).map(x=>src(x,'RUTIN'));z.finance.flexAccounts=(s.flexAccounts||[]).map(x=>src(x,'RUTIN'));z.finance.accounts=clone(s.accounts||{});z.finance.categories=clone(s.categories||[]);z.finance.categoryMeta=clone(s.categoryMeta||{});z.finance.investments=(s.investments||[]).map(x=>src(x,'RUTIN'));z.organization.notes=(s.notes||[]).map(x=>src(x,'RUTIN'));z.organization.reminders=clone(s.manualReminders||[]);return z}
   function mergeUnique(a,b){const out=[...(a||[])],seen=new Set(out.map(x=>`${x._source||''}|${x._sourceId||x.id||''}`));for(const x of b||[]){const k=`${x._source||''}|${x._sourceId||x.id||''}`;if(!seen.has(k)){seen.add(k);out.push(clone(x))}}return out}
-  function mergeConverted(db,c){db.profile=Object.keys(db.profile||{}).length?db.profile:clone(c.profile);db.settings={...(c.settings||{}),...(db.settings||{})};for(const k of ['expenses','incomes','cards','flexAccounts','fixedExpenses','categories','statements','investments','cashTransactions']){if(k==='categories')db.finance[k]=[...new Set([...(db.finance[k]||[]),...(c.finance[k]||[])])];else db.finance[k]=mergeUnique(db.finance[k],c.finance[k])}db.finance.accounts={...(c.finance.accounts||{}),...(db.finance.accounts||{})};db.finance.categoryMeta={...(c.finance.categoryMeta||{}),...(db.finance.categoryMeta||{})};for(const k of ['records','overtime','receivables','roadPayments','calendar'])db.work[k]=mergeUnique(db.work[k],c.work[k]);db.organization.notes=mergeUnique(db.organization.notes,c.organization.notes);db.organization.reminders=mergeUnique(db.organization.reminders,c.organization.reminders);return db}
-  function importRutin(o,label='RUTIN yedeği'){const c=convertRutin(o),db=read(),before={work:db.work.records.length,expenses:db.finance.expenses.length};mergeConverted(db,c);const entry={id:uid(),type:'RUTIN-BACKUP-V3',label,importedAt:now(),counts:{work:c.work.records.length,expenses:c.finance.expenses.length,incomes:c.finance.incomes.length,cards:c.finance.cards.length,notes:c.organization.notes.length}};db.imports.rutin.push(entry);db.migration.log.push({...entry,action:'IMPORT'});write(db);return {ok:true,...entry,before,after:{work:db.work.records.length,expenses:db.finance.expenses.length}}}
-  function syncFromHaneState(s){if(!s||typeof s!=='object')return null;const db=read(),map=(a)=>(a||[]).map(x=>src(x,'HANE')),keep=(a)=>(a||[]).filter(x=>x&&x._source&&x._source!=='HANE');db.profile=clone(s.profile||db.profile||{});db.settings={...(db.settings||{}),hane:clone(s.settings||{})};db.finance.expenses=[...keep(db.finance.expenses),...map(s.expenses)];db.finance.incomes=[...keep(db.finance.incomes),...map(s.incomes)];db.finance.cards=[...keep(db.finance.cards),...map(s.cards)];db.finance.flexAccounts=[...keep(db.finance.flexAccounts),...map(s.flexAccounts)];db.finance.fixedExpenses=keep(db.finance.fixedExpenses);db.finance.categories=clone(s.customCategories||s.categories||[]);db.finance.customCategories=clone(s.customCategories||[]);db.finance.categoryMeta=clone(s.categoryMeta||{});db.finance.statements=[...keep(db.finance.statements),...map(s.statementImports||s.statements||s.statementHistory||[])];db.finance.statementImports=[...keep(db.finance.statementImports),...map(s.statementImports)];db.finance.statementCategoryRules=clone(s.statementCategoryRules||{});db.finance.cardTransactions=[...keep(db.finance.cardTransactions),...map(s.cardTransactions)];db.finance.cardPayments=[...keep(db.finance.cardPayments),...map(s.cardPayments)];db.finance.fixedPayments=keep(db.finance.fixedPayments);db.finance.flexTransactions=[...keep(db.finance.flexTransactions),...map(s.flexTransactions)];db.finance.installments=[...keep(db.finance.installments),...map(s.installments)];db.finance.accounts=clone(s.accounts||[]);db.organization.members=clone(s.members||[]);db.work.records=[...keep(db.work.records),...map(s.work||[])];db.work.receivables=[...keep(db.work.receivables),...map(s.receivables||[])];db.work.roadPayments=db.finance.expenses.filter(x=>x.workId&&String(x.category||'').toLocaleUpperCase('tr-TR').match(/ULAŞ|YOL/)).map(clone);db.work.overtime=db.work.records.filter(x=>x.type==='overtime').map(clone);db.work.calendar=db.work.records.map(x=>({id:'cal_'+(x._sourceId||x.id),date:x.date,type:'work',recordId:x._sourceId||x.id,title:x.title||'ÇALIŞMA',amount:Number(x.amount)||Number(x.hours||0)*Number(x.rate||0),_source:x._source||'HANE'}));db.migration.lastHaneSyncAt=now();return write(db)}
+  function mergeConverted(db,c){db.profile=Object.keys(db.profile||{}).length?db.profile:clone(c.profile);db.settings={...(c.settings||{}),...(db.settings||{})};for(const k of ['expenses','incomes','cards','flexAccounts','categories','statements','investments']){if(k==='categories')db.finance[k]=[...new Set([...(db.finance[k]||[]),...(c.finance[k]||[])])];else db.finance[k]=mergeUnique(db.finance[k],c.finance[k])}db.finance.accounts={...(c.finance.accounts||{}),...(db.finance.accounts||{})};db.finance.categoryMeta={...(c.finance.categoryMeta||{}),...(db.finance.categoryMeta||{})};db.organization.notes=mergeUnique(db.organization.notes,c.organization.notes);db.organization.reminders=mergeUnique(db.organization.reminders,c.organization.reminders);return db}
+  function importRutin(o,label='RUTIN yedeği'){const c=convertRutin(o),db=read(),before={expenses:db.finance.expenses.length};mergeConverted(db,c);const entry={id:uid(),type:'RUTIN-BACKUP-V3',label,importedAt:now(),counts:{expenses:c.finance.expenses.length,incomes:c.finance.incomes.length,cards:c.finance.cards.length,notes:c.organization.notes.length}};db.imports.rutin.push(entry);db.migration.log.push({...entry,action:'IMPORT'});write(db);return {ok:true,...entry,before,after:{expenses:db.finance.expenses.length}}}
+  const FINANCE_BINDINGS={expenses:'expenses',incomes:'incomes',cards:'cards',flexAccounts:'flexAccounts',accounts:'accounts',customCategories:'customCategories',categoryMeta:'categoryMeta',categoryRegistry:'categoryRegistry',statementImports:'statementImports',statementCategoryRules:'statementCategoryRules',cardTransactions:'cardTransactions',cardPayments:'cardPayments',flexTransactions:'flexTransactions',installments:'installments'};
+  function attachFinanceState(s){
+    if(!s||typeof s!=='object')return null;
+    const db=read();
+    // V103: Finance Core is the owner. Çalışma (work/workRoads/workPayments/workDeductions)
+    // and Nakit Para (cashGiven/cashManual/cashExcluded) intentionally stay outside.
+    for(const [prop,key] of Object.entries(FINANCE_BINDINGS)){
+      const current=s[prop];
+      if(Array.isArray(db.finance[key]))db.finance[key]=Array.isArray(current)?current:[];
+      else db.finance[key]=(current&&typeof current==='object')?current:{};
+    }
+    db.finance.categories=Array.isArray(s.customCategories)?s.customCategories:[];
+    db.profile=clone(s.profile||db.profile||{});db.settings={...(db.settings||{}),hane:clone(s.settings||{})};db.organization.members=clone(s.members||[]);db.migration.lastHaneSyncAt=now();
+    volatileDb=normalize(db);attachedState=s;
+    for(const [prop,key] of Object.entries(FINANCE_BINDINGS)){
+      const desc=Object.getOwnPropertyDescriptor(s,prop);
+      if(desc&&desc.configurable===false)continue;
+      Object.defineProperty(s,prop,{enumerable:true,configurable:true,get(){return volatileDb.finance[key]},set(v){if(Array.isArray(volatileDb.finance[key]))volatileDb.finance[key]=Array.isArray(v)?v:[];else volatileDb.finance[key]=(v&&typeof v==='object')?v:{}}});
+    }
+    return s;
+  }
+  function syncFromHaneState(s){
+    if(!s||typeof s!=='object')return null;
+    if(attachedState){const db=volatileDb;db.profile=clone(s.profile||db.profile||{});db.settings={...(db.settings||{}),hane:clone(s.settings||{})};db.organization.members=clone(s.members||[]);db.migration.lastHaneSyncAt=now();db.updatedAt=now();return read()}
+    attachFinanceState(s);return read();
+  }
+  function finance(){return volatileDb?volatileDb.finance:blank().finance}
   const dayNum=d=>{const t=Date.parse(String(d||'').slice(0,10)+'T00:00:00Z');return Number.isFinite(t)?Math.floor(t/86400000):null};
   const cents=v=>Math.round((Number(v)||0)*100);
   const normText=v=>String(v||'').toLocaleUpperCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9ÇĞİÖŞÜ]+/g,' ').trim();
@@ -39,7 +64,7 @@
 
   function migrationFinding(id){const d=read();return (d.han.findings||[]).find(x=>String(x.id)===String(id)&&x.kind==='MIGRATION_POSSIBLE_MATCH')||null}
   function resolveMigrationFinding(id,decision){const db=read(),i=(db.han.findings||[]).findIndex(x=>String(x.id)===String(id)&&x.kind==='MIGRATION_POSSIBLE_MATCH');if(i<0)throw new Error('Olası eşleşme bulunamadı');const f=db.han.findings[i],same=decision==='same',type=same?'HANE_RUTIN_EQUIVALENT':'HANE_RUTIN_DISTINCT';const exists=(db.links||[]).some(x=>x.type===type&&String(x.haneId)===String(f.haneId)&&String(x.rutinId)===String(f.rutinId));if(!exists)db.links.push({id:uid(),type,haneId:String(f.haneId),rutinId:String(f.rutinId),matchedAt:now(),method:'USER_REVIEW',status:same?'matched':'distinct',reviewFindingId:String(f.id)});db.han.reviewed=db.han.reviewed||[];db.han.reviewed.push({...f,reviewedAt:now(),decision:same?'same':'different'});db.han.findings.splice(i,1);write(db);return {decision:same?'same':'different',finding:f}}
-  function summary(){const d=read();return {schema:d.schema,work:d.work.records.length,roadPayments:d.work.roadPayments.length,expenses:d.finance.expenses.length,incomes:d.finance.incomes.length,cards:d.finance.cards.length,flexAccounts:d.finance.flexAccounts.length,cardTransactions:d.finance.cardTransactions.length,cardPayments:d.finance.cardPayments.length,fixedPayments:d.finance.fixedPayments.length,statements:d.finance.statementImports.length,categories:d.finance.customCategories.length,notes:d.organization.notes.length,rutinImports:d.imports.rutin.length,lastHaneSyncAt:d.migration.lastHaneSyncAt||null}}
-  window.HANE_CORE=Object.freeze({KEY,SCHEMA,blank,read,write,detectBackup,convertRutin,importRutin,syncFromHaneState,reconcileFinance,migrationFinding,resolveMigrationFinding,summary});
+  function summary(){const d=read();return {schema:d.schema,expenses:d.finance.expenses.length,incomes:d.finance.incomes.length,cards:d.finance.cards.length,flexAccounts:d.finance.flexAccounts.length,cardTransactions:d.finance.cardTransactions.length,cardPayments:d.finance.cardPayments.length,statements:d.finance.statementImports.length,categories:Object.keys(d.finance.categoryRegistry||{}).length,notes:d.organization.notes.length,rutinImports:d.imports.rutin.length,lastHaneSyncAt:d.migration.lastHaneSyncAt||null}}
+  window.HANE_CORE=Object.freeze({KEY,SCHEMA,blank,read,write,detectBackup,convertRutin,importRutin,attachFinanceState,syncFromHaneState,finance,reconcileFinance,migrationFinding,resolveMigrationFinding,summary});
   write(blank());
 })();
