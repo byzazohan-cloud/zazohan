@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.51-work-v117",
-  "minimumVersion": "0.15.51-work-v117",
+  "latestVersion": "0.15.52-work-v121",
+  "minimumVersion": "0.15.52-work-v121",
   "force": true,
-  "message": "V118: Karanlık mod kapalıyken ana sayfa, takvim, raporlar, finans, modal, form ve liste yüzeyleri tam açık tema kontrastına geçirildi. Kredi kartı tasarımları ve tüm çalışma/finans/parser iş mantığı korunmuştur.",
+  "message": "V121: masaüstünde kart tıklama/ekstre açma, Çalışma takviminde Tam Gün ve Saatlik İş profil rengi tutarlılığı ve V121 build/cache eşitlemesi. Çalışma hesaplama ve banka parser mantığı değiştirilmedi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V120-LIGHT-MODE-COMPLETE",
-  "version": "WORK-V120"
+  "build": "20260928-HANE-WORK-V121-SAFE-UI-BUILD-FIX",
+  "version": "WORK-V121"
 }

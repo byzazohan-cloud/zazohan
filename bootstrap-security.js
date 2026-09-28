@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260928-HANE-WORK-V120-CARD-STATEMENT-CLEAN';
+  const BUILD='20260928-HANE-WORK-V121-SAFE-UI-BUILD-FIX';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
