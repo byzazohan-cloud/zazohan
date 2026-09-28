@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.62-work-v129",
-  "minimumVersion": "0.15.62-work-v129",
+  "latestVersion": "0.15.67-work-v134",
+  "minimumVersion": "0.15.67-work-v134",
   "force": true,
-  "message": "V127: V126 runtime, Service Worker, cache ve force-update kimlikleri tek sürüm altında eşitlendi. Çalışma, Nakit Para, banka parserları ve finans hesaplama mantığı değiştirilmedi.",
+  "message": "V134: TEB doğrulanmış işlem satırlarında durum MUTABIK gösterilir; yeni sürüm cache/SW güncellemesi güçlendirildi.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V133-TEB-FINAL-CACHE-FIX",
-  "version": "WORK-V133"
+  "build": "20260928-HANE-WORK-V134-TEB-STATUS-CACHE-FIX",
+  "version": "WORK-V134"
 }
