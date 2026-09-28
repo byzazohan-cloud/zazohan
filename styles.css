@@ -5093,3 +5093,19 @@ html.lightMode .debtDonutCenter{background:#fff!important;border-color:#d8d1c5!i
 html.lightMode .debtDonutCenter b,html.lightMode .debtDonutLegend b{color:#171717!important}
 html.lightMode .debtDonutCenter small,html.lightMode .debtDonutLegend small{color:#6b665f!important}
 \n\n/* WORK V121 — Çalışma takvimi profil rengi tutarlılığı.\n   Tam gün ve saatlik iş aynı profil rengini kullanır; iş türü şeritlerden anlaşılır. */\n.personWorkCalendar .zCalDay.hourly{\n  background:color-mix(in srgb,var(--member-color,#24e895) 22%,#071015)!important;\n  border-color:color-mix(in srgb,var(--member-color,#24e895) 72%,transparent)!important;\n  box-shadow:inset 5px 0 var(--member-color,#24e895),0 0 12px color-mix(in srgb,var(--member-color,#24e895) 22%,transparent)!important;\n  color:var(--member-color,#24e895)!important;\n}\n/* Saatlik şeridi mor kalır; profil rengi iş türünü değiştirmez. */\n.personWorkCalendar .zCalDay>span.eventDots>i.eventBadge.hourly{\n  background:linear-gradient(90deg,#6c2bb5,#bd70ff)!important;\n  color:#fff!important;\n}\n
+/* WORK V123 — Çalışma takvimi profil rengi kesin eşleme.
+   Tam Gün / Saatlik / Mesai hücre zemini aynı aktif profil rengini kullanır.
+   Kayıt türleri yalnız alt şerit renkleri ve etiketleriyle ayrılır. */
+.personWorkCalendar .zCalDay.worked,
+.personWorkCalendar .zCalDay.hourly,
+.personWorkCalendar .zCalDay.overtime,
+.personWorkCalendar .zCalDay.hasOvertime,
+.personWorkCalendar .zCalDay.hasHourly,
+.personWorkCalendar .zCalDay.worked.hasOvertime,
+.personWorkCalendar .zCalDay.worked.hasHourly,
+.personWorkCalendar .zCalDay.hourly.hasOvertime {
+  background:color-mix(in srgb,var(--member-color,#24e895) 22%,#071015)!important;
+  border-color:color-mix(in srgb,var(--member-color,#24e895) 72%,transparent)!important;
+  box-shadow:inset 5px 0 var(--member-color,#24e895),0 0 12px color-mix(in srgb,var(--member-color,#24e895) 22%,transparent)!important;
+  color:var(--member-color,#24e895)!important;
+}
