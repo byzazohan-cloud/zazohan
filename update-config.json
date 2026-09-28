@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.49-work-v115",
-  "minimumVersion": "0.15.49-work-v115",
+  "latestVersion": "0.15.50-work-v116",
+  "minimumVersion": "0.15.50-work-v116",
   "force": true,
-  "message": "V115: V113 açılış zinciri ve Service Worker uygulama dosyası referansı düzeltildi. Tema, donut ve çalışma mantığı korunmuştur.",
+  "message": "V116: V113 açılış zinciri ve Service Worker uygulama dosyası referansı düzeltildi. Tema, donut ve çalışma mantığı korunmuştur.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V115-STARTUP-RECOVERY",
-  "version": "WORK-V115"
+  "build": "20260928-HANE-WORK-V116-CARD-STATEMENT-CLEAN",
+  "version": "WORK-V116"
 }

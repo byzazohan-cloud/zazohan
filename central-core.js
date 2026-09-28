@@ -1,4 +1,4 @@
-/* HANE V109 - CENTRAL WORKFLOW
+/* HANE - CENTRAL WORKFLOW
    Finans için tek merkezi veri sahibi. Çalışma ve Nakit Para bu modelin dışındadır;
    finans alanları uygulama state üzerinde erişim köprüsüyle bu çekirdeğe yönlendirilir. */
 (()=>{
