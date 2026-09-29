@@ -1,0 +1,12 @@
+HANE V147 — STRICT STATEMENT ENGINE
+
+Temel: V146 tarandı; V143-V146 ekstre katmanları karşılaştırıldı.
+
+Ana kural:
+- Banka özeti ve motor satırları bağımsız okunur.
+- Motor, banka toplamını kendi bulduğu toplamla değiştiremez.
+- Harcama / ödeme / faiz-vergi-ücret / iade / muhasebe denklemi uyuşmadan ekleme açılmaz.
+- Fiziksel işlem tablosu bağımsız doğrulanamazsa 'TAM DOĞRULANDI' denmez.
+- Eksik/fazla fiziksel satır varsa ekleme kilitlenir.
+- Hata nedenleri farklarıyla gösterilir.
+- Parser sonucu yine gösterilir; hata yüzünden 'ekstre okunamadı' ekranına düşmek yerine inceleme ekranında kalır.
