@@ -1,9 +1,4 @@
 {
-  "latestVersion": "0.15.75-work-v175",
-  "minimumVersion": "0.15.75-work-v175",
-  "force": true,
-  "message": "V177: TEB devir alanında faiz oranı yakalanırsa reddedilir ve doğrulanmış ödeme satırından devir geri kurulur. Ekstre Önizleme telefon arayüzü okunabilir ve tam ekran hale getirildi.",
-  "updateUrl": "",
-  "build": "20260929-HANE-WORK-V180-UI-COMPACT",
-  "version": "WORK-V175"
+  "version": "WORK-V182",
+  "message": "V182: TEB footer koordinatı yalnız iki banka toplam satırı aynı değeri verirse kabul edilir. Devir/ödeme bulaşmış parser satırları banka işlem toplamını kuruşu kuruşuna veren benzersiz alt-küme ile ayıklanır."
 }
