@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260929-HANE-WORK-V148-TEB-UNIQUE-RESCUE',
+  build:'20260929-HANE-WORK-V149-TEB-TOTAL-SEMANTICS-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -2125,11 +2125,15 @@ function stmtParseTebSegmentEngine(text,cardId,profile){
 // Bu yalnız TEB'e uygulanır; diğer banka motorları değişmez.
 function stmtChooseTebRows(text,candidates){
   const sum=stmtParseTebLabeledSummary(text)||{},target=Number(sum.spendingTotal),physical=stmtPhysicalRowAudit(text,'teb').count||0;
-  const clean=a=>stmtTebPostProcess(a||[]),spend=a=>clean(a).filter(r=>r?.kind==='spend').reduce((n,r)=>n+Math.abs(+r.amount||0),0);
+  // V149 — TEB SADE'de GENEL TOPLAM / BU KARTINIZLA... toplamı yalnız POS harcaması değil,
+  // karta borç yazılan harcama + banka ücret/faiz satırlarının toplamıdır. Strateji seçimini yalnız
+  // spend ile yapmak ücretli ekstrelerde yanlış parserı seçiyordu (örn. banka 14.826,69 iken
+  // 14.946,58; ya da 29.440,23 yerine 42.347,92). Toplam borç hareketi üzerinden puanla.
+  const clean=a=>stmtTebPostProcess(a||[]),debit=a=>clean(a).filter(r=>r?.kind==='spend'||r?.kind==='fee').reduce((n,r)=>n+Math.abs(+r.amount||0),0);
   let best=null,bestScore=-Infinity;
   for(const c of (candidates||[])){
     const rows=clean(c.rows);if(rows.length<1)continue;
-    const s=spend(rows);let score=rows.length*2;
+    const s=debit(rows);let score=rows.length*2;
     if(Number.isFinite(target)){
       const d=Math.abs(s-target);
       if(d<.02)score+=100000;else score-=Math.min(50000,d*20);
@@ -2178,9 +2182,13 @@ function stmtTebCompleteMissingRows(text,selectedRows,physicalRows){
     // pool indeksini nesne kimliği üzerinden bul; yalnız benzersiz çözüm eklenir.
     for(const j of idxs){const obj=cand[j],pi=pool.indexOf(obj);if(pi>=0)chosen.add(pi)}
   };
-  tryKind('spend',summary.spendingTotal);
-  tryKind('payment',summary.paymentsTotal);
+  // V149 — TEB etiketli işlem toplamı fee dahil toplam borç hareketidir.
+  // Önce fee açığını çöz; sonra saf spend hedefini bankanın toplamından mevcut/etiketli fee düşerek kur.
   tryKind('fee',summary.feesTotal);
+  const feeTarget=Number.isFinite(+summary.feesTotal)?+summary.feesTotal:sum(rows,'fee');
+  const pureSpendTarget=Number.isFinite(+summary.spendingTotal)?round2((+summary.spendingTotal)-Math.max(0,feeTarget)):null;
+  tryKind('spend',pureSpendTarget);
+  tryKind('payment',summary.paymentsTotal);
   // Etiketli toplam eksik/yanlışsa ikinci bağımsız kanıt dönem borcu denklemidir.
   // Yalnız ilk aşamada hiçbir aday seçilmediyse ve denklem açığını benzersiz bir aday kümesi kapatıyorsa kullan.
   if(!chosen.size&&Number.isFinite(+summary.previousBalance)&&Number.isFinite(+summary.periodDebt)){
@@ -2648,6 +2656,13 @@ function normalizeStatementSummary(text,rows,raw){
     // Açık faiz/ücret hareketi yoksa oran metinlerinden ücret üretme.
     if(parsedFees>0){if(!finite(meta.feesTotal)||Math.abs(+meta.feesTotal-parsedFees)>.01)repaired=true;meta.feesTotal=parsedFees}
     else if(!finite(meta.feesTotal))meta.feesTotal=0;
+    // V149 — TEB'in GENEL TOPLAM / BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI değeri
+    // ücret/faiz satırlarını da içerir. HANE muhasebe denkleminde ücret ayrı sütun olduğu için
+    // banka toplamından doğrulanmış ücretleri çıkarıp saf harcamayı sakla. Aksi halde ücret iki kez eklenir.
+    if(finite(meta.spendingTotal)&&parsedFees>0){
+      const bankDebitTotal=round2(+meta.spendingTotal),pureSpend=round2(bankDebitTotal-parsedFees);
+      if(pureSpend>=0){meta.tebBankDebitTotal=bankDebitTotal;meta.spendingTotal=pureSpend;repaired=true;meta.tebSpendExcludesFees=true}
+    }
     meta.summaryRepaired=repaired;
     meta.tebSpendRowsMatch=finite(meta.spendingTotal)&&Math.abs((+meta.spendingTotal)-parsedSpend)<.02;
     meta.tebPaymentRowsMatch=Math.abs((+meta.paymentsTotal||0)-pays)<.02;
