@@ -2675,7 +2675,13 @@ function normalizeStatementSummary(text,rows,raw){
     }
     // Ödeme yalnız gerçek "CEPTETEB ÖDEME TEŞEKKÜR EDERİZ" vb. işlem satırlarından gelir.
     if(paymentCount&&pays>0){if(!finite(meta.paymentsTotal)||Math.abs(+meta.paymentsTotal-pays)>.01)repaired=true;meta.paymentsTotal=round2(pays)}
-    else if(!finite(meta.paymentsTotal))meta.paymentsTotal=0;
+    else {
+      // V161 — TEB: ödeme satırı yoksa ödeme kesinlikle 0'dır.
+      // PDF ham özet/komşu hücre çözümlemesinden gelen sonlu bir değer (özellikle
+      // "Önceki Dönemden Devir Edilen Tutar") ödeme olarak korunamaz.
+      if(!finite(meta.paymentsTotal)||Math.abs(+meta.paymentsTotal)>.01)repaired=true;
+      meta.paymentsTotal=0;meta.tebPaymentForcedFromRows=true;
+    }
     // Açık faiz/ücret hareketi yoksa oran metinlerinden ücret üretme.
     if(parsedFees>0){if(!finite(meta.feesTotal)||Math.abs(+meta.feesTotal-parsedFees)>.01)repaired=true;meta.feesTotal=parsedFees}
     else if(!finite(meta.feesTotal))meta.feesTotal=0;
