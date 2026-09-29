@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260929-HANE-WORK-V149-TEB-TOTAL-SEMANTICS-FIX',
+  build:'20260929-HANE-WORK-V150-TEB-CONSENSUS-GUARD',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -2125,23 +2125,24 @@ function stmtParseTebSegmentEngine(text,cardId,profile){
 // Bu yalnız TEB'e uygulanır; diğer banka motorları değişmez.
 function stmtChooseTebRows(text,candidates){
   const sum=stmtParseTebLabeledSummary(text)||{},target=Number(sum.spendingTotal),physical=stmtPhysicalRowAudit(text,'teb').count||0;
-  // V149 — TEB SADE'de GENEL TOPLAM / BU KARTINIZLA... toplamı yalnız POS harcaması değil,
-  // karta borç yazılan harcama + banka ücret/faiz satırlarının toplamıdır. Strateji seçimini yalnız
-  // spend ile yapmak ücretli ekstrelerde yanlış parserı seçiyordu (örn. banka 14.826,69 iken
-  // 14.946,58; ya da 29.440,23 yerine 42.347,92). Toplam borç hareketi üzerinden puanla.
-  const clean=a=>stmtTebPostProcess(a||[]),debit=a=>clean(a).filter(r=>r?.kind==='spend'||r?.kind==='fee').reduce((n,r)=>n+Math.abs(+r.amount||0),0);
+  const clean=a=>stmtTebPostProcess(a||[]),debit=a=>Math.round(clean(a).filter(r=>r?.kind==='spend'||r?.kind==='fee').reduce((n,r)=>n+Math.abs(+r.amount||0),0)*100)/100;
+  const prepared=(candidates||[]).map(c=>({c,rows:clean(c.rows)})).filter(x=>x.rows.length);
+  // V150 — TEB 3.0 parser consensus. PDF metin sırası bazı SADE ekstrelerinde footer/özet
+  // tutarını yanlış komşu sayıyla eşleştirebiliyor. Tek bir özet rakamı parser seçimini zorlayamaz.
+  // Bağımsız parserların aynı borç-hareket toplamında uzlaşması ikinci doğrulama kanalıdır.
+  const totals=prepared.map(x=>debit(x.rows));
+  const support=t=>totals.filter(v=>Math.abs(v-t)<.02).length;
+  const targetSupported=Number.isFinite(target)&&totals.some(v=>Math.abs(v-target)<.02);
   let best=null,bestScore=-Infinity;
-  for(const c of (candidates||[])){
-    const rows=clean(c.rows);if(rows.length<1)continue;
-    const s=debit(rows);let score=rows.length*2;
-    if(Number.isFinite(target)){
-      const d=Math.abs(s-target);
-      if(d<.02)score+=100000;else score-=Math.min(50000,d*20);
-    }
+  for(const x of prepared){
+    const c=x.c,rows=x.rows,s=debit(rows);let score=rows.length*2;
+    const agree=support(s);if(agree>=2)score+=agree*5000;
+    if(Number.isFinite(target)&&targetSupported){const d=Math.abs(s-target);if(d<.02)score+=100000;else score-=Math.min(30000,d*10)}
     if(physical){const d=Math.abs(rows.length-physical);score-=d*25;if(d===0)score+=100}
-    // Devir/özet artığı kalan strateji seçilemez.
+    if(c.strategy==='teb-fixed-final-tl')score+=40;
+    if(c.strategy==='teb-date-segment-v78')score+=30;
     if(rows.some(r=>stmtCarryForwardLike(`${r?.rawKey||''} ${r?.title||''}`)||stmtTebSummaryLike(`${r?.rawKey||''} ${r?.title||''}`)))score-=100000;
-    if(score>bestScore){bestScore=score;best={rows,strategy:c.strategy}}
+    if(score>bestScore){bestScore=score;best={rows,strategy:c.strategy+(targetSupported?'':' + teb-consensus-v150')}}
   }
   return best;
 }
@@ -2659,9 +2660,19 @@ function normalizeStatementSummary(text,rows,raw){
     // V149 — TEB'in GENEL TOPLAM / BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI değeri
     // ücret/faiz satırlarını da içerir. HANE muhasebe denkleminde ücret ayrı sütun olduğu için
     // banka toplamından doğrulanmış ücretleri çıkarıp saf harcamayı sakla. Aksi halde ücret iki kez eklenir.
-    if(finite(meta.spendingTotal)&&parsedFees>0){
-      const bankDebitTotal=round2(+meta.spendingTotal),pureSpend=round2(bankDebitTotal-parsedFees);
-      if(pureSpend>=0){meta.tebBankDebitTotal=bankDebitTotal;meta.spendingTotal=pureSpend;repaired=true;meta.tebSpendExcludesFees=true}
+    if(finite(meta.spendingTotal)){
+      const bankDebitTotal=round2(+meta.spendingTotal),rowDebitTotal=round2(parsedSpend+parsedFees);
+      // V150: TEB footer rakamı ancak gerçek işlem satırlarıyla makul biçimde doğrulanıyorsa güvenilir.
+      // Büyük sapmada yanlış PDF komşu hücresini banka toplamı diye kullanma; satır toplamını esas al,
+      // fakat bunu 'banka özeti doğrulandı' olarak işaretleme.
+      if(Math.abs(bankDebitTotal-rowDebitTotal)>0.02){
+        meta.tebRejectedBankDebitTotal=bankDebitTotal;meta.tebBankDebitTotal=rowDebitTotal;
+        meta.spendingTotal=parsedSpend;meta.feesTotal=parsedFees;meta.tebSummaryAmountRejected=true;repaired=true;
+      }else{
+        meta.tebBankDebitTotal=bankDebitTotal;
+        const pureSpend=round2(bankDebitTotal-parsedFees);
+        if(pureSpend>=0){meta.spendingTotal=pureSpend;repaired=true;meta.tebSpendExcludesFees=true}
+      }
     }
     meta.summaryRepaired=repaired;
     meta.tebSpendRowsMatch=finite(meta.spendingTotal)&&Math.abs((+meta.spendingTotal)-parsedSpend)<.02;
