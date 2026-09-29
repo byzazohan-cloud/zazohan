@@ -4,6 +4,6 @@
   "force": true,
   "message": "V177: TEB devir alanında faiz oranı yakalanırsa reddedilir ve doğrulanmış ödeme satırından devir geri kurulur. Ekstre Önizleme telefon arayüzü okunabilir ve tam ekran hale getirildi.",
   "updateUrl": "",
-  "build": "20260929-HANE-WORK-V177-TEB-DEVIR-RATE-GUARD-UI",
+  "build": "20260929-HANE-WORK-V179-UI-COMPACT",
   "version": "WORK-V175"
 }
