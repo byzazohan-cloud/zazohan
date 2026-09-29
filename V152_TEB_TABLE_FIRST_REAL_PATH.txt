@@ -1,0 +1,7 @@
+HANE V152 — TEB TABLE-FIRST REAL PATH
+- V151 güvenlik katmanının gerçek TEB audit/guard yoluna bağlanmaması düzeltildi.
+- TEB parser satır-kümesi uzlaşması artık her fiziksel sayaç durumunda meta'ya taşınır.
+- En az 2 bağımsız parser aynı işlem kümesini üretirse işlem tablosu birincil doğrulama olur.
+- PDF footer / dönem borcu / fiziksel sayaç farkı bu durumda yalnız diagnostiktir, içe aktarma kapısı değildir.
+- Parser uzlaşması yoksa fail-closed: içe aktarma kilitli kalır.
+- Diğer banka akışları değiştirilmedi.
