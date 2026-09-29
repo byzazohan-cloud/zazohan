@@ -2779,14 +2779,17 @@ function normalizeStatementSummary(text,rows,raw){
       // Büyük sapmada yanlış PDF komşu hücresini banka toplamı diye kullanma; satır toplamını esas al,
       // fakat bunu 'banka özeti doğrulandı' olarak işaretleme.
       if(Math.abs(bankDebitTotal-rowDebitTotal)>0.02){
-        // V165 — TEB DUAL-CHANNEL: footer PDF düzleşmesinde yanlış komşu hücreye bağlanabiliyor.
-        // İki veya daha fazla bağımsız tablo parserı aynı hareket kümesinde uzlaştığında, yanlış footer
-        // işlem toplamını muhasebe denklemine sokma. Satır toplamlarını kullan; dönem borcu denklemi ve
-        // ödeme/fee tür kanıtları ayrıca doğrulama kapısı olmaya devam eder. Böylece doğru 46 satırlık
-        // tablo, yanlış footer yüzünden sahte 9.922,05 TL denklemine dönmez.
-        meta.tebRejectedBankDebitTotal=bankDebitTotal;meta.tebBankDebitTotal=rowDebitTotal;
-        meta.spendingTotal=parsedSpend;meta.feesTotal=parsedFees;meta.tebSummaryAmountRejected=true;
-        meta.tebParserAmountRejected=false;repaired=true;
+        // V169 — TEB BANK-FOOTER AUTHORITATIVE FIX.
+        // TEB/SADE ekstrelerinde PDF metin katmanı 'Önceki Dönemden Devir Edilen Tutar'ı
+        // tarihli ilk hareketle birleştirip satır tutarını şişirebiliyor. Bu durumda parser satırlarının
+        // toplamını banka footer'ının üzerine YAZMA. stmtParseTebLabeledSummary yalnız iki banka footer
+        // etiketi üzerinde uzlaşan toplamı spendingTotal olarak döndürür; bu değer banka işlem toplamıdır.
+        // Devir ve CEPTETEB ödeme tutarları footer adaylarından zaten dışlanır.
+        meta.tebRejectedParsedDebitTotal=rowDebitTotal;meta.tebBankDebitTotal=bankDebitTotal;
+        const pureSpend=round2(bankDebitTotal-parsedFees);
+        if(pureSpend>=0)meta.spendingTotal=pureSpend;
+        meta.feesTotal=parsedFees;meta.tebSummaryAmountRejected=false;
+        meta.tebParserAmountRejected=true;meta.tebFooterAuthoritative=true;repaired=true;
       }else{
         meta.tebBankDebitTotal=bankDebitTotal;
         const pureSpend=round2(bankDebitTotal-parsedFees);
