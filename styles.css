@@ -5134,3 +5134,25 @@ html.lightMode .debtDonutCenter small,html.lightMode .debtDonutLegend small{colo
 .statementActionBox{margin:8px 0 11px;padding:7px;border:1px solid rgba(71,191,255,.30);border-radius:12px;background:linear-gradient(180deg,rgba(17,29,40,.98),rgba(7,15,22,.99));box-shadow:0 10px 24px rgba(0,0,0,.20)}
 .statementActionBoxTitle{padding:2px 4px 7px;color:var(--muted);font-size:7px;font-weight:900;letter-spacing:.10em}
 .statementActionBox .statementActionMenuPanel{margin:0;padding:0;border:0;background:transparent;box-shadow:none}
+
+/* V172 — Ekstre Önizleme: telefon için kompakt ve düzenli */
+@media (max-width:640px){
+  .modal{padding:8px!important;align-items:flex-start!important}
+  .modal .box{width:calc(100vw - 16px)!important;max-width:none!important;max-height:calc(100dvh - 16px)!important;margin:0!important;border-radius:16px!important;overflow:auto!important}
+  .modal .head{min-height:48px!important;padding:10px 12px!important;position:sticky!important;top:0!important;z-index:8!important;background:var(--surface,#0b1118)!important}
+  .modal .head b{font-size:14px!important}.modal .head button{width:32px!important;height:32px!important;min-width:32px!important;padding:0!important}
+  .modal .body{padding:10px!important}
+  .statementReconcileBox,.statementBankSummary,.notice{margin:8px 0!important;padding:10px!important;border-radius:13px!important}
+  .statementReconcileBox>b,.statementBankSummary>b{font-size:11px!important}
+  .stmtCountGrid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin-top:7px!important}
+  .stmtCountGrid span{padding:6px 3px!important;border-radius:9px!important}.stmtCountGrid small{font-size:7px!important;line-height:1.1!important}.stmtCountGrid b{font-size:12px!important;margin-top:2px!important}
+  .statementReconcileBox>small,.notice small{font-size:8.5px!important;line-height:1.35!important}
+  .stmtEquationGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  .stmtEquationGrid label{font-size:8px!important}.stmtEquationGrid input{height:34px!important;padding:0 8px!important;font-size:11px!important;border-radius:9px!important}
+  .statementImportList{gap:7px!important;margin-top:8px!important}
+  .statementImportRow{grid-template-columns:22px minmax(0,1fr)!important;gap:7px!important;padding:8px!important;border-radius:12px!important}
+  .statementImportRow>input[type="checkbox"]{width:17px!important;height:17px!important;margin-top:8px!important}
+  .stmtEditGrid{grid-template-columns:1fr 1fr!important;gap:5px!important}.stmtEditGrid input,.stmtEditGrid select{height:34px!important;padding:0 7px!important;font-size:10px!important;border-radius:8px!important}
+  .stmtEditGrid input[data-stmt-title]{grid-column:1/-1!important}.stmtTypeEdit select{height:34px!important;font-size:10px!important}.stmtTypeEdit small{font-size:8px!important;margin-top:3px!important}
+  .statementImportList+.btn,.modal .body>.btn{min-height:38px!important;height:38px!important;padding:0 12px!important;font-size:11px!important;border-radius:10px!important}
+}
