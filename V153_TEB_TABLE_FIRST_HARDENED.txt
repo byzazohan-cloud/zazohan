@@ -1,0 +1,9 @@
+HANE V153 — TEB TABLE-FIRST HARDENED
+
+- V152 doğrulanmış 41/41 ve 33/33 yolu korunur.
+- Türkçe karakter/PDF font farklarından etkilenmeyen devir/özet filtresi eklendi.
+- "Önceki Dönemden Devir Edilen Tutar" gerçek işlem olarak içe alınamaz.
+- TEB faiz/vergi/ücret satırları post-process aşamasında yeniden sınıflandırılır.
+- Tam açıklama uzlaşmasına ek olarak tarih+tür+tutar ledger-consensus eklendi.
+- En az iki bağımsız parser aynı parasal işlem defterini üretmeden otomatik doğrulama yoktur.
+- Fail-closed güvenlik kapısı korunur.

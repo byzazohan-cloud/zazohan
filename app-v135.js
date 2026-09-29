@@ -1790,29 +1790,32 @@ function stmtPaymentLike(blockText){
   const u=String(blockText||'').toLocaleUpperCase('tr-TR');
   return /(?:ŞUBE|SUBE)?\s*-?\s*OTOMATİK\s*ÖDEME|OTOMATIK\s*ODEME|İNTERAKTİF\s*ÖDEME|INTERAKTIF\s*ODEME|İNTERNET\s*ŞUBE(?:Sİ)?\s*ÖDEME|INTERNET\s*SUBE(?:SI)?\s*ODEME|MOBİL\s*ÖDEME|MOBIL\s*ODEME|ÖDEME\s*-?\s*TEŞEKK|ODEME\s*-?\s*TESEKK|HESAPTAN\s+ÖDEME|HESAPTAN\s+ODEME|KART\s*ÖDEMESİ|KART\s*ODEMESI|KREDİ\s*KARTI\s*ÖDEME|KREDI\s*KARTI\s*ODEME|BORÇ\s*ÖDEME|BORC\s*ODEME|HESAPTAN\s+AKTARIM.{0,40}İNTERAKTİF|HESAPTAN\s+AKTARIM.{0,40}INTERAKTIF|CEPTETEB\s+ÖDEME|CEPTETEB\s+ODEME/.test(u)
 }
+function stmtTrFold(v){
+  return String(v||'').toLocaleUpperCase('tr-TR')
+    .replace(/İ/g,'I').replace(/İ/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G')
+    .replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
 function stmtCarryForwardLike(blockText){
-  const u=String(blockText||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').replace(/\s+/g,' ').trim();
-  if(!u)return false;
-  // Ekstre tablosunda bilgi amaçlı gösterilen önceki dönem/devir satırları gerçek işlem değildir.
-  // Ödeme satırlarını etkilememek için yalnızca devir + ekstre borcu/bakiye bağlamı filtrelenir.
-  return /BIR\s+ONCEKI\s+DONEM(?:.{0,90})?(?:EKSTRE\s+BORCU|DONEM\s+BORCU|DEVIR|DEVREDEN|BAKIYE)/.test(u)
-    || /ONCEKI\s+DONEM(?:.{0,90})?(?:EKSTRE\s+BORCU|DONEM\s+BORCU|DEVIR|DEVREDEN|BAKIYE)/.test(u)
-    || /(?:DEVREDEN\s+BAKIYE|DEVIR\s+EDILEN\s+TUTAR|ONCEKI\s+AYDAN\s+DEVIR|ONCEKI\s+DONEM(?:DEN)?\s+(?:DEVIR|DEVREDEN)(?:\s+EDILEN)?\s+(?:TUTAR|BAKIYE|BORC)?|ONCEKI\s+DONEM\s+(?:BORCU|BAKIYESI)|BIR\s+ONCEKI\s+HESAP\s+OZETI\s+BAKIYENIZ)/.test(u)
+  const u=stmtTrFold(blockText);if(!u)return false;
+  // V153 — TEB güvenli devir filtresi. Türkçe karakter/PDF font farkından bağımsızdır.
+  // "Önceki Dönemden Devir Edilen Tutar" gibi bilgi satırları ASLA kart hareketi değildir.
+  return /(?:BIR\s+)?ONCEKI\s+DONEM(?:DEN)?\b.{0,120}(?:DEVIR|DEVREDEN|BORC|BAKIYE)/.test(u)
+    || /(?:DEVREDEN\s+BAKIYE|DEVIR\s+EDILEN\s+TUTAR|ONCEKI\s+AYDAN\s+DEVIR|ONCEKI\s+DONEM\s+(?:BORCU|BAKIYESI)|BIR\s+ONCEKI\s+HESAP\s+OZETI\s+BAKIYENIZ)/.test(u)
     || /EKSTRE\s+BORCU(?:.{0,80})?KART\s+NO/.test(u);
 }
-// V68 — TEB ozet/devir korumasi. TEB PDF metni bazen ozet kutusundaki devreden bakiyeyi
-// faiz/ucret basligi ile ayni fiziksel blokta birlestirebiliyor. Bu satirlar hareket degildir.
 function stmtTebSummaryLike(blockText){
-  const u=String(blockText||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G').replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C').replace(/\s+/g,' ').trim();
-  if(!u)return false;
-  return /(?:ONCEKI\s+DONEM(?:DEN)?\s+(?:DEVIR|DEVREDEN)(?:\s+EDILEN)?\s*(?:TUTAR|BAKIYE|BORC)?|DEVREDEN\s+BAKIYE|DEVIR\s+EDILEN\s+TUTAR|ONCEKI\s+DONEM\s+(?:BORCU|BAKIYESI))/.test(u)
-    || /(?:DONEM\s+BORCU|ASGARI\s+ODEME(?:\s+TUTARI)?|TOPLAM\s+FAIZ\s+VE\s+UCRETLER|BU\s+KARTINIZLA\s+YAPILAN\s+ISLEM\s+TOPLAMLARI)/.test(u);
+  const u=stmtTrFold(blockText);if(!u)return false;
+  return stmtCarryForwardLike(u)
+    || /(?:DONEM\s+BORCU|ASGARI\s+ODEME(?:\s+TUTARI)?|TOPLAM\s+FAIZ\s+VE\s+UCRETLER|BU\s+KARTINIZLA\s+YAPILAN\s+ISLEM\s+TOPLAMLARI|GENEL\s+TOPLAM)/.test(u);
 }
 function stmtTebPostProcess(rows){
   return (rows||[]).filter(r=>{
     const raw=`${r?.rawKey||''} ${r?.title||''}`;
-    // Ozet/devir satiri ne kadar faiz kelimesi tasirsa tasisin gercek faiz islemi olamaz.
+    // V153: devir/özet satırı Türkçe font varyantından bağımsız biçimde kesin olarak elenir.
     if(stmtCarryForwardLike(raw)||stmtTebSummaryLike(raw))return false;
+    // TEB'in gerçek vergi/faiz/ücret satırlarını harcama olarak bırakma.
+    if(r&&r.kind==='spend'&&stmtTebFeeLike(raw)){r.kind='fee';r.category='Vergi & Faiz';r.payment=false;r.refund=false;}
     return true;
   });
 }
@@ -2136,17 +2139,21 @@ function stmtChooseTebRows(text,candidates){
   // Önce bağımsız parserların AYNI işlem kümesinde uzlaşıp uzlaşmadığına bakılır.
   // İmza; tarih + tür + tutar + normalize açıklamadır. Aynı gün aynı tutarlı gerçek tekrarlar
   // adetleriyle korunur; yalnız parserlar arası aynı fiziksel hareket yankıları birleştirilir.
-  const rowSig=r=>`${r?.date||''}|${r?.kind||''}|${Math.round(Math.abs(+r?.amount||0)*100)}|${stmtCleanTitle(r?.title||'').toLocaleUpperCase('tr-TR').replace(/\s+/g,' ').trim()}`;
+  const rowSig=r=>`${r?.date||''}|${r?.kind||''}|${Math.round(Math.abs(+r?.amount||0)*100)}|${stmtTrFold(stmtCleanTitle(r?.title||''))}`;
   const setSig=rows=>rows.map(rowSig).sort().join('\n');
-  const sigs=prepared.map(x=>setSig(x.rows));
-  const setSupport=s=>sigs.filter(v=>v===s).length;
+  // V153: PDF.js açıklama metnini parserlar arasında farklı bölebilir. İkinci, daha yapısal uzlaşma
+  // tarihi + işlem türü + kuruş tutarı multisetidir. Başlık uzlaşması daha güçlü olmaya devam eder.
+  const ledgerSig=rows=>rows.map(r=>`${r?.date||''}|${r?.kind||''}|${Math.round(Math.abs(+r?.amount||0)*100)}`).sort().join('\n');
+  const sigs=prepared.map(x=>setSig(x.rows)),ledgerSigs=prepared.map(x=>ledgerSig(x.rows));
+  const setSupport=s=>sigs.filter(v=>v===s).length,ledgerSupport=s=>ledgerSigs.filter(v=>v===s).length;
   const targetSupported=Number.isFinite(target)&&totals.some(v=>Math.abs(v-target)<.02);
   let best=null,bestScore=-Infinity;
   for(const x of prepared){
     const c=x.c,rows=x.rows,s=debit(rows);let score=rows.length*2;
-    const agree=support(s),rowAgree=setSupport(setSig(rows));
-    // Satır-kümesi uzlaşması toplam uzlaşmasından daha güçlüdür.
+    const agree=support(s),rowAgree=setSupport(setSig(rows)),ledgerAgree=ledgerSupport(ledgerSig(rows));
+    // V153: tam satır uzlaşması en güçlü; tarih+tür+tutar ledger uzlaşması ikinci güçlü kanıt.
     if(rowAgree>=2)score+=rowAgree*200000;
+    else if(ledgerAgree>=2)score+=ledgerAgree*120000;
     else if(agree>=2)score+=agree*5000;
     // Banka footer/özet toplamı yalnız destekleyici kanıttır; parser seçimini tek başına belirleyemez.
     if(Number.isFinite(target)&&targetSupported){const d=Math.abs(s-target);if(d<.02)score+=2000;else score-=Math.min(3000,d)}
@@ -2154,7 +2161,7 @@ function stmtChooseTebRows(text,candidates){
     if(c.strategy==='teb-fixed-final-tl')score+=40;
     if(c.strategy==='teb-date-segment-v78')score+=30;
     if(rows.some(r=>stmtCarryForwardLike(`${r?.rawKey||''} ${r?.title||''}`)||stmtTebSummaryLike(`${r?.rawKey||''} ${r?.title||''}`)))score-=100000;
-    if(score>bestScore){bestScore=score;best={rows,strategy:c.strategy+(rowAgree>=2?' + teb-rowset-consensus-v151':(targetSupported?'':' + teb-consensus-v150')),rowSetConsensus:rowAgree}}
+    if(score>bestScore){bestScore=score;best={rows,strategy:c.strategy+(rowAgree>=2?' + teb-rowset-consensus-v151':(ledgerAgree>=2?' + teb-ledger-consensus-v153':(targetSupported?'':' + teb-consensus-v150'))),rowSetConsensus:Math.max(rowAgree,ledgerAgree),tebLedgerConsensus:ledgerAgree}}
   }
   return best;
 }
@@ -3304,7 +3311,7 @@ function statementPreview(cardId,rows){
   fiziksel sayaç farkı tek başına 'İnceleme Gerekiyor' üretemez. Diğer bankaların audit mantığı değişmez. */
   const tebRowsVerified=bankProfile?.id==='teb'&&parsed>0&&!statementImportMeta.importBlocked&&!!(statementImportMeta.tebTableFirstVerified||statementImportMeta.tebTableVerified||statementImportMeta.tebRowTotalsTrusted||statementImportMeta.typeTotalsMatch||statementImportMeta.summaryTrusted);
   if(tebRowsVerified){statementImportMeta.fullVerified=true;statementImportMeta.verificationStatus='verified';statementImportMeta.tebTableVerified=true;}const verifyLabel=(!statementImportMeta.importBlocked&&statementImportMeta.fullVerified)?'EKSTRE TAM DOĞRULANDI':'İNCELEME GEREKİYOR';const pageAudit=statementImportMeta.halkbankCoordinateAuditVerified?`Koordinat: ${physical}${statementImportMeta.halkbankPhysicalEchoRemoved?` (-${statementImportMeta.halkbankPhysicalEchoRemoved} PDF yankısı)`:''}`:(statementImportMeta.pageAudit||[]).map(x=>`S${x.page}: ${x.candidates}${x.overlapRemoved?` (-${x.overlapRemoved} sayfa tekrarı)`:''}`).join(' · ');
-  return `<div class="statementReconcileBox statementV65Audit ${statementImportMeta.fullVerified?'ok':'review'}"><b>${verifyLabel}</b><div class="stmtCountGrid"><span><small>FİZİKSEL ADAY</small><b>${physical||'—'}</b></span><span><small>PARSER</small><b>${parsed}</b></span><span><small>ÇÖZÜMLENEMEYEN</small><b>${unresolved}</b></span><span><small>${recovered?'KURTARILAN':'FAZLA ADAY'}</small><b>${recovered||extra}</b></span></div><small>${pageAudit?`Sayfa kontrolü: ${esc(pageAudit)}. `:''}Harcama ${money(statementImportMeta.parsedSpendingTotal||0)} · Ödeme ${money(statementImportMeta.parsedPaymentsTotal||0)} · İade ${money(statementImportMeta.parsedRefundsTotal||0)} · Faiz/Masraf ${money(statementImportMeta.parsedFeesTotal||0)}${adjustmentRows.length?` · Bonus/Puan ${adjustmentRows.length} satır (harcamaya dahil değil)`:''}.</small>${unresolved&&Array.isArray(statementImportMeta.physicalCandidateSamples)&&statementImportMeta.physicalCandidateSamples.length?`<br><small><b>Şüpheli fiziksel aday örnekleri:</b> ${esc(statementImportMeta.physicalCandidateSamples.slice(0,3).join(' · '))}</small>`:''}${tebRowsVerified?`<br><small>Muhasebe denklemi: ✓ TEB İŞLEM SATIRLARI MUTABIK</small>`:(statementImportMeta.rowEquationTotal!==null&&statementImportMeta.rowEquationTotal!==undefined&&Number.isFinite(+statementImportMeta.rowEquationTotal)?`<br><small>Muhasebe denklemi: ${statementImportMeta.rowEquationOk?'✓ UYUMLU':'⚠ FARK VAR'} · Hesaplanan ${money(+statementImportMeta.rowEquationTotal||0)}</small>`:'')}</div><div class="notice"><b>${esc(c?.bank||'KART')} · •••• ${esc(c?.last4||'')}</b><br><small>Ekstre bankası: <b>${esc(bankProfile.label)}</b></small><br><b>${movementCount} satır bulundu</b> · ${spendRows.length} harcama · ${paymentRows.length} ödeme · ${refundRows.length} iade · ${feeRows.length} vergi/faiz${adjustmentRows.length?` · ${adjustmentRows.length} bonus/puan düzeltme`:''}${skipped?` · ${skipped} mükerrer atlandı`:''}.<br>${statementImportMeta.autoDuplicateRemoved?`<small><b>${statementImportMeta.autoDuplicateRemoved} yinelenen satır</b> banka harcama toplamıyla karşılaştırılarak çıkarıldı (${money(statementImportMeta.autoDuplicateAmount||0)}).</small><br>`:''}${statementImportMeta.autoFeeReclassified?`<small><b>${statementImportMeta.autoFeeReclassified} satır</b> banka özetiyle uzlaştırılarak Vergi & Faiz'e ayrıldı (${money(statementImportMeta.autoFeeReclassifiedAmount||0)}).</small><br>`:''}${statementImportMeta.importBlocked?`<small><b>⛔ İÇE AKTARMA KİLİTLİ:</b> ${esc((statementImportMeta.importGuardReasons||[]).join(' · '))}</small><br>`:''}${statementImportMeta.ziraatSpendFromVerifiedRows?`<small><b>✓ Ziraat harcama özeti işlem satırları + dönem borcu denklemiyle doğrulandı.</b>${Number.isFinite(+statementImportMeta.ziraatOriginalSpendingTotal)?` PDF düz metin sırasında harcama alanına yanlış taşınan ${money(+statementImportMeta.ziraatOriginalSpendingTotal)} değeri kullanılmadı; doğrulanmış gerçek harcama toplamı ${money(+statementImportMeta.spendingTotal)} kullanıldı.`:''}</small><br>`:statementImportMeta.ziraatSummaryIncludesFees?`<small><b>✓ Ziraat özetindeki harcama toplamının faiz/ücreti içerdiği doğrulandı; net harcama ayrıştırıldı.</b></small><br>`:statementImportMeta.summaryRepaired?`<small><b>Ekstre özeti doğrulandı ve PDF metin sırası otomatik düzeltildi.</b></small><br>`:''}${statementImportMeta.tebDebtSummaryUnavailable?`<small><b>✓ TEB işlem satırları doğrulandı.</b> Bu PDF düzeninde Devreden/Dönem Borcu özet hücreleri güvenilir olmadığı için sahte muhasebe farkı üretilmedi.</small><br>`:statementImportMeta.summaryTrusted?`<small>✓ Banka özeti ve işlem satırları birlikte doğrulandı.</small><br>`:statementImportMeta.summaryEquationOk?`<small>⚠ Banka özeti matematiksel olarak tutuyor; işlem satırlarıyla tam doğrulama bekleniyor.</small><br>`:''}<small>Motor: EKSTRE MOTORU 3.0 TABLE-FIRST V152 · Profil: ${esc(bankProfile.label)} · Satır ve blok stratejileri otomatik karşılaştırılır; gerekirse OCR yedeği kullanılır.</small><br><small>Taksitli alışverişlerde yalnızca bu ekstreye yansıyan taksit tutarı gider olarak eklenir.</small></div>
+  return `<div class="statementReconcileBox statementV65Audit ${statementImportMeta.fullVerified?'ok':'review'}"><b>${verifyLabel}</b><div class="stmtCountGrid"><span><small>FİZİKSEL ADAY</small><b>${physical||'—'}</b></span><span><small>PARSER</small><b>${parsed}</b></span><span><small>ÇÖZÜMLENEMEYEN</small><b>${unresolved}</b></span><span><small>${recovered?'KURTARILAN':'FAZLA ADAY'}</small><b>${recovered||extra}</b></span></div><small>${pageAudit?`Sayfa kontrolü: ${esc(pageAudit)}. `:''}Harcama ${money(statementImportMeta.parsedSpendingTotal||0)} · Ödeme ${money(statementImportMeta.parsedPaymentsTotal||0)} · İade ${money(statementImportMeta.parsedRefundsTotal||0)} · Faiz/Masraf ${money(statementImportMeta.parsedFeesTotal||0)}${adjustmentRows.length?` · Bonus/Puan ${adjustmentRows.length} satır (harcamaya dahil değil)`:''}.</small>${unresolved&&Array.isArray(statementImportMeta.physicalCandidateSamples)&&statementImportMeta.physicalCandidateSamples.length?`<br><small><b>Şüpheli fiziksel aday örnekleri:</b> ${esc(statementImportMeta.physicalCandidateSamples.slice(0,3).join(' · '))}</small>`:''}${tebRowsVerified?`<br><small>Muhasebe denklemi: ✓ TEB İŞLEM SATIRLARI MUTABIK</small>`:(statementImportMeta.rowEquationTotal!==null&&statementImportMeta.rowEquationTotal!==undefined&&Number.isFinite(+statementImportMeta.rowEquationTotal)?`<br><small>Muhasebe denklemi: ${statementImportMeta.rowEquationOk?'✓ UYUMLU':'⚠ FARK VAR'} · Hesaplanan ${money(+statementImportMeta.rowEquationTotal||0)}</small>`:'')}</div><div class="notice"><b>${esc(c?.bank||'KART')} · •••• ${esc(c?.last4||'')}</b><br><small>Ekstre bankası: <b>${esc(bankProfile.label)}</b></small><br><b>${movementCount} satır bulundu</b> · ${spendRows.length} harcama · ${paymentRows.length} ödeme · ${refundRows.length} iade · ${feeRows.length} vergi/faiz${adjustmentRows.length?` · ${adjustmentRows.length} bonus/puan düzeltme`:''}${skipped?` · ${skipped} mükerrer atlandı`:''}.<br>${statementImportMeta.autoDuplicateRemoved?`<small><b>${statementImportMeta.autoDuplicateRemoved} yinelenen satır</b> banka harcama toplamıyla karşılaştırılarak çıkarıldı (${money(statementImportMeta.autoDuplicateAmount||0)}).</small><br>`:''}${statementImportMeta.autoFeeReclassified?`<small><b>${statementImportMeta.autoFeeReclassified} satır</b> banka özetiyle uzlaştırılarak Vergi & Faiz'e ayrıldı (${money(statementImportMeta.autoFeeReclassifiedAmount||0)}).</small><br>`:''}${statementImportMeta.importBlocked?`<small><b>⛔ İÇE AKTARMA KİLİTLİ:</b> ${esc((statementImportMeta.importGuardReasons||[]).join(' · '))}</small><br>`:''}${statementImportMeta.ziraatSpendFromVerifiedRows?`<small><b>✓ Ziraat harcama özeti işlem satırları + dönem borcu denklemiyle doğrulandı.</b>${Number.isFinite(+statementImportMeta.ziraatOriginalSpendingTotal)?` PDF düz metin sırasında harcama alanına yanlış taşınan ${money(+statementImportMeta.ziraatOriginalSpendingTotal)} değeri kullanılmadı; doğrulanmış gerçek harcama toplamı ${money(+statementImportMeta.spendingTotal)} kullanıldı.`:''}</small><br>`:statementImportMeta.ziraatSummaryIncludesFees?`<small><b>✓ Ziraat özetindeki harcama toplamının faiz/ücreti içerdiği doğrulandı; net harcama ayrıştırıldı.</b></small><br>`:statementImportMeta.summaryRepaired?`<small><b>Ekstre özeti doğrulandı ve PDF metin sırası otomatik düzeltildi.</b></small><br>`:''}${statementImportMeta.tebDebtSummaryUnavailable?`<small><b>✓ TEB işlem satırları doğrulandı.</b> Bu PDF düzeninde Devreden/Dönem Borcu özet hücreleri güvenilir olmadığı için sahte muhasebe farkı üretilmedi.</small><br>`:statementImportMeta.summaryTrusted?`<small>✓ Banka özeti ve işlem satırları birlikte doğrulandı.</small><br>`:statementImportMeta.summaryEquationOk?`<small>⚠ Banka özeti matematiksel olarak tutuyor; işlem satırlarıyla tam doğrulama bekleniyor.</small><br>`:''}<small>Motor: EKSTRE MOTORU 3.0 TABLE-FIRST V153 · Profil: ${esc(bankProfile.label)} · Satır ve blok stratejileri otomatik karşılaştırılır; gerekirse OCR yedeği kullanılır.</small><br><small>Taksitli alışverişlerde yalnızca bu ekstreye yansıyan taksit tutarı gider olarak eklenir.</small></div>
   <div class="statementReconcileBox s18MatchSummary"><b>EKSTRE MUTABAKATI</b><div class="stmtCountGrid"><span><small>BANKA</small><b>${reconcileStats.bank}</b></span><span><small>EŞLEŞEN</small><b>${reconcileStats.matched}</b></span><span><small>OLASI</small><b>${reconcileStats.possible}</b></span><span><small>YENİ HARCAMA</small><b>${reconcileStats.newSpend}</b></span><span><small>FAİZ / MASRAF</small><b>${reconcileStats.fees}</b></span><span><small>ÖDEME</small><b>${reconcileStats.payments}</b></span>${reconcileStats.adjustments?`<span><small>BONUS / PUAN</small><b>${reconcileStats.adjustments}</b></span>`:''}</div><small>Olası eşleşmeler otomatik birleştirilmez. Banka açıklaması ile HANE kayıt adı ayrı korunur.</small></div>
   <div class="statementReconcileBox statementBankEquation">
     <b>BANKA EKSTRE ÖZETİ</b>
