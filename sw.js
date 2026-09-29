@@ -8,7 +8,7 @@
    4) Runtime blocks unknown same-origin resources; mutable verified app-shell files use network-first with cache fallback for safe updates.
 */
 const SW_BUILD = '20260929-HANE-WORK-V179-UI-COMPACT';
-const CACHE_NAME='hane-work-v179-ui-compact';
+const CACHE_NAME='hane-work-v180-teb-unlock';
 const HANE_CACHE_PREFIX = 'hane-';
 
 
