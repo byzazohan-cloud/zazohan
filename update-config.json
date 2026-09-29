@@ -2,8 +2,8 @@
   "latestVersion": "0.15.75-work-v175",
   "minimumVersion": "0.15.75-work-v175",
   "force": true,
-  "message": "V175: TEB devir tutarı ayrı anchor ile okunur; devir harcama değildir, CEPTETEB ödeme yalnız ödeme satırıdır.",
+  "message": "V176: TEB devir tutarı metin akışından değil, Önceki Dönemden Devir Edilen Tutar satırının koordinatla doğrulanmış TUTAR hücresinden okunur; faiz yüzdeleri devir olamaz.",
   "updateUrl": "",
-  "build": "20260929-HANE-WORK-V175-TEB-DEVIR-ANCHOR",
+  "build": "20260929-HANE-WORK-V176-TEB-DEVIR-COORD",
   "version": "WORK-V175"
 }

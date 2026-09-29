@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260929-HANE-WORK-V175-TEB-DEVIR-ANCHOR',
+  build:'20260929-HANE-WORK-V176-TEB-DEVIR-COORD',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -2682,6 +2682,8 @@ function stmtParseTebLabeledSummary(text){
   // V175 — TEB DEVİR ANCHOR. PDF.js bazen etiketi ve TL tutarını farklı hücre sırasına koyar.
   // Etiketten sonraki dar pencere içinde ilk TL parasını al; bu değer işlem/harcama değildir.
   const previousBalance=(()=>{
+    const coordPrev=grab(/__HANE_TEB_PREVIOUS_BALANCE__\s*([+-]?\d+(?:[.,]\d{2})?)/i);
+    if(Number.isFinite(coordPrev))return Math.abs(coordPrev);
     const direct=grab(new RegExp('[ÖO]NCEK[İI]\\s+D[ÖO]NEMDEN\\s+DEV[İI]R\\s+ED[İI]LEN\\s+TUTAR[^0-9+-]{0,100}(?:TL\\.?)?\\s*'+money,'i'));
     if(Number.isFinite(direct))return Math.abs(direct);
     const folded=stmtTrFold(flat),anchor='ONCEKI DONEMDEN DEVIR EDILEN TUTAR',i=folded.indexOf(anchor);
@@ -3794,6 +3796,30 @@ async function stmtPdfPageTexts(pg){
       }
       return null;
     };
+    // V176 — TEB DEVİR KOORDİNAT MOTORU.
+    // Etiketin görsel satırındaki en sağ parasal hücreyi alır. Metin akışındaki faiz yüzdelerini okumaz.
+    const findPreviousBalance=()=>{
+      for(const l of lines){
+        const label=fold(l.items.map(i=>String(i.s||'')).join(' ').replace(/\s+/g,' ').trim());
+        if(!/ONCEKI DONEMDEN DEVIR EDILEN TUTAR/.test(label))continue;
+        const same=l.items.filter(i=>moneyCell(i.s)&&Number(i.x)>500).map(i=>({x:Number(i.x),v:stmtMoney(String(i.s).replace(/^TL[. ]*/i,''))})).filter(q=>Number.isFinite(q.v));
+        if(same.length)return same.sort((a,b)=>b.x-a.x)[0].v;
+        let best=null,score=Infinity;
+        for(const q of lines){
+          const dy=Math.abs(Number(q.y)-Number(l.y));if(dy>5.5)continue;
+          for(const it of q.items){
+            if(Number(it.x)<=500||!moneyCell(it.s))continue;
+            const v=stmtMoney(String(it.s).replace(/^TL[. ]*/i,''));if(!Number.isFinite(v))continue;
+            const sc=dy*1000-Number(it.x);if(sc<score){best=v;score=sc}
+          }
+        }
+        if(Number.isFinite(best))return best;
+      }
+      return null;
+    };
+    const tebPrev=findPreviousBalance();
+    if(Number.isFinite(tebPrev))halkLayout=[halkLayout,`__HANE_TEB_PREVIOUS_BALANCE__ ${Number(Math.abs(tebPrev)).toFixed(2)}`].join('\n');
+
     const ft1=findFooter(/BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI/),ft2=findFooter(/GENEL TOPLAM/);
     let ft=null;
     if(Number.isFinite(ft1)&&Number.isFinite(ft2)&&Math.abs(ft1-ft2)<.02)ft=ft1;
