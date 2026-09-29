@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.75-work-v158",
-  "minimumVersion": "0.15.75-work-v158",
+  "latestVersion": "0.15.75-work-v159",
+  "minimumVersion": "0.15.75-work-v159",
   "force": true,
-  "message": "V158: TEB ücret/komisyon özeti bağımsız okunur; işlem türü ve parasal mutabakat eşleşmeden tam doğrulama verilmez.",
+  "message": "V159: TEB ücret/komisyon özeti bağımsız okunur; işlem türü ve parasal mutabakat eşleşmeden tam doğrulama verilmez.",
   "updateUrl": "",
-  "build": "20260929-HANE-WORK-V158-TEB-FEE-SUMMARY-GATE-CLEAN",
-  "version": "WORK-V158"
+  "build": "20260929-HANE-WORK-V159-TEB-FEE-SUMMARY-GATE-CLEAN",
+  "version": "WORK-V159"
 }
