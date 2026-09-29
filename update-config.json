@@ -2,8 +2,8 @@
   "latestVersion": "0.15.75-work-v175",
   "minimumVersion": "0.15.75-work-v175",
   "force": true,
-  "message": "V176: TEB devir tutarı metin akışından değil, Önceki Dönemden Devir Edilen Tutar satırının koordinatla doğrulanmış TUTAR hücresinden okunur; faiz yüzdeleri devir olamaz.",
+  "message": "V177: TEB devir alanında faiz oranı yakalanırsa reddedilir ve doğrulanmış ödeme satırından devir geri kurulur. Ekstre Önizleme telefon arayüzü okunabilir ve tam ekran hale getirildi.",
   "updateUrl": "",
-  "build": "20260929-HANE-WORK-V176-TEB-DEVIR-COORD",
+  "build": "20260929-HANE-WORK-V177-TEB-DEVIR-RATE-GUARD-UI",
   "version": "WORK-V175"
 }
