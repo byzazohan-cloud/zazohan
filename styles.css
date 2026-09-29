@@ -5156,3 +5156,21 @@ html.lightMode .debtDonutCenter small,html.lightMode .debtDonutLegend small{colo
   .stmtEditGrid input[data-stmt-title]{grid-column:1/-1!important}.stmtTypeEdit select{height:34px!important;font-size:10px!important}.stmtTypeEdit small{font-size:8px!important;margin-top:3px!important}
   .statementImportList+.btn,.modal .body>.btn{min-height:38px!important;height:38px!important;padding:0 12px!important;font-size:11px!important;border-radius:10px!important}
 }
+
+
+/* V173 — EKSTRE ÖNİZLEME gerçek .sheet yapısı için mobil düzen */
+@media (max-width:640px){
+ .modal:has(.statementV65Audit){padding:6px!important;align-items:flex-start!important}
+ .modal:has(.statementV65Audit) .sheet{width:calc(100vw - 12px)!important;max-width:none!important;height:calc(100dvh - 12px)!important;max-height:calc(100dvh - 12px)!important;margin:0!important;padding:0 9px 12px!important;border-radius:15px!important;overflow:auto!important;box-sizing:border-box!important}
+ .modal:has(.statementV65Audit) .sheetHead{position:sticky!important;top:0!important;z-index:20!important;margin:0 -9px 7px!important;padding:9px 10px 8px!important;background:#091018!important;border-bottom:1px solid rgba(255,255,255,.08)!important}
+ .modal:has(.statementV65Audit) .sheetHead b{font-size:13px!important}.modal:has(.statementV65Audit) .close{width:29px!important;height:29px!important;min-width:29px!important;font-size:15px!important}
+ .modal:has(.statementV65Audit) .statementReconcileBox,.modal:has(.statementV65Audit) .statementBankSummary,.modal:has(.statementV65Audit) .notice{margin:6px 0!important;padding:8px!important;border-radius:11px!important}
+ .modal:has(.statementV65Audit) .statementV65Audit>b{margin-bottom:5px!important;font-size:10px!important}
+ .modal:has(.statementV65Audit) .stmtCountGrid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;margin:5px 0!important}
+ .modal:has(.statementV65Audit) .stmtCountGrid span{padding:5px 2px!important;border-radius:8px!important}.modal:has(.statementV65Audit) .stmtCountGrid small{font-size:5.8px!important}.modal:has(.statementV65Audit) .stmtCountGrid b{font-size:11px!important;margin-top:1px!important}
+ .modal:has(.statementV65Audit) .statementReconcileBox>small,.modal:has(.statementV65Audit) .notice,.modal:has(.statementV65Audit) .notice small{font-size:7.3px!important;line-height:1.32!important}
+ .modal:has(.statementV65Audit) .section{margin:8px 0 4px!important}.modal:has(.statementV65Audit) .section b{font-size:10px!important}.modal:has(.statementV65Audit) .section span{font-size:7px!important}
+ .modal:has(.statementV65Audit) .stmtEquationGrid{gap:4px!important}.modal:has(.statementV65Audit) .stmtEquationGrid label{font-size:6.8px!important}.modal:has(.statementV65Audit) .stmtEquationGrid input{height:30px!important;font-size:9px!important;padding:0 6px!important}
+ .modal:has(.statementV65Audit) .statementImportList{gap:5px!important;margin-top:6px!important}.modal:has(.statementV65Audit) .statementImportRow{padding:6px!important;gap:5px!important;border-radius:9px!important}.modal:has(.statementV65Audit) .statementImportRow b{font-size:9px!important}.modal:has(.statementV65Audit) .statementImportRow small{font-size:7px!important;margin-top:2px!important}.modal:has(.statementV65Audit) .statementImportRow strong{font-size:9px!important}
+ .modal:has(.statementV65Audit) .btn{min-height:34px!important;height:auto!important;padding:7px 9px!important;font-size:9px!important;border-radius:9px!important}
+}
