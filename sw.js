@@ -7,8 +7,8 @@
       engine file is extracted/cached.
    4) Runtime blocks unknown same-origin resources; mutable verified app-shell files use network-first with cache fallback for safe updates.
 */
-const SW_BUILD = '20260929-HANE-WORK-V162-TEB-TYPE-ISOLATION-FIX';
-const CACHE_NAME='hane-work-v162-teb-type-isolation';
+const SW_BUILD = '20260929-HANE-WORK-V163-TEB-READ-CRASH-FIX';
+const CACHE_NAME='hane-work-v163-teb-read-crash-fix';
 const HANE_CACHE_PREFIX = 'hane-';
 
 
