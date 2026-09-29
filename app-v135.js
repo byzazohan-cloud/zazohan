@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260929-HANE-WORK-V150-TEB-CONSENSUS-GUARD',
+  build:'20260929-HANE-WORK-V151-TEB-TABLE-FIRST-SAFE',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -2132,17 +2132,29 @@ function stmtChooseTebRows(text,candidates){
   // Bağımsız parserların aynı borç-hareket toplamında uzlaşması ikinci doğrulama kanalıdır.
   const totals=prepared.map(x=>debit(x.rows));
   const support=t=>totals.filter(v=>Math.abs(v-t)<.02).length;
+  // V151 — TABLE FIRST / FAIL CLOSED. TEB'de özet rakamı tek başına satır seçemez.
+  // Önce bağımsız parserların AYNI işlem kümesinde uzlaşıp uzlaşmadığına bakılır.
+  // İmza; tarih + tür + tutar + normalize açıklamadır. Aynı gün aynı tutarlı gerçek tekrarlar
+  // adetleriyle korunur; yalnız parserlar arası aynı fiziksel hareket yankıları birleştirilir.
+  const rowSig=r=>`${r?.date||''}|${r?.kind||''}|${Math.round(Math.abs(+r?.amount||0)*100)}|${stmtCleanTitle(r?.title||'').toLocaleUpperCase('tr-TR').replace(/\s+/g,' ').trim()}`;
+  const setSig=rows=>rows.map(rowSig).sort().join('\n');
+  const sigs=prepared.map(x=>setSig(x.rows));
+  const setSupport=s=>sigs.filter(v=>v===s).length;
   const targetSupported=Number.isFinite(target)&&totals.some(v=>Math.abs(v-target)<.02);
   let best=null,bestScore=-Infinity;
   for(const x of prepared){
     const c=x.c,rows=x.rows,s=debit(rows);let score=rows.length*2;
-    const agree=support(s);if(agree>=2)score+=agree*5000;
-    if(Number.isFinite(target)&&targetSupported){const d=Math.abs(s-target);if(d<.02)score+=100000;else score-=Math.min(30000,d*10)}
+    const agree=support(s),rowAgree=setSupport(setSig(rows));
+    // Satır-kümesi uzlaşması toplam uzlaşmasından daha güçlüdür.
+    if(rowAgree>=2)score+=rowAgree*200000;
+    else if(agree>=2)score+=agree*5000;
+    // Banka footer/özet toplamı yalnız destekleyici kanıttır; parser seçimini tek başına belirleyemez.
+    if(Number.isFinite(target)&&targetSupported){const d=Math.abs(s-target);if(d<.02)score+=2000;else score-=Math.min(3000,d)}
     if(physical){const d=Math.abs(rows.length-physical);score-=d*25;if(d===0)score+=100}
     if(c.strategy==='teb-fixed-final-tl')score+=40;
     if(c.strategy==='teb-date-segment-v78')score+=30;
     if(rows.some(r=>stmtCarryForwardLike(`${r?.rawKey||''} ${r?.title||''}`)||stmtTebSummaryLike(`${r?.rawKey||''} ${r?.title||''}`)))score-=100000;
-    if(score>bestScore){bestScore=score;best={rows,strategy:c.strategy+(targetSupported?'':' + teb-consensus-v150')}}
+    if(score>bestScore){bestScore=score;best={rows,strategy:c.strategy+(rowAgree>=2?' + teb-rowset-consensus-v151':(targetSupported?'':' + teb-consensus-v150')),rowSetConsensus:rowAgree}}
   }
   return best;
 }
@@ -2505,8 +2517,11 @@ function parseStatementText(text,cardId){
       {rows:line,strategy:'common-line'},
       {rows:block,strategy:'common-block'}
     ]);
-    if(pick&&pick.rows.length){rows=pick.rows;strategy=pick.strategy}
-    rows=stmtTebCompleteMissingRows(text,rows,tebPhysicalRows);
+    if(pick&&pick.rows.length){rows=pick.rows;strategy=pick.strategy;if((pick.rowSetConsensus||0)>=2)rows=rows.map(r=>({...r,tebRowSetConsensus:pick.rowSetConsensus}))}
+    // V151 güvenlik: fiziksel sayaç yoksa özet toplamına bakarak eksik satır ekleme YOK.
+    // Kurtarma yalnız bağımsız fiziksel audit mevcutken çalışır; aksi durumda fail-closed.
+    const tebHasPhysicalAudit=Math.max(stmtPhysicalRowAudit(text,'teb').count||0,(statementReadDiagnostics?.bankId==='teb'?+statementReadDiagnostics?.physicalRowCount:0)||0)>0;
+    if(tebHasPhysicalAudit)rows=stmtTebCompleteMissingRows(text,rows,tebPhysicalRows);
     if(rows.some(r=>r?.parserStrategy==='teb-verified-missing-row-v79'))strategy+=' + teb-verified-missing-row-v79';
     // V80 — TEB fiziksel mutabakat kurtarması.
     // Bazı SADE PDF'lerinde iki gerçek satır metin kolon sırası yüzünden normal/segment parserdan düşüyor.
@@ -2985,6 +3000,8 @@ function stmtApplyAuditDiagnostics(meta,rows,text,bankId,readDiag={}){
   // V147 — TEB fiziksel sayaç kullanılamıyorsa güven üretme.
   // Parser sonucu gösterilir; fakat banka özetinin yerine parser toplamı yazılmaz ve TAM DOĞRULANDI verilmez.
   if(bankId==='teb'&&m.parsedRowCount>0&&m.physicalRowCount===0){
+    const tebConsensus=Math.max(0,...list.map(r=>+r?.tebRowSetConsensus||0));
+    m.tebRowSetConsensus=tebConsensus;
     m.tebPhysicalUnavailable=true;
     m.unresolvedRowCount=0;
     m.parserExtraRowCount=0;
@@ -3079,6 +3096,7 @@ function stmtImportGuardStatus(meta,rows,bankId,cardId=''){
   // V147 STRICT STATEMENT ENGINE:
   // Banka özeti ile parser birbirinden bağımsız iki kanıttır.
   // Eksik banka toplamı "0" kabul edilmez, parser toplamı banka toplamının yerine yazılmaz.
+  const tebConsensusSafe=bankId==='teb'&&(+meta?.tebRowSetConsensus||0)>=2&&(+meta?.parsedRowCount||rows?.length||0)>0;
   const required=[
     ['Harcama toplamı',meta?.spendingTotal],
     ['Ödeme toplamı',meta?.paymentsTotal],
@@ -3109,7 +3127,7 @@ function stmtImportGuardStatus(meta,rows,bankId,cardId=''){
 
   // Fiziksel tablo denetimi bağımsız kanıttır. Ölçülemiyorsa TAM DOĞRULANDI denmez.
   const physical=+meta?.physicalRowCount||0, parsed=+meta?.parsedRowCount||(rows||[]).length;
-  if(physical<=0) reasons.push('Fiziksel işlem tablosu bağımsız olarak doğrulanamadı');
+  if(physical<=0&&!tebConsensusSafe) reasons.push('Fiziksel işlem tablosu bağımsız olarak doğrulanamadı');
   if((+meta?.unresolvedRowCount||0)>0) reasons.push(`${meta.unresolvedRowCount} fiziksel işlem adayı çözümlenemedi`);
   if((+meta?.parserExtraRowCount||0)>0) reasons.push(`Motor fiziksel tablodan ${meta.parserExtraRowCount} fazla hareket üretti`);
   if(physical>0&&parsed!==physical) reasons.push(`İşlem sayısı uyuşmuyor · Fiziksel ${physical} / Motor ${parsed}`);
