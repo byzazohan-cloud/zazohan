@@ -1,0 +1,10 @@
+HANE V148 — TEB EKSTRE MOTORU 3.0 / UNIQUE RESCUE
+
+- V147 tabanı korunmuştur.
+- TEB'de fiziksel sayaç 0 olduğunda kurtarma katmanının tamamen kapanması düzeltildi.
+- Fiziksel sayaç yoksa satır körlemesine eklenmez.
+- Yalnız banka etiketli harcama/ödeme/faiz toplamındaki açığı kuruşu kuruşuna kapatan ve TEK bir çözümü olan fiziksel yedek aday eklenir.
+- Fiziksel sayaç varsa V147'nin katı satır sınırı korunur.
+- Diğer banka profillerine dokunulmamıştır.
+
+Özellikle hedeflenen regresyon: TEB'de parser 8 / fiziksel aday kullanılamıyor / çözümlenemeyen 0 görünürken banka toplamına göre son gerçek hareketin eksik kalması.

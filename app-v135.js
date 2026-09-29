@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260929-HANE-WORK-V147-STRICT-STATEMENT-ENGINE',
+  build:'20260929-HANE-WORK-V148-TEB-UNIQUE-RESCUE',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -2153,7 +2153,12 @@ function stmtTebCompleteMissingRows(text,selectedRows,physicalRows){
   const localPhysicalCount=stmtPhysicalRowAudit(text,'teb').count||0;
   const readPhysicalCount=(statementReadDiagnostics?.bankId==='teb'?+statementReadDiagnostics?.physicalRowCount:0)||0;
   const physicalCount=Math.max(localPhysicalCount,readPhysicalCount);
-  if(physicalCount<=rows.length)return rows;
+  // V148 — TEB 3.0: bazı SADE PDF'lerinde bağımsız fiziksel sayaç 0 dönebiliyor.
+  // Bu durumda fiziksel yedek parser gerçek satır adaylarını yine de bulmuş olabilir.
+  // Sayaç yok diye kurtarmayı tamamen kapatma; yalnız banka etiketli toplamını kuruşu kuruşuna
+  // kapatan BENZERSİZ aday(lar) varsa kullan. Sayaç mevcutsa eski katı sınır aynen korunur.
+  const physicalAuditAvailable=physicalCount>0;
+  if(physicalAuditAvailable&&physicalCount<=rows.length)return rows;
   const key=r=>`${r?.date||''}|${r?.kind||''}|${Math.round(Math.abs(+r?.amount||0)*100)}`;
   const used={};for(const r of rows){const k=key(r);used[k]=(used[k]||0)+1}
   const pool=[];for(const r of phys){const k=key(r);if(used[k]>0){used[k]--;continue}pool.push(r)}
@@ -2188,7 +2193,8 @@ function stmtTebCompleteMissingRows(text,selectedRows,physicalRows){
     }
   }
   if(!chosen.size)return rows;
-  const maxAdd=Math.max(0,physicalCount-rows.length);const add=[...chosen].sort((a,b)=>(pool[a]?.sourceStart??a)-(pool[b]?.sourceStart??b)).slice(0,maxAdd).map(i=>({...pool[i],parserStrategy:'teb-verified-missing-row-v79',physicalKey:`TEBV79|${pool[i]?.physicalKey||i}`}));
+  const maxAdd=physicalAuditAvailable?Math.max(0,physicalCount-rows.length):chosen.size;
+  const add=[...chosen].sort((a,b)=>(pool[a]?.sourceStart??a)-(pool[b]?.sourceStart??b)).slice(0,maxAdd).map(i=>({...pool[i],parserStrategy:physicalAuditAvailable?'teb-verified-missing-row-v79':'teb-summary-unique-rescue-v148',physicalKey:`TEBV148|${pool[i]?.physicalKey||i}`}));
   if(!add.length)return rows;
   rows=[...rows,...add].sort((a,b)=>(a.sourceStart??Number.MAX_SAFE_INTEGER)-(b.sourceStart??Number.MAX_SAFE_INTEGER));
   return rows;
