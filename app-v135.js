@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260929-HANE-WORK-V167-TEB-DUPLICATE-FOOTER-FIX',
+  build:'20260929-HANE-WORK-V168-TEB-FOOTER-ONLY-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -2681,17 +2681,29 @@ function stmtParseTebLabeledSummary(text){
   // para değerini bul; devir tutarıyla aynı olan adayları dışla. Bu, 3.555,42'nin
   // 29.863,42 gibi devir+ödeme karışımına dönüşmesini engeller.
   const duplicateFooterTotal=(()=>{
-    const up=stmtTrFold(flat),a=up.indexOf('BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI'),g=up.indexOf('GENEL TOPLAM');
-    const starts=[a,g].filter(i=>i>=0);if(!starts.length)return null;
-    const start=Math.max(0,Math.min(...starts)-120),chunk=flat.slice(start,Math.min(flat.length,start+900));
+    // V168 — FOOTER-ONLY: sadece iki footer etiketi arasındaki/arkasındaki dar alanı oku.
+    // Eski 900 karakterlik pencere işlem tablosuna geri taşıp tekrarlanan alışverişleri toplam sanabiliyordu.
+    const up=stmtTrFold(flat);
+    const a=up.indexOf('BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI');
+    const g=up.indexOf('GENEL TOPLAM');
+    if(a<0||g<0)return null;
+    const lo=Math.min(a,g),hi=Math.max(a,g);
+    // İlk etiketten önce hiçbir rakam alma. İkinci etiketin ardından yalnız 100 karakter oku.
+    const chunk=flat.slice(lo,Math.min(flat.length,hi+('GENEL TOPLAM'.length)+100));
     const vals=stmtAllMoneyValues(chunk).filter(v=>Number.isFinite(v)&&v>=0);
+    if(!vals.length)return null;
+    // Devir ve açık ödeme rakamları footer toplamı olamaz.
+    const payment=grab(new RegExp('CEPTETEB\\s+[ÖO]DEME[^0-9+-]{0,80}(?:TL\\.?)?\\s*(-?'+money+')','i'));
+    const allowed=vals.filter(v=>(!Number.isFinite(previousBalance)||Math.abs(v-previousBalance)>.02)&&(!Number.isFinite(payment)||Math.abs(v-Math.abs(payment))>.02));
     const counts=[];
-    for(const v of vals){let x=counts.find(z=>Math.abs(z.v-v)<.02);if(x)x.n++;else counts.push({v,n:1});}
-    const dup=counts.filter(x=>x.n>=2&&(!Number.isFinite(previousBalance)||Math.abs(x.v-previousBalance)>.02));
-    // Footer toplamı iki etikette aynı basıldığı için tekrar sayısı en yüksek aday; eşitlikte
-    // footer'ın sonuna en yakın görünen değer tercih edilir.
-    dup.sort((x,y)=>y.n-x.n);
-    return dup.length?dup[0].v:null;
+    for(const v of allowed){let x=counts.find(z=>Math.abs(z.v-v)<.02);if(x)x.n++;else counts.push({v,n:1});}
+    // Bankanın iki footer satırında aynı değer iki kez görünüyorsa yalnız onu kabul et.
+    const dup=counts.filter(x=>x.n>=2);
+    if(dup.length===1)return dup[0].v;
+    if(dup.length>1)return dup.at(-1).v;
+    // PDF.js iki etiketi yan yana, iki tutarı da sonda bırakabilir: son iki değer eşitse kabul et.
+    if(allowed.length>=2&&Math.abs(allowed.at(-1)-allowed.at(-2))<.02)return allowed.at(-1);
+    return null;
   })();
   const spendingTotal=Number.isFinite(duplicateFooterTotal)?duplicateFooterTotal:(Number.isFinite(footerPairTotal)?footerPairTotal:(Number.isFinite(generalTotal)&&Number.isFinite(cardTotal)&&Math.abs(generalTotal-cardTotal)<.02?generalTotal:null));
   const periodDebt=grab(new RegExp('D[ÖO]NEM\\s+BORCU[^0-9+-]*(?:TL\\.?)?\\s*'+money,'i'));
