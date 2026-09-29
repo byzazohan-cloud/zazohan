@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260929-HANE-WORK-V173-TEB-PIPELINE-MOBILE',
+  build:'20260929-HANE-WORK-V175-TEB-DEVIR-ANCHOR',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -2679,7 +2679,19 @@ function stmtParseTebLabeledSummary(text){
   const grab=(rx)=>{const m=flat.match(rx);return m?stmtMoney(m[1]):null};
   // V172: PDF.js görsel koordinatlarından çıkarılan TEB footer toplamı en yüksek önceliklidir.
   const coordFooterTotal=grab(/__HANE_TEB_FOOTER_TOTAL__\s*([+-]?\d+(?:[.,]\d{2})?)/i);
-  const previousBalance=grab(new RegExp('[ÖO]NCEK[İI]\\s+D[ÖO]NEMDEN\\s+DEV[İI]R\\s+ED[İI]LEN\\s+TUTAR[^0-9+-]*(?:TL\\.?)?\\s*'+money,'i'));
+  // V175 — TEB DEVİR ANCHOR. PDF.js bazen etiketi ve TL tutarını farklı hücre sırasına koyar.
+  // Etiketten sonraki dar pencere içinde ilk TL parasını al; bu değer işlem/harcama değildir.
+  const previousBalance=(()=>{
+    const direct=grab(new RegExp('[ÖO]NCEK[İI]\\s+D[ÖO]NEMDEN\\s+DEV[İI]R\\s+ED[İI]LEN\\s+TUTAR[^0-9+-]{0,100}(?:TL\\.?)?\\s*'+money,'i'));
+    if(Number.isFinite(direct))return Math.abs(direct);
+    const folded=stmtTrFold(flat),anchor='ONCEKI DONEMDEN DEVIR EDILEN TUTAR',i=folded.indexOf(anchor);
+    if(i<0)return null;
+    const chunk=flat.slice(i+anchor.length,i+anchor.length+180);
+    const tl=chunk.match(/TL\.?\s*([+-]?(?:(?:\d{1,3}(?:[.]\d{3})+|\d+)(?:,\d{2}|,-)))/i);
+    if(tl){const v=stmtMoney(tl[1]);if(Number.isFinite(v))return Math.abs(v)}
+    const vals=stmtAllMoneyValues(chunk);
+    return vals.length?Math.abs(vals[0]):null;
+  })();
   // V76: TEB işlem tablosunun en güvenilir toplamı "GENEL TOPLAM" satırıdır.
   // PDF.js bazı dosyalarda son hareketin TL tutarını "BU KARTINIZLA..." etiketinin hemen arkasına
   // taşıdığı için eski regex son hareketi (örn. 115 TL) banka toplamı sanabiliyordu.
