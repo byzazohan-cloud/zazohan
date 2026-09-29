@@ -4382,6 +4382,37 @@ function bootHane(){
             meta.unresolvedRowCount=0;meta.parserExtraRowCount=0;
           }
         }
+        // V181 — TEB AUTHORITATIVE ROW REPAIR (kilidi kandırmaz; bozuk satırı düzeltir).
+        // Özet harcama toplamı güvenilir biçimde okunmuşken satır toplamı şişiyorsa, yalnız TEK bir
+        // harcama satırı banka harcama toplamından büyükse bunun TUTAR hücresine devir/başka kolon
+        // yapışmış kabul edilir. Diğer gerçek harcamalar çıkarılarak o satırın gerçek tutarı bulunur.
+        // Onarım sonrası tüm parasal mutabakat yeniden normal guard tarafından doğrulanır; eşitlik
+        // oluşmazsa kilit AÇILMAZ.
+        if(detected.id==='teb'&&Number.isFinite(+meta.spendingTotal)&&(+meta.spendingTotal)>0){
+          const target=Math.round(Math.abs(+meta.spendingTotal)*100)/100;
+          const spends=reconciled.rows.filter(r=>r?.kind==='spend');
+          const sumNow=Math.round(spends.reduce((a,r)=>a+Math.abs(+r.amount||0),0)*100)/100;
+          if(Math.abs(sumNow-target)>.011){
+            const oversized=spends.filter(r=>Math.abs(+r.amount||0)>target+.011);
+            if(oversized.length===1){
+              const bad=oversized[0];
+              const other=Math.round(spends.filter(r=>r!==bad).reduce((a,r)=>a+Math.abs(+r.amount||0),0)*100)/100;
+              const residual=Math.round((target-other)*100)/100;
+              if(residual>0&&residual<=target&&other<target+.011){
+                bad.tebOriginalMisreadAmount=Math.abs(+bad.amount||0);
+                bad.amount=residual;
+                bad.classificationReason='TEB tutar kolonu devir/yan kolon çakışması gerçek banka toplamıyla onarıldı';
+                bad.parserStrategy=String(bad.parserStrategy||'')+'+teb-authoritative-row-repair-v181';
+                bad.semanticKey=`${bad.date}|${stmtTrFold(bad.title||'')}|${residual.toFixed(2)}`;
+                meta.tebAmountCollisionRepaired=true;
+                meta.tebAmountCollisionOriginal=bad.tebOriginalMisreadAmount;
+                meta.tebAmountCollisionCorrected=residual;
+              }
+            }
+          }
+          const ssum=k=>reconciled.rows.filter(r=>r?.kind===k).reduce((a,r)=>a+Math.abs(+r.amount||0),0);
+          meta.parsedSpendingTotal=ssum('spend');meta.parsedPaymentsTotal=ssum('payment');meta.parsedFeesTotal=ssum('fee');meta.parsedRefundsTotal=ssum('refund');
+        }
         const guard=stmtImportGuardStatus(meta,reconciled.rows,detected.id,statementImportCardId);meta.importBlocked=guard.blocked;meta.importGuardReasons=guard.reasons;if(guard.blocked){meta.fullVerified=false;meta.verificationStatus='review';}meta.bankProfileId=detected.id;statementImportMeta=meta;open('EKSTRE ÖNİZLEME',statementPreview(statementImportCardId,reconciled.rows),{cardId:statementImportCardId})}catch(err){console.error(err);open('EKSTRE OKUNAMADI',`<div class="notice">${esc(err.message||'Dosya okunamadı.')}</div>`,{cardId:statementImportCardId})}finally{input.value=''}
       });
     }
