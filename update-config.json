@@ -1,9 +1,9 @@
 {
-  "latestVersion": "0.15.75-work-v143",
-  "minimumVersion": "0.15.75-work-v143",
+  "latestVersion": "0.15.75-work-v158",
+  "minimumVersion": "0.15.75-work-v158",
   "force": true,
-  "message": "V143: Kart detay işlemleri tek menü altında toplandı; kart üzerindeki banka ve kart adı küçültüldü. V140 çalışma mantığı korundu.",
+  "message": "V158: TEB ücret/komisyon özeti bağımsız okunur; işlem türü ve parasal mutabakat eşleşmeden tam doğrulama verilmez.",
   "updateUrl": "",
-  "build": "20260928-HANE-WORK-V147-CARD-ACTION-MENU",
-  "version": "WORK-V147"
+  "build": "20260929-HANE-WORK-V158-TEB-FEE-SUMMARY-GATE-CLEAN",
+  "version": "WORK-V158"
 }
