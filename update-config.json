@@ -1,4 +1,4 @@
 {
   "version": "190",
-  "message": "V191 CLEAN BASE: Eski ekstre motoru, parser/OCR/PDF motor kodu ve eski ekstre dosya akışı tamamen kaldırıldı. Yeni ekstre motoru sıfırdan kurulacak."
+  "message": "V192: Yeni Ekstre Motoru 2.0 fiziksel tablo okuyucu. Tarih, açıklama ve tutar sütunları koordinatla ayrılır; banka özeti bağımsız doğrulanır."
 }
