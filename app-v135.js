@@ -600,6 +600,7 @@ function paymentSourceDetailBody(source){
   const rows=Object.entries(groups).map(([cat,items])=>[cat,items.reduce((n,x)=>n+(+(x.actualAmount??x.amount)||0),0),items.length]).sort((a,b)=>b[1]-a[1]);
   return `<div class="paySourceDetail"><div class="reportMetricTotal"><small>${label}</small><b>${money(total)}</b><span>%${pct} · ${raw.length} HAREKET · ${rows.length} KATEGORİ</span></div><div class="list">${rows.map(([cat,amt,count])=>`<button class="item" data-action="fixedCategoryDetail" data-cat="${esc(cat)}" data-scope="period" data-source="${source}"><div class="ico premiumIco">${catPremiumIcon(cat)}</div><div><b>${esc(cat)}</b><small>${count} HARCAMA · AYRINTI ›</small></div><div class="right"><b>${money(amt)}</b></div></button>`).join('')||'<div class="notice">KAYIT YOK.</div>'}</div></div>`
 }
+function statementSnapshot(cardId,m){return (state.statementImports||[]).find(x=>x.cardId===cardId&&x.month===m)||null}
 function statementPeriodRange(card,m){
   const [y,mo]=String(m||state.selectedMonth).split('-').map(Number),cut=Math.max(1,Math.min(31,Number(card?.statementDay)||1));
   const endDay=Math.min(cut,new Date(y,mo,0).getDate()),end=`${y}-${String(mo).padStart(2,'0')}-${String(endDay).padStart(2,'0')}`;
