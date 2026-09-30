@@ -1,4 +1,4 @@
 {
-  "version": "WORK-V186",
-  "message": "V182: TEB footer koordinatı yalnız iki banka toplam satırı aynı değeri verirse kabul edilir. Devir/ödeme bulaşmış parser satırları banka işlem toplamını kuruşu kuruşuna veren benzersiz alt-küme ile ayıklanır."
+  "version": "190",
+  "message": "V191 CLEAN BASE: Eski ekstre motoru, parser/OCR/PDF motor kodu ve eski ekstre dosya akışı tamamen kaldırıldı. Yeni ekstre motoru sıfırdan kurulacak."
 }
