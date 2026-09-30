@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 2.0 / V193 — CLEAN REBUILD ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v195';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v197';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1563,14 +1563,16 @@ async function seReadPdf(file){
  return pages
 }
 function seMoney(s){if(s==null)return null;let x=String(s).replace(/TL|₺/gi,'').replace(/\s/g,'').replace(/([.,])-$/,'$100').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.').replace(/[^0-9+\-.]/g,'');const n=Number(x.replace(/\+$/,''));return Number.isFinite(n)?Math.abs(n):null}
-function seIso(d){const m=String(d).match(/(\d{2})[./-](\d{2})[./-](\d{4})/);return m?`${m[3]}-${m[2]}-${m[1]}`:''}
+function seDateParts(s){const t=String(s||'').replace(/\s+/g,' ').trim();let m=t.match(/(?:^|\D)(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]\s*(\d{2,4})(?:\D|$)/);if(!m)m=t.match(/(?:^|\D)(\d{1,2})\s+(\d{1,2})\s+(20\d{2})(?:\D|$)/);if(!m)return null;let y=+m[3];if(y<100)y+=2000;const d=+m[1],mo=+m[2];if(d<1||d>31||mo<1||mo>12||y<2000||y>2100)return null;return{raw:m[0].replace(/^\D|\D$/g,'').trim(),d,mo,y,iso:`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`}}
+function seIso(d){return seDateParts(d)?.iso||''}
+function seRowDate(r,near=[]){const direct=seDateParts(r?.text);if(direct)return direct;const a=r?.items||[];for(let i=0;i<a.length;i++){for(let n=2;n<=5&&i+n<=a.length;n++){const z=seDateParts(a.slice(i,i+n).map(q=>q.s).join(' '));if(z)return z}}for(const x of near){const z=seDateParts(x?.text);if(z)return z}return null}
 function seNorm(s){return String(s||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function seCat(title){const n=seNorm(title),rules=state.statementCategoryRules||{};for(const [k,v] of Object.entries(rules))if(k&&n.includes(k)&&C.includes(v))return v;if(/MARKET|BIM|A101|SOK|ONUR|GIDA/.test(n))return C.includes('Market')?'Market':'Diğer';if(/TAKSI|TOPLU TASIMA|ULASIM|BENZIN|PETROL/.test(n))return C.includes('Ulaşım')?'Ulaşım':'Diğer';if(/RESTORAN|KAFE|CAFE|YEMEK|KOMAGENE|TAVUK/.test(n))return C.includes('Yeme İçme')?'Yeme İçme':'Diğer';return 'Diğer'}
 function seKind(title,raw){const n=seNorm(title);if(/ODEME.*TESEKKUR|HESAPTAN ODEME|OTOMATIK ODEME.*TESEKKUR/.test(n)||/\+$/.test(raw))return'payment';if(/IADE|IPTAL/.test(n))return'refund';if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';return'spend'}
 function seParse(pages){
  const flat=pages.flatMap(p=>p.rows.map(r=>r.a.map(q=>q.s).join(' ').replace(/\s+/g,' ').trim())),all=flat.join('\n'),bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI/i.test(all)?'İş Bankası':'Banka';
- const rows=[],diag={pages:pages.length,textItems:pages.reduce((n,p)=>n+p.items.length,0),dateCandidates:0,amountCandidates:0,headerFound:0,mode:'bounded-physical-table-v195-zero-kurus'};
- const dateRx=/\b\d{2}[./-]\d{2}[./-]\d{4}\b/, moneyRx=/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))([+-])?/i;
+ const rows=[],diag={pages:pages.length,textItems:pages.reduce((n,p)=>n+p.items.length,0),dateCandidates:0,amountCandidates:0,headerFound:0,mode:'flex-date-amount-anchor-v197'};
+ const moneyRx=/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))([+-])?/i;
  const badSummary=/TOPLAM|DONEM BORCU|DÖNEM BORCU|ASGARI|ASGARİ|LIMIT|LİMİT|KART NUMARASI|FAIZ ORANI|FAİZ ORANI|AKDI FAIZ|AKDİ FAİZ|GECIKME FAIZ|GECİKME FAİZ|AYLIK\/YILLIK|YILLIK/i;
  for(const pg of pages){
   const visual=pg.rows.map(r=>({y:r.y,text:r.a.map(q=>q.s).join(' ').replace(/\s+/g,' ').trim(),items:r.a}));
@@ -1580,7 +1582,11 @@ function seParse(pages){
   let fi=visual.findIndex((r,i)=>i>hi&&/BU\s+KARTINIZLA\s+YAPILAN\s+(?:İŞLEM|ISLEM)\s+TOPLAMLARI|GENEL\s+TOPLAM/i.test(r.text));
   if(fi<0)fi=visual.length;
   const body=visual.slice(hi+1,fi);
-  const dated=body.map((r,i)=>({r,i,m:r.text.match(dateRx)})).filter(x=>x.m);diag.dateCandidates+=dated.length;
+  let dated=body.map((r,i)=>({r,i,d:seRowDate(r)})).filter(x=>x.d);diag.dateCandidates+=dated.length;
+  // Bazı PDF'ler tarihi 2-3 ayrı metin satırına böler. Tutarı olan satırı merkez alıp komşu satırlardaki tarih parçalarını birleştir.
+  if(dated.length<2){const recovered=[];for(let i=0;i<body.length;i++){const hasMoney=body[i].items.some(q=>moneyRx.test(q.s));if(!hasMoney)continue;const near=body.slice(Math.max(0,i-2),Math.min(body.length,i+3));let d=seRowDate(body[i],near);if(!d){const joined=near.map(x=>x.text).join(' ');d=seDateParts(joined)}if(d)recovered.push({r:body[i],i,d})}const map=new Map();for(const x of [...dated,...recovered])map.set(x.i,x);dated=[...map.values()].sort((a,b)=>a.i-b.i);diag.dateCandidates=dated.length}
+  // Tarih sayısı tutar satırlarına göre düşükse her tutar satırında aynı/komşu koordinattaki tarihi tekrar dene.
+  if(dated.length<body.filter(r=>r.items.some(q=>moneyRx.test(q.s))).length/2){const map=new Map(dated.map(x=>[x.i,x]));for(let i=0;i<body.length;i++){if(!body[i].items.some(q=>moneyRx.test(q.s)))continue;const near=body.slice(Math.max(0,i-1),Math.min(body.length,i+2));const d=seRowDate(body[i],near)||seDateParts(near.map(x=>x.text).join(' '));if(d&&!map.has(i))map.set(i,{r:body[i],i,d})}dated=[...map.values()].sort((a,b)=>a.i-b.i);diag.dateCandidates=dated.length}
   diag.amountCandidates+=body.reduce((n,r)=>n+r.items.filter(q=>moneyRx.test(q.s)).length,0);
   for(let k=0;k<dated.length;k++){
    const cur=dated[k],next=k+1<dated.length?dated[k+1].i:body.length;
@@ -1592,9 +1598,9 @@ function seParse(pages){
    // Gerçek işlem tutarı görsel olarak en sağdaki TUTAR hücresidir. Oran/metin içindeki 4,55 gibi değerler dışarıda kalır.
    candidates.sort((a,b)=>b.q.x-a.q.x);
    const am=candidates[0];
-   const dm=cur.m[0],amount=Math.abs(am.v);if(!amount)continue;
-   let desc=segRows.flatMap(x=>x.items).filter(q=>q!==am.q&&!dateRx.test(q.s)&&q.x<am.q.x-8).map(q=>q.s).join(' ').replace(/\s+/g,' ').trim();
-   desc=desc.replace(dateRx,'').replace(/\b(?:TL|TRY)\b/gi,' ').replace(/\s+/g,' ').trim();
+   const dm=cur.d.raw,amount=Math.abs(am.v);if(!amount)continue;
+   let desc=segRows.flatMap(x=>x.items).filter(q=>q!==am.q&&!seDateParts(q.s)&&q.x<am.q.x-8).map(q=>q.s).join(' ').replace(/\s+/g,' ').trim();
+   desc=desc.replace(/\b\d{1,2}\s*[.\/-]\s*\d{1,2}\s*[.\/-]\s*\d{2,4}\b/g,' ').replace(/\b(?:TL|TRY)\b/gi,' ').replace(/\s+/g,' ').trim();
    if(!desc||badSummary.test(desc))continue;
    const kind=seKind(desc,am.raw),category=kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc);
    rows.push({date:seIso(dm),title:desc,bankTitle:desc,amount,kind,category,reason:`Fiziksel işlem tablosu · ${dm} · TUTAR ${am.raw}`});

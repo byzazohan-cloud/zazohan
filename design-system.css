@@ -234,7 +234,7 @@ body{background:radial-gradient(circle at 50% -20%,#20252d 0,#090b0f 35%,#030405
 .seRowV195 .seAmount{font-weight:800!important}
 @media(max-width:600px){.seRow.seRowV195{display:block!important}.seRowV195 .seRowBottom{display:grid!important;grid-template-columns:1fr .9fr 1.15fr!important}.seRowV195 .seMeta{font-size:8px!important}}
 
-/* V196 STATEMENT PREVIEW RESPONSIVE FIX */
+/* V197 STATEMENT PREVIEW RESPONSIVE FIX */
 .modal:has(.seV1) .sheet{
  width:min(96vw,520px)!important;
  max-width:520px!important;
