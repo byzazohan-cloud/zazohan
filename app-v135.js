@@ -1542,9 +1542,9 @@ function stmtMoney(v){
   const n=Number(x);return Number.isFinite(n)?(neg?-Math.abs(n):n):NaN
 }
 
-// === HANE EKSTRE MOTORU 2.0 / V192 — CLEAN REBUILD ===
+// === HANE EKSTRE MOTORU 2.0 / V193 — CLEAN REBUILD ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v192';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v193';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1569,38 +1569,45 @@ function seCat(title){const n=seNorm(title),rules=state.statementCategoryRules||
 function seKind(title,raw){const n=seNorm(title);if(/ODEME.*TESEKKUR|HESAPTAN ODEME|OTOMATIK ODEME.*TESEKKUR/.test(n)||/\+$/.test(raw))return'payment';if(/IADE|IPTAL/.test(n))return'refund';if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';return'spend'}
 function seParse(pages){
  const flat=pages.flatMap(p=>p.rows.map(r=>r.a.map(q=>q.s).join(' ').replace(/\s+/g,' ').trim())),all=flat.join('\n'),bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI/i.test(all)?'İş Bankası':'Banka';
- const rows=[];
+ const rows=[],diag={pages:pages.length,textItems:pages.reduce((n,p)=>n+p.items.length,0),dateCandidates:0,amountCandidates:0,headerFound:0,mode:'coordinate-cluster'};
+ const dateRx=/\b\d{2}[./-]\d{2}[./-]\d{4}\b/, moneyRx=/-?\s*(?:TL\.?\s*)?(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})([+-])?/i;
  for(const pg of pages){
+  const dates=pg.items.filter(q=>dateRx.test(q.s)); diag.dateCandidates+=dates.length;
+  const monies=pg.items.filter(q=>moneyRx.test(q.s)); diag.amountCandidates+=monies.length;
   let hx=null;
-  for(const r of pg.rows){const ns=r.a.map(q=>seNorm(q.s));const di=ns.findIndex(x=>x.includes('ISLEM TARIHI')),ai=ns.findIndex(x=>x.includes('ISLEM ACIKLAMASI')),ti=ns.findIndex(x=>x==='TUTAR'||x.includes(' TUTAR'));
-   if(di>=0&&ai>=0&&ti>=0){hx={date:r.a[di].x,desc:r.a[ai].x,amount:r.a[ti].x,headerY:r.y};break}}
-  if(!hx)continue;
-  const body=pg.rows.filter(r=>r.y<hx.headerY-2).sort((a,b)=>b.y-a.y);let current=null;
-  const finish=()=>{if(!current)return;const title=current.desc.join(' ').replace(/\s+/g,' ').trim();if(current.date&&current.amount!=null&&title&&!/TOPLAM|DONEM BORCU|DÖNEM BORCU|ASGARI|ASGARİ|LIMIT|LİMİT/i.test(title)){const kind=seKind(title,current.rawAmount||'');rows.push({date:seIso(current.date),title,bankTitle:title,amount:current.amount,kind,category:kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(title),reason:`PDF işlem tablosu · tarih sütunu + açıklama sütunu + tutar sütunu`})}current=null};
-  for(const r of body){
-   const dateItem=r.a.find(q=>Math.abs(q.x-hx.date)<70&&/\b\d{2}[./-]\d{2}[./-]\d{4}\b/.test(q.s));
-   if(dateItem){finish();current={date:(dateItem.s.match(/\d{2}[./-]\d{2}[./-]\d{4}/)||[])[0],desc:[],amount:null,rawAmount:''}}
-   if(!current)continue;
-   for(const q of r.a){
-    if(q===dateItem)continue;
-    const moneyMatch=q.s.match(/^-?\s*(?:TL\.?\s*)?(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})([+-])?$/i);
-    if(moneyMatch && q.x>=hx.amount-80){current.amount=seMoney(moneyMatch[1]);current.rawAmount=q.s;continue}
-    if(q.x>=hx.desc-40&&q.x<hx.amount-35&&!/BONUS/i.test(q.s))current.desc.push(q.s)
-   }
+  for(const r of pg.rows){const ns=r.a.map(q=>seNorm(q.s));const di=ns.findIndex(x=>x.includes('ISLEM TARIHI')),ai=ns.findIndex(x=>x.includes('ISLEM ACIKLAMASI')),ti=ns.findIndex(x=>x==='TUTAR'||x.includes('TUTAR'));if(di>=0&&ai>=0&&ti>=0){hx={date:r.a[di].x,desc:r.a[ai].x,amount:r.a[ti].x,headerY:r.y};diag.headerFound++;break}}
+  // Başlık parçalanmış olsa bile kolonları veriden öğren: tarihlerin medyan x'i, para adaylarının sağ kümesi.
+  if(!dates.length)continue;
+  const med=a=>{a=[...a].sort((x,y)=>x-y);return a[Math.floor(a.length/2)]};
+  const dateX=hx?.date??med(dates.map(x=>x.x));
+  let amountX=hx?.amount;
+  if(amountX==null){const right=monies.filter(m=>m.x>dateX+120);if(right.length)amountX=med(right.map(x=>x.x))}
+  if(amountX==null)continue;
+  const ordered=[...dates].sort((a,b)=>b.y-a.y);
+  for(let di=0;di<ordered.length;di++){
+   const d=ordered[di], nextY=di+1<ordered.length?ordered[di+1].y:-Infinity;
+   // Bu tarihten bir sonraki tarihe kadar olan görsel bant.
+   const band=pg.items.filter(q=>q.y<=d.y+5&&q.y>nextY+5);
+   const am=band.filter(q=>q.x>=amountX-110&&moneyRx.test(q.s)).sort((a,b)=>Math.abs(a.y-d.y)-Math.abs(b.y-d.y)||b.x-a.x)[0];
+   if(!am)continue;
+   const dm=(d.s.match(dateRx)||[])[0], mm=am.s.match(moneyRx); if(!dm||!mm)continue;
+   const amount=seMoney(mm[1]); if(amount==null)continue;
+   const desc=band.filter(q=>q!==d&&q!==am&&q.x>dateX+45&&q.x<amountX-25&&!/BONUS/i.test(q.s)).sort((a,b)=>b.y-a.y||a.x-b.x).map(q=>q.s).join(' ').replace(/\s+/g,' ').trim();
+   if(!desc||/TOPLAM|DONEM BORCU|DÖNEM BORCU|ASGARI|ASGARİ|LIMIT|LİMİT|KART NUMARASI/i.test(desc))continue;
+   const kind=seKind(desc,am.s);rows.push({date:seIso(dm),title:desc,bankTitle:desc,amount,kind,category:kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc),reason:`Koordinat kümesi · tarih ${dm} · tutar ${am.s}`});
   }
-  finish();
  }
- // Banka özeti işlem tablosundan bağımsız okunur. Etiketin kendi satırındaki/sonraki yakın satırlardaki tutarı arar.
+ // Aynı fiziksel işlem yanlışlıkla iki kez kümelenirse tekilleştir.
+ const seen=new Set(),uniq=[];for(const r of rows){const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(!seen.has(k)){seen.add(k);uniq.push(r)}}
  const vals={};function near(labels){labels=Array.isArray(labels)?labels:[labels];for(let i=0;i<flat.length;i++){const n=seNorm(flat[i]);if(!labels.some(z=>n.includes(seNorm(z))))continue;for(let j=i;j<Math.min(flat.length,i+5);j++){const ms=[...flat[j].matchAll(/-?\s*(?:TL\.?\s*)?(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return v}}}return null}
- vals.previous=near(['DEVREDEN BAKIYE','ONCEKI DONEM BORCU','ÖNCEKİ DÖNEM BORCU','ONCEKI AYDAN DEVIR']);
- vals.spend=near(['HARCAMALARINIZ','DONEM ICI HARCAMALAR','DÖNEM İÇİ HARCAMALAR','BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI']);
+ vals.previous=near(['DEVREDEN BAKIYE','ONCEKI DONEM BORCU','ÖNCEKİ DÖNEM BORCU','ONCEKI AYDAN DEVIR','ÖNCEKİ DÖNEMDEN DEVİR EDİLEN TUTAR']);
+ vals.spend=near(['HARCAMALARINIZ','DONEM ICI HARCAMALAR','DÖNEM İÇİ HARCAMALAR','BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI','GENEL TOPLAM']);
  vals.fees=near(['FAIZ UCRETLER VE KESINTILER','FAİZ ÜCRETLER VE KESİNTİLER','FAIZ / UCRET','FAİZ / ÜCRET']);
  vals.payments=near(['ODEMELERINIZ','ÖDEMELERİNİZ','ODEME TOPLAMI','ÖDEME TOPLAMI']);
  vals.debt=near(['DONEM BORCU TL','DÖNEM BORCU TL','DONEM BORCU','DÖNEM BORCU']);
- const sums={spend:0,fees:0,payments:0,refunds:0};rows.forEach(r=>sums[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount);
- // TEB'de banka harcama toplamı tablo sonundaki GENEL TOPLAM / işlem toplamıdır; ödeme satırı bu toplamın parçası değildir.
- if(bank==='TEB'){for(let i=0;i<flat.length;i++)if(/GENEL TOPLAM/i.test(flat[i])){const ms=[...flat[i].matchAll(/(?:TL\.?\s*)?(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})/gi)];if(ms.length){vals.spend=seMoney(ms[ms.length-1][1]);break}}}
- return{bank,rows,bankValues:vals,motor:sums,diagnostic:{pages:pages.length,tableRows:rows.length}}
+ const sums={spend:0,fees:0,payments:0,refunds:0};uniq.forEach(r=>sums[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount);
+ diag.tableRows=uniq.length;
+ return{bank,rows:uniq,bankValues:vals,motor:sums,diagnostic:diag}
 }
 function seDiff(a,b){return a==null?'—':Math.abs(a-b)<=.01?'✓':money(Math.abs(a-b))}
 function sePreview(cardId,res){statementImportRows=res.rows;statementImportMeta=res;const b=res.bankValues,m=res.motor,checks=[['HARCAMA SAYISI',res.rows.filter(r=>r.kind==='spend').length,res.rows.filter(r=>r.kind==='spend').length,true],['DEVREDEN BAKİYE',b.previous,null,b.previous!=null],['HARCAMALAR',b.spend,m.spend,b.spend!=null&&Math.abs(b.spend-m.spend)<=.01],['ÖDEMELER',b.payments,m.payments,b.payments!=null&&Math.abs(b.payments-m.payments)<=.01],['FAİZ / ÜCRET',b.fees,m.fees,b.fees==null?m.fees===0:Math.abs(b.fees-m.fees)<=.01],['DÖNEM BORCU',b.debt,b.previous!=null&&b.debt!=null?b.previous+m.spend+m.fees-m.payments-m.refunds:null,b.debt!=null]];const locked=checks.some(x=>!x[3]);statementImportMeta.locked=locked;const rowHtml=res.rows.map((r,i)=>`<div class="seRow"><div><input data-se-title="${i}" value="${esc(r.title)}"><small>${r.date} · ${esc(r.reason)}</small></div><input data-se-amount="${i}" type="number" step="0.01" value="${r.amount.toFixed(2)}"><select data-se-kind="${i}"><option value="spend" ${r.kind==='spend'?'selected':''}>HARCAMA</option><option value="payment" ${r.kind==='payment'?'selected':''}>ÖDEME</option><option value="fee" ${r.kind==='fee'?'selected':''}>FAİZ/MASRAF</option><option value="refund" ${r.kind==='refund'?'selected':''}>İADE</option></select><select data-se-cat="${i}">${C.map(c=>`<option ${c===r.category?'selected':''}>${esc(c)}</option>`).join('')}</select></div>`).join('');return `<div class="seV1"><div class="seStatus ${locked?'bad':'ok'}"><b>${locked?'DÜZELTME GEREKİYOR':'EKSTRE DOĞRULANDI'}</b><span>${locked?'Hata düzelmeden HANE’ye eklenmez.':'Banka değerleri ile motor sonucu uyuşuyor.'}</span></div><div class="seCompare"><div class="seHead"><b>KONTROL</b><b>BANKA</b><b>MOTOR</b><b>SONUÇ</b></div>${checks.map(x=>`<div><span>${x[0]}</span><b>${typeof x[1]==='number'?(x[0].includes('SAYISI')?x[1]:money(x[1])):'—'}</b><b>${typeof x[2]==='number'?(x[0].includes('SAYISI')?x[2]:money(x[2])):'—'}</b><strong class="${x[3]?'ok':'bad'}">${x[3]?'✓':seDiff(x[1],x[2]||0)}</strong></div>`).join('')}</div>${locked?`<div class="seWhy"><b>NEDEN KİLİTLİ?</b><span>${checks.filter(x=>!x[3]).map(x=>x[0]+' banka değeri bulunamadı veya motorla uyuşmadı').join(' · ')}</span><small>Motor tahmin ederek ekleme yapmaz. Aşağıdaki satırları düzelt; karşılaştırma yeniden hesaplanır.</small></div>`:''}<div class="seRowsHead"><b>İŞLEMLER</b><span>${res.rows.length} satır · listede doğrudan düzenlenebilir</span></div><div class="seRows">${rowHtml}</div><button class="btn gold" data-action="statementV191Recheck">YENİDEN KONTROL ET</button><button class="btn" data-action="statementV191Confirm" ${locked?'disabled style="opacity:.45"':''}>HANE’YE EKLE</button></div>`}
@@ -1866,4 +1873,4 @@ function bootHane(){
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootHane,{once:true});
 else bootHane();
 
-document.addEventListener('change',async e=>{if(e.target?.id!=='statementImportInput')return;const f=e.target.files?.[0];if(!f||!statementImportCardId)return;open('EKSTRE OKUNUYOR','<div class="notice"><b id="statementImportProgress">PDF okunuyor…</b><br>Belge cihazında işlenir. Önce banka değerleri, sonra işlem satırları bağımsız çıkarılır.</div>');try{const pages=await seReadPdf(f),res=seParse(pages);if(!res.rows.length)throw Error('İşlem tablosu bulunamadı. Motor tahmin yapmadı.');statementImportMeta=res;open('EKSTRE ÖNİZLEME',sePreview(statementImportCardId,res),{cardId:statementImportCardId})}catch(err){console.error(err);open('EKSTRE OKUNAMADI',`<div class="notice"><b>OKUMA DURDU</b><br>${esc(err.message||'Dosya okunamadı.')}<br><small>Yanlış veri HANE’ye eklenmedi.</small></div>`)}finally{e.target.value=''}});
+document.addEventListener('change',async e=>{if(e.target?.id!=='statementImportInput')return;const f=e.target.files?.[0];if(!f||!statementImportCardId)return;open('EKSTRE OKUNUYOR','<div class="notice"><b id="statementImportProgress">PDF okunuyor…</b><br>Belge cihazında işlenir. Önce banka değerleri, sonra işlem satırları bağımsız çıkarılır.</div>');try{const pages=await seReadPdf(f),res=seParse(pages);if(!res.rows.length){const d=res.diagnostic||{};throw Error(`İşlem satırı oluşturulamadı. PDF: ${d.pages||0} sayfa · ${d.textItems||0} metin öğesi · ${d.dateCandidates||0} tarih adayı · ${d.amountCandidates||0} tutar adayı · ${d.headerFound||0} tablo başlığı. Motor tahmin yapmadı.`);}statementImportMeta=res;open('EKSTRE ÖNİZLEME',sePreview(statementImportCardId,res),{cardId:statementImportCardId})}catch(err){console.error(err);open('EKSTRE OKUNAMADI',`<div class="notice"><b>OKUMA DURDU</b><br>${esc(err.message||'Dosya okunamadı.')}<br><small>Yanlış veri HANE’ye eklenmedi.</small></div>`)}finally{e.target.value=''}});
