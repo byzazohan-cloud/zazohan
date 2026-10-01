@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20261001-HANE-WORK-V209-TEB-ZERO-KURUS-SIGN-FIX',
+  build:'20261001-HANE-WORK-V210-TEB-180-ROW-DIRECTION-FIX',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -1542,9 +1542,9 @@ function stmtMoney(v){
   const n=Number(x);return Number.isFinite(n)?(neg?-Math.abs(n):n):NaN
 }
 
-// === HANE EKSTRE MOTORU 4.2 / V209 — TEB ZERO-KURUS SIGN FIX ===
+// === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v209-teb-zero-kurus-sign-fix';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v210-teb-180-row-direction-fix';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1566,9 +1566,10 @@ async function seReadPdf(file){
   const rawRowBuckets=[];
   for(const it of rawItems.filter(x=>x.s)){let r=rawRowBuckets.find(q=>Math.abs(q.y-it.y)<=2.4);if(!r){r={y:it.y,a:[]};rawRowBuckets.push(r)}r.a.push(it)}
   rawRowBuckets.sort((a,b)=>rot===180?a.y-b.y:b.y-a.y);
-  // Metin satırı içindeki okuma yönü PDF koordinatında her zaman soldan sağadır.
-  // 180° sayfada X'i ters sıralamak tarih/açıklama/tutar dizisini bozuyordu.
-  const rawLines=rawRowBuckets.map(r=>{r.a.sort((a,b)=>a.x-b.x);return r.a.map(x=>x.s).join(' ').replace(/\s+/g,' ').trim()}).filter(Boolean);
+  // PDF 180° döndürülmüşse HAM koordinatlar görsel soldan-sağa yönün tersidir.
+  // Bu nedenle 0° sayfalarda X artan, 180° sayfalarda X azalan sıralanır.
+  // Aksi halde satır 'TL.300,- ... 31/07/2026' olur ve işlem regex'i hiçbir satırı kabul etmez.
+  const rawLines=rawRowBuckets.map(r=>{r.a.sort((a,b)=>rot===180?b.x-a.x:a.x-b.x);return r.a.map(x=>x.s).join(' ').replace(/\s+/g,' ').trim()}).filter(Boolean);
   const items=rawItems.filter(x=>x.s).map(it=>{let {s,x,y,w}=it;
     if(rot===180){x=vp.width-x-w;y=vp.height-y}
     else if(rot===90){const ox=x;x=y;y=vp.width-ox}
@@ -1754,12 +1755,21 @@ function seParse(pages){
  // TEB: iki bağımsız satır okuyucudan hangisinin muhasebe denklemi banka dönem borcuna daha yakınsa onu seç.
  // Satır sayısı artık seçim ölçütü değildir. Böylece çok satır bulan ama ödeme/tutar eşleşmesini bozan akış okuyucusu kazanamaz.
  if(bank==='TEB'){
-  // V207: TEB için seçim yarışı kaldırıldı. Ana kaynak ham PDF satırlarıdır.
-  // Böylece yanlış bir okuyucu yalnız muhasebe sonucuna yaklaştı diye seçilemez.
-  uniq=tebRaw.rows;
-  diag.mode='teb-raw-pdf-line-ledger-v209-zero-kurus-sign-fix';
-  diag.rawRejected=tebRaw.rejected.slice(0,40);
-  diag.rawRows=uniq.length;
+  // V211 KORUMALI PROFİL: çalışan 0° TEB yolu V209/V210 ile AYNI kalır.
+  // Yalnız 180° döndürülmüş TEB sayfalarında PDF.js'in mantıksal metin akışı kullanılır.
+  // Böylece çalışan iki ekstreyi etkileyen genel parser davranışı değiştirilmez.
+  const has180=pages.some(p=>p.rotation===180);
+  if(has180){
+   uniq=tebLogical.rows;
+   diag.mode='teb-180-logical-line-ledger-v211';
+   diag.rawRejected=tebLogical.rejected.slice(0,40);
+   diag.rawRows=uniq.length;
+  }else{
+   uniq=tebRaw.rows;
+   diag.mode='teb-0deg-raw-ledger-v209-protected';
+   diag.rawRejected=tebRaw.rejected.slice(0,40);
+   diag.rawRows=uniq.length;
+  }
  }
  // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
  // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.
