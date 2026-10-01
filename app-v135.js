@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20261001-HANE-WORK-V204-TEB-STRICT-VISUAL-LEDGER',
+  build:'20261001-HANE-WORK-V205-TEB-SIGNED-AMOUNT-GUARD',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -1568,13 +1568,14 @@ async function seReadPdf(file){
  }
  return pages
 }
-function seMoney(s){if(s==null)return null;let x=String(s).replace(/TL|₺/gi,'').replace(/\s/g,'').replace(/([.,])-$/,'$100').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.').replace(/[^0-9+\-.]/g,'');const n=Number(x.replace(/\+$/,''));return Number.isFinite(n)?Math.abs(n):null}
+function seMoneySigned(s){if(s==null)return null;let raw=String(s).trim(),neg=/^-/.test(raw)||/-$/.test(raw);let x=raw.replace(/TL|₺/gi,'').replace(/\s/g,'').replace(/([.,])-$/,'$100').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.').replace(/[^0-9.]/g,'');const n=Number(x);return Number.isFinite(n)?(neg?-Math.abs(n):Math.abs(n)):null}
+function seMoney(s){const n=seMoneySigned(s);return n==null?null:Math.abs(n)}
 function seDateParts(s){const t=String(s||'').replace(/\s+/g,' ').trim();let m=t.match(/(?:^|\D)(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]\s*(\d{2,4})(?:\D|$)/);if(!m)m=t.match(/(?:^|\D)(\d{1,2})\s+(\d{1,2})\s+(20\d{2})(?:\D|$)/);if(!m)return null;let y=+m[3];if(y<100)y+=2000;const d=+m[1],mo=+m[2];if(d<1||d>31||mo<1||mo>12||y<2000||y>2100)return null;return{raw:m[0].replace(/^\D|\D$/g,'').trim(),d,mo,y,iso:`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`}}
 function seIso(d){return seDateParts(d)?.iso||''}
 function seRowDate(r,near=[]){const direct=seDateParts(r?.text);if(direct)return direct;const a=r?.items||[];for(let i=0;i<a.length;i++){for(let n=2;n<=5&&i+n<=a.length;n++){const z=seDateParts(a.slice(i,i+n).map(q=>q.s).join(' '));if(z)return z}}for(const x of near){const z=seDateParts(x?.text);if(z)return z}return null}
 function seNorm(s){return String(s||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function seCat(title){const n=seNorm(title),rules=state.statementCategoryRules||{};for(const [k,v] of Object.entries(rules))if(k&&n.includes(k)&&C.includes(v))return v;if(/MARKET|BIM|A101|SOK|ONUR|GIDA/.test(n))return C.includes('Market')?'Market':'Diğer';if(/TAKSI|TOPLU TASIMA|ULASIM|BENZIN|PETROL/.test(n))return C.includes('Ulaşım')?'Ulaşım':'Diğer';if(/RESTORAN|KAFE|CAFE|YEMEK|KOMAGENE|TAVUK/.test(n))return C.includes('Yeme İçme')?'Yeme İçme':'Diğer';return 'Diğer'}
-function seKind(title,raw){const n=seNorm(title),r=String(raw||'').replace(/\s+/g,'');if(/IADE|IPTAL/.test(n))return'refund';if(/CEPTETEB.*ODEME|ODEME.*TESEKKUR|HESAPTAN.*ODEME|OTOMATIK.*ODEME/.test(n))return'payment';if(/^-(?:TL\.?)?/i.test(r)||/\+$/.test(r))return'payment';if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';return'spend'}
+function seKind(title,raw){const n=seNorm(title),r=String(raw||'').replace(/\s+/g,'');if(/IADE|IPTAL/.test(n))return'refund';if(/CEPTETEB.*ODEME|ODEME.*TESEKKUR|HESAPTAN.*ODEME|OTOMATIK.*ODEME|KART.*ODEME/.test(n))return'payment';if(/^-(?:TL\.?)?/i.test(r)||/-$/.test(r)||/\+$/.test(r))return'payment';if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';return'spend'}
 
 function seTebStrictRows(pages){
  const out=[];
@@ -1692,7 +1693,7 @@ function seParse(pages){
  for(const r of uniq){if(r.kind==='payment')rawBank.payments+=r.amount;else if(r.kind==='refund')rawBank.refunds+=r.amount;else if(r.kind==='fee')rawBank.fees+=r.amount;else rawBank.spendCount++}
  for(const k of ['payments','fees','refunds'])rawBank[k]=Math.round(rawBank[k]*100)/100;
  vals.payments=rawBank.payments;vals.fees=rawBank.fees;vals.spendCount=rawBank.spendCount;
- if(vals.debt!=null&&vals.previous!=null)vals.spend=Math.round((vals.debt-vals.previous+rawBank.payments+rawBank.refunds-rawBank.fees)*100)/100;
+ if(vals.debt!=null&&vals.previous!=null){const derived=Math.round((vals.debt-vals.previous+rawBank.payments+rawBank.refunds-rawBank.fees)*100)/100;vals.spend=derived>=0?derived:null;if(derived<0)diag.rejected.push(`Banka harcama denklemi negatif (${derived.toFixed(2)}); harcama değeri tahmin edilmedi`)}
  const sums={spend:0,fees:0,payments:0,refunds:0};uniq.forEach(r=>sums[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount);for(const k of Object.keys(sums))sums[k]=Math.round(sums[k]*100)/100;
  diag.tableRows=uniq.length;diag.tableSpendRows=uniq.filter(r=>r.kind==='spend').length;diag.rejectedCount=diag.rejected.length;
  return{bank,profile,rows:uniq,bankValues:vals,motor:sums,diagnostic:diag}
