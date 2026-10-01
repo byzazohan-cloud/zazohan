@@ -1755,21 +1755,20 @@ function seParse(pages){
  // TEB: iki bağımsız satır okuyucudan hangisinin muhasebe denklemi banka dönem borcuna daha yakınsa onu seç.
  // Satır sayısı artık seçim ölçütü değildir. Böylece çok satır bulan ama ödeme/tutar eşleşmesini bozan akış okuyucusu kazanamaz.
  if(bank==='TEB'){
-  // V211 KORUMALI PROFİL: çalışan 0° TEB yolu V209/V210 ile AYNI kalır.
-  // Yalnız 180° döndürülmüş TEB sayfalarında PDF.js'in mantıksal metin akışı kullanılır.
-  // Böylece çalışan iki ekstreyi etkileyen genel parser davranışı değiştirilmez.
-  const has180=pages.some(p=>p.rotation===180);
-  if(has180){
-   uniq=tebLogical.rows;
-   diag.mode='teb-180-logical-line-ledger-v211';
-   diag.rawRejected=tebLogical.rejected.slice(0,40);
-   diag.rawRows=uniq.length;
-  }else{
-   uniq=tebRaw.rows;
-   diag.mode='teb-0deg-raw-ledger-v209-protected';
-   diag.rawRejected=tebRaw.rejected.slice(0,40);
-   diag.rawRows=uniq.length;
-  }
+  // V212: TEB için tek okuyucuya körü körüne güvenme. PDF'nin ham satır, mantıksal satır,
+  // görsel satır ve akış kanallarını AYRI adaylar olarak kur; banka dönem borcu denklemini
+  // en küçük kuruş farkıyla kapatan adayı seç. Özet rakamı işlem olarak EKLEME ve fark üretme.
+  const candidates=[
+   {id:'raw',rows:tebRaw.rows,rejected:tebRaw.rejected},
+   {id:'logical',rows:tebLogical.rows,rejected:tebLogical.rejected},
+   {id:'strict',rows:tebStrictRows,rejected:[]},
+   {id:'stream',rows:tebStreamRows,rejected:[]}
+  ].filter(c=>c.rows&&c.rows.length);
+  const summarize=rs=>{const z={spend:0,fees:0,payments:0,refunds:0};for(const r of rs)z[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount;for(const k in z)z[k]=Math.round(z[k]*100)/100;return z};
+  const score=c=>{const z=summarize(c.rows);if(vals.previous==null||vals.debt==null)return 1e15-c.rows.length;const calc=Math.round((vals.previous+z.spend+z.fees-z.payments-z.refunds)*100)/100;return Math.round(Math.abs(calc-vals.debt)*100)/100};
+  candidates.sort((a,b)=>score(a)-score(b)||b.rows.length-a.rows.length);
+  const best=candidates[0];
+  if(best){uniq=best.rows;diag.mode='teb-multi-channel-ledger-v212-'+best.id;diag.rawRejected=(best.rejected||[]).slice(0,40);diag.rawRows=uniq.length;diag.candidateScores=candidates.map(c=>({id:c.id,rows:c.rows.length,diff:score(c)}));}
  }
  // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
  // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.
