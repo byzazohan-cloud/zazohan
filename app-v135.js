@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v215-teb-fee-before-payment';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v216-teb-final-fee-gate';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1792,6 +1792,15 @@ function seParse(pages){
  }
  // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
  // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.
+ // V216 TEB final fee gate: selected reader may split 'KARTTAN FATURA ODEME UCRETI' and label it payment.
+ if(bank==='TEB'){
+  uniq=uniq.map(r=>{
+   const n=seNorm(r.bankTitle||r.title);
+   if(/KARTTAN.*FATURA.*ODEME/.test(n)||/FATURA.*ODEME.*UCRET/.test(n)) return {...r,kind:'fee',category:'Vergi & Faiz',reason:(r.reason||'')+' · V216 TEB fatura ödeme ücreti'};
+   if(/BSMV|KKDF|KREDILENDIRILEN.*FAIZ|KOMISYON|UCRET/.test(n)&&r.kind==='payment') return {...r,kind:'fee',category:'Vergi & Faiz',reason:(r.reason||'')+' · V216 TEB ücret son-kapı'};
+   return r;
+  });
+ }
  const rawBank={payments:0,fees:0,refunds:0,spendCount:0,seen:uniq.length};
  // Banka tarafındaki ödeme/faiz/iade, TEB işlem defterindeki açıkça sınıflandırılmış satırlardan alınır.
  // Harcama toplamı ise dönem borcu denkleminden bağımsız olarak türetilir; özet toplam işlem diye kullanılmaz.
