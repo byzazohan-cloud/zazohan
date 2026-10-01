@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20260929-HANE-WORK-V185-TEB-DEBIT-DP-REPAIR',
+  build:'20261001-HANE-WORK-V203-TEB-PAYMENT-SIGN-CORE',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 2.0 / V193 — CLEAN REBUILD ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v202';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v203';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1574,7 +1574,7 @@ function seIso(d){return seDateParts(d)?.iso||''}
 function seRowDate(r,near=[]){const direct=seDateParts(r?.text);if(direct)return direct;const a=r?.items||[];for(let i=0;i<a.length;i++){for(let n=2;n<=5&&i+n<=a.length;n++){const z=seDateParts(a.slice(i,i+n).map(q=>q.s).join(' '));if(z)return z}}for(const x of near){const z=seDateParts(x?.text);if(z)return z}return null}
 function seNorm(s){return String(s||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function seCat(title){const n=seNorm(title),rules=state.statementCategoryRules||{};for(const [k,v] of Object.entries(rules))if(k&&n.includes(k)&&C.includes(v))return v;if(/MARKET|BIM|A101|SOK|ONUR|GIDA/.test(n))return C.includes('Market')?'Market':'Diğer';if(/TAKSI|TOPLU TASIMA|ULASIM|BENZIN|PETROL/.test(n))return C.includes('Ulaşım')?'Ulaşım':'Diğer';if(/RESTORAN|KAFE|CAFE|YEMEK|KOMAGENE|TAVUK/.test(n))return C.includes('Yeme İçme')?'Yeme İçme':'Diğer';return 'Diğer'}
-function seKind(title,raw){const n=seNorm(title);if(/ODEME.*TESEKKUR|HESAPTAN ODEME|OTOMATIK ODEME.*TESEKKUR/.test(n)||/\+$/.test(raw))return'payment';if(/IADE|IPTAL/.test(n))return'refund';if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';return'spend'}
+function seKind(title,raw){const n=seNorm(title),r=String(raw||'').replace(/\s+/g,'');if(/IADE|IPTAL/.test(n))return'refund';if(/CEPTETEB.*ODEME|ODEME.*TESEKKUR|HESAPTAN.*ODEME|OTOMATIK.*ODEME/.test(n))return'payment';if(/^-(?:TL\.?)?/i.test(r)||/\+$/.test(r))return'payment';if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';return'spend'}
 
 function seTebStreamRows(pages){
  const out=[];
@@ -1583,7 +1583,7 @@ function seTebStreamRows(pages){
  for(const pg of pages){
   let stream=(pg.items||[]).map(x=>x.s).join(' ').replace(/\\s+/g,' ').trim();
   const n=seNorm(stream), hs=n.indexOf('ISLEM TARIHI'); if(hs>=0)stream=stream.slice(hs);
-  let cut=stream.length; for(const end of ['BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','GENEL TOPLAM']){const k=seNorm(stream).indexOf(end);if(k>=0&&k<cut)cut=k} stream=stream.slice(0,cut);
+  let cut=stream.length; for(const end of ['BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','GENEL TOPLAM','TURK EKONOMI BANKASI','TICARET SICIL NO','MERSIS NO','KART A AIT MN']){const k=seNorm(stream).indexOf(end);if(k>=0&&k<cut)cut=k} stream=stream.slice(0,cut);
   let m; while((m=rx.exec(stream))){
    const d=seDateParts(m[1]),raw=m[3],amount=seMoney(raw); if(!d||amount==null||amount===0)continue;
    let desc=m[2].replace(/\\s+/g,' ').trim();
@@ -1625,7 +1625,7 @@ function seParse(pages){
   if(hi<0)hi=vp.findIndex(r=>{const n=seNorm(r.text);return profile.tableStart.filter(z=>n.includes(seNorm(z))).length>=2});
   if(hi<0){diag.rejected.push(`S${vp[0]?.page||'?'}: işlem tablosu başlığı bulunamadı`);continue}diag.headerFound++;
   const head=vp[hi],tutarItem=[...(head.items||[])].reverse().find(x=>seNorm(x.s).includes('TUTAR')),amountX=tutarItem?.x;
-  let fi=vp.findIndex((r,i)=>i>hi&&profile.tableEnd.some(z=>seNorm(r.text).includes(seNorm(z))));if(fi<0)fi=vp.length;
+  let fi=vp.findIndex((r,i)=>i>hi&&(profile.tableEnd.some(z=>seNorm(r.text).includes(seNorm(z)))||/TURK EKONOMI BANKASI|TICARET SICIL|MERSIS NO|KART.A AIT MN|BILDIRIMLERINIZI TEB/i.test(seNorm(r.text))));if(fi<0)fi=vp.length;
   const body=vp.slice(hi+1,fi);let activeDate=null;
   for(let i=0;i<body.length;i++){
    const rr=body[i],d=seRowDate(rr,body.slice(Math.max(0,i-1),i));if(d){activeDate=d;diag.dateCandidates++}
@@ -1654,8 +1654,8 @@ function seParse(pages){
   const score=a=>{let spend=0,fees=0,pay=0,refund=0;for(const r of a){if(r.kind==='payment')pay+=r.amount;else if(r.kind==='refund')refund+=r.amount;else if(r.kind==='fee')fees+=r.amount;else spend+=r.amount}const calc=(vals.previous??0)+spend+fees-pay-refund;const residual=(vals.debt!=null&&vals.previous!=null)?Math.abs(calc-vals.debt):1e9;return{residual,rows:a.length,spend,fees,pay,refund,calc}};
   const cs=score(cr),ss=score(sr);
   // Önce banka denklemi; eşitse daha fazla gerçek işlem satırı.
-  if(ss.residual+0.01<cs.residual || (Math.abs(ss.residual-cs.residual)<=0.01&&ss.rows>cs.rows)){uniq=sr;diag.mode='teb-stream-accounting-selected-v202';diag.coordinateResidual=cs.residual;diag.streamResidual=ss.residual}
-  else{diag.mode='teb-physical-accounting-selected-v202';diag.coordinateResidual=cs.residual;diag.streamResidual=ss.residual}
+  if(ss.residual+0.01<cs.residual || (Math.abs(ss.residual-cs.residual)<=0.01&&ss.rows>cs.rows)){uniq=sr;diag.mode='teb-stream-accounting-selected-v203';diag.coordinateResidual=cs.residual;diag.streamResidual=ss.residual}
+  else{diag.mode='teb-physical-accounting-selected-v203';diag.coordinateResidual=cs.residual;diag.streamResidual=ss.residual}
  }
  // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
  // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.
