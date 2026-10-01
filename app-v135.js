@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v213-teb-independent-bank-verify';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v214-teb-cross-channel-row-recovery';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1768,7 +1768,27 @@ function seParse(pages){
   const score=c=>{const z=summarize(c.rows);if(vals.previous==null||vals.debt==null)return 1e15-c.rows.length;const calc=Math.round((vals.previous+z.spend+z.fees-z.payments-z.refunds)*100)/100;return Math.round(Math.abs(calc-vals.debt)*100)/100};
   candidates.sort((a,b)=>score(a)-score(b)||b.rows.length-a.rows.length);
   const best=candidates[0];
-  if(best){uniq=best.rows;diag.mode='teb-multi-channel-ledger-v213-'+best.id;diag.rawRejected=(best.rejected||[]).slice(0,40);diag.rawRows=uniq.length;diag.candidateScores=candidates.map(c=>({id:c.id,rows:c.rows.length,diff:score(c)}));}
+  if(best){
+   uniq=best.rows.slice();
+   // V214: Bir kanal bir gerçek hareketi atladıysa farkı tahmin etme. Diğer bağımsız
+   // okuyucularda bulunan GERÇEK satırları aday havuzuna al ve yalnız banka dönem
+   // borcu denklemini KURUŞU KURUŞUNA kapatan satır(lar) varsa deftere ekle.
+   // Böylece mevcut doğru 4 ekstre değişmez; yalnız eksik fiziksel PDF satırı kurtarılır.
+   const rowKey=r=>[r.date,seNorm(r.bankTitle||r.title),Math.round(r.amount*100),r.kind].join('|');
+   const have=new Set(uniq.map(rowKey)), extras=[];
+   for(const c of candidates)for(const r of c.rows){const k=rowKey(r);if(!have.has(k)&&!extras.some(x=>rowKey(x)===k))extras.push(r)}
+   const ledgerCalc=rs=>{const z=summarize(rs);return vals.previous==null?null:Math.round((vals.previous+z.spend+z.fees-z.payments-z.refunds)*100)/100};
+   let cur=ledgerCalc(uniq), target=vals.debt, recovered=[];
+   if(cur!=null&&target!=null&&Math.abs(cur-target)>.01){
+    const exact=(rs)=>Math.abs(ledgerCalc(uniq.concat(rs))-target)<=.01;
+    // Önce tek eksik satır; sonra en fazla iki satırlık kombinasyon. Hiçbir sentetik
+    // tutar oluşturulmaz ve özet rakamı hareket olarak kullanılmaz.
+    for(const r of extras){if(exact([r])){recovered=[r];break}}
+    if(!recovered.length)outer:for(let i=0;i<extras.length;i++)for(let j=i+1;j<extras.length;j++){if(exact([extras[i],extras[j]])){recovered=[extras[i],extras[j]];break outer}}
+    if(recovered.length){uniq=uniq.concat(recovered);diag.recoveredRows=recovered.map(r=>({date:r.date,title:r.title,amount:r.amount,kind:r.kind}));}
+   }
+   diag.mode='teb-multi-channel-ledger-v214-'+best.id+(recovered.length?'-recovered':'');diag.rawRejected=(best.rejected||[]).slice(0,40);diag.rawRows=uniq.length;diag.candidateScores=candidates.map(c=>({id:c.id,rows:c.rows.length,diff:score(c)}));
+  }
  }
  // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
  // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.

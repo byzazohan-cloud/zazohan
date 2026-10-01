@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20261001-HANE-WORK-V212-TEB-MULTI-CHANNEL-VERIFY';
+  const BUILD='20261001-HANE-WORK-V214-TEB-CROSS-CHANNEL-ROW-RECOVERY';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
