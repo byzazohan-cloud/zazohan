@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 2.0 / V193 — CLEAN REBUILD ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v200';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v202';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1641,15 +1641,22 @@ function seParse(pages){
    rows.push({date:activeDate.iso,title:desc,bankTitle:desc,amount:Math.abs(c.amount),kind,category,reason:`Fiziksel satır · ${c.raw} · ${activeDate.raw} · S${rr.page} · x${Math.round(c.x)}`});
   }
  }
- if(bank==='TEB'){
-  const sr=seTebStreamRows(pages);
-  // TEB'de koordinat tablosu eksik kalabiliyor. Akış çekirdeği daha çok gerçek işlem bulursa onu esas al.
-  if(sr.length>=rows.length){rows.splice(0,rows.length,...sr);diag.mode='teb-content-stream-ledger-v201'}
- }
- const seen=new Set(),uniq=[];for(const r of rows){const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(!seen.has(k)){seen.add(k);uniq.push(r)}}
+ const tebStreamRows=bank==='TEB'?seTebStreamRows(pages):[];
+ const seen=new Set();let uniq=[];for(const r of rows){const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(!seen.has(k)){seen.add(k);uniq.push(r)}}
  const vals={previous:null,spend:null,fees:null,payments:null,debt:null,spendCount:null};
  function rowValue(labels){labels=Array.isArray(labels)?labels:[labels];for(const line of flat){const n=seNorm(line);if(!labels.some(z=>n.includes(seNorm(z))))continue;const ms=[...line.matchAll(/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return Math.abs(v)}}return null}
  vals.previous=rowValue(profile.devir);vals.debt=rowValue(profile.debt);
+ // TEB: iki bağımsız satır okuyucudan hangisinin muhasebe denklemi banka dönem borcuna daha yakınsa onu seç.
+ // Satır sayısı artık seçim ölçütü değildir. Böylece çok satır bulan ama ödeme/tutar eşleşmesini bozan akış okuyucusu kazanamaz.
+ if(bank==='TEB'&&tebStreamRows.length){
+  const dedupe=a=>{const ss=new Set(),o=[];for(const r of a){const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(!ss.has(k)){ss.add(k);o.push(r)}}return o};
+  const sr=dedupe(tebStreamRows),cr=uniq;
+  const score=a=>{let spend=0,fees=0,pay=0,refund=0;for(const r of a){if(r.kind==='payment')pay+=r.amount;else if(r.kind==='refund')refund+=r.amount;else if(r.kind==='fee')fees+=r.amount;else spend+=r.amount}const calc=(vals.previous??0)+spend+fees-pay-refund;const residual=(vals.debt!=null&&vals.previous!=null)?Math.abs(calc-vals.debt):1e9;return{residual,rows:a.length,spend,fees,pay,refund,calc}};
+  const cs=score(cr),ss=score(sr);
+  // Önce banka denklemi; eşitse daha fazla gerçek işlem satırı.
+  if(ss.residual+0.01<cs.residual || (Math.abs(ss.residual-cs.residual)<=0.01&&ss.rows>cs.rows)){uniq=sr;diag.mode='teb-stream-accounting-selected-v202';diag.coordinateResidual=cs.residual;diag.streamResidual=ss.residual}
+  else{diag.mode='teb-physical-accounting-selected-v202';diag.coordinateResidual=cs.residual;diag.streamResidual=ss.residual}
+ }
  // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
  // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.
  const rawBank={payments:0,fees:0,refunds:0,spendCount:0,seen:uniq.length};

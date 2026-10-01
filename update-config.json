@@ -1,4 +1,4 @@
 {
-  "version": "190",
-  "message": "V195: Yeni Ekstre Motoru 2.0 fiziksel tablo okuyucu. Tarih, açıklama ve tutar sütunları koordinatla ayrılır; banka özeti bağımsız doğrulanır."
+  "version": "202",
+  "message": "V202: TEB işlem çekirdeği satır sayısına göre değil banka muhasebe denklemine göre fiziksel/akış okuyucu seçer. Eski cache zorla yenilenir."
 }
