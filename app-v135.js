@@ -1542,9 +1542,9 @@ function stmtMoney(v){
   const n=Number(x);return Number.isFinite(n)?(neg?-Math.abs(n):n):NaN
 }
 
-// === HANE EKSTRE MOTORU 4.0 / V207 — RAW PDF LINE LEDGER ===
+// === HANE EKSTRE MOTORU 4.1 / V208 — TEB MONEY CORE + RAW LINE LEDGER ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v207-raw-line';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v208-money-core';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1566,7 +1566,9 @@ async function seReadPdf(file){
   const rawRowBuckets=[];
   for(const it of rawItems.filter(x=>x.s)){let r=rawRowBuckets.find(q=>Math.abs(q.y-it.y)<=2.4);if(!r){r={y:it.y,a:[]};rawRowBuckets.push(r)}r.a.push(it)}
   rawRowBuckets.sort((a,b)=>rot===180?a.y-b.y:b.y-a.y);
-  const rawLines=rawRowBuckets.map(r=>{r.a.sort((a,b)=>rot===180?b.x-a.x:a.x-b.x);return r.a.map(x=>x.s).join(' ').replace(/\s+/g,' ').trim()}).filter(Boolean);
+  // Metin satırı içindeki okuma yönü PDF koordinatında her zaman soldan sağadır.
+  // 180° sayfada X'i ters sıralamak tarih/açıklama/tutar dizisini bozuyordu.
+  const rawLines=rawRowBuckets.map(r=>{r.a.sort((a,b)=>a.x-b.x);return r.a.map(x=>x.s).join(' ').replace(/\s+/g,' ').trim()}).filter(Boolean);
   const items=rawItems.filter(x=>x.s).map(it=>{let {s,x,y,w}=it;
     if(rot===180){x=vp.width-x-w;y=vp.height-y}
     else if(rot===90){const ox=x;x=y;y=vp.width-ox}
@@ -1579,7 +1581,20 @@ async function seReadPdf(file){
  }
  return pages
 }
-function seMoneySigned(s){if(s==null)return null;let raw=String(s).trim(),neg=/^-/.test(raw)||/-$/.test(raw);let x=raw.replace(/TL|₺/gi,'').replace(/\s/g,'').replace(/([.,])-$/,'$100').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.').replace(/[^0-9.]/g,'');const n=Number(x);return Number.isFinite(n)?(neg?-Math.abs(n):Math.abs(n)):null}
+function seMoneySigned(s){
+ if(s==null)return null;
+ const raw=String(s).trim();
+ const neg=/^\s*-/.test(raw)||/-\s*$/.test(raw);
+ // TEB para biçimi: TL.4.666,75 / TL.730,- / -TL.14.826,69.
+ // Eski kod yalnız 'TL'yi siliyor ve öndeki noktayı bırakıyordu (.4.666,75); bu da Number() => NaN yapıp
+ // özellikle binlik tutarların işlem toplamından sessizce düşmesine neden oluyordu.
+ let x=raw.replace(/₺/g,'').replace(/\bTL\.?/gi,'').replace(/\s+/g,'').replace(/^[+-]/,'').replace(/[+-]$/,'');
+ if(/,-$/.test(raw)||/\.-$/.test(raw))x=x.replace(/,$/,',00').replace(/\.$/,'.00');
+ // Türkçe ekstre: nokta binlik, virgül kuruş. Noktaları tamamen kaldır, virgülü ondalığa çevir.
+ x=x.replace(/\./g,'').replace(',','.').replace(/[^0-9.]/g,'');
+ const n=Number(x);
+ return Number.isFinite(n)?(neg?-Math.abs(n):Math.abs(n)):null
+}
 function seMoney(s){const n=seMoneySigned(s);return n==null?null:Math.abs(n)}
 function seDateParts(s){const t=String(s||'').replace(/\s+/g,' ').trim();let m=t.match(/(?:^|\D)(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]\s*(\d{2,4})(?:\D|$)/);if(!m)m=t.match(/(?:^|\D)(\d{1,2})\s+(\d{1,2})\s+(20\d{2})(?:\D|$)/);if(!m)return null;let y=+m[3];if(y<100)y+=2000;const d=+m[1],mo=+m[2];if(d<1||d>31||mo<1||mo>12||y<2000||y>2100)return null;return{raw:m[0].replace(/^\D|\D$/g,'').trim(),d,mo,y,iso:`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`}}
 function seIso(d){return seDateParts(d)?.iso||''}
@@ -1742,7 +1757,7 @@ function seParse(pages){
   // V207: TEB için seçim yarışı kaldırıldı. Ana kaynak ham PDF satırlarıdır.
   // Böylece yanlış bir okuyucu yalnız muhasebe sonucuna yaklaştı diye seçilemez.
   uniq=tebRaw.rows;
-  diag.mode='teb-raw-pdf-line-ledger-v207';
+  diag.mode='teb-raw-pdf-line-ledger-v208-moneyfix';
   diag.rawRejected=tebRaw.rejected.slice(0,40);
   diag.rawRows=uniq.length;
  }
