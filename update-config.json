@@ -1,4 +1,4 @@
 {
-  "version": "202",
-  "message": "V202: TEB işlem çekirdeği satır sayısına göre değil banka muhasebe denklemine göre fiziksel/akış okuyucu seçer. Eski cache zorla yenilenir."
+  "version": "209",
+  "message": "V209: TEB sıfır-kuruş gösterimi (TL.730,-) artık ödeme olarak sınıflandırılmaz. Yalnız -TL ile başlayan gerçek negatif ödeme kabul edilir. 5 gerçek TEB ekstresi regresyon testi: 5/5 geçti."
 }

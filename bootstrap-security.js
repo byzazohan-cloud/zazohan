@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const BUILD='20260929-HANE-WORK-V187-TEB-TABLE-AUTHORITY';
+  const BUILD='20261001-HANE-WORK-V209-TEB-ZERO-KURUS-SIGN-FIX';
   const KEY='hane_app_shell_build';
   const RELOAD_KEY='hane_auto_update_reload';
   const CHECK_MS=60*60*1000;
