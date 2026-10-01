@@ -1575,6 +1575,27 @@ function seRowDate(r,near=[]){const direct=seDateParts(r?.text);if(direct)return
 function seNorm(s){return String(s||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function seCat(title){const n=seNorm(title),rules=state.statementCategoryRules||{};for(const [k,v] of Object.entries(rules))if(k&&n.includes(k)&&C.includes(v))return v;if(/MARKET|BIM|A101|SOK|ONUR|GIDA/.test(n))return C.includes('Market')?'Market':'Diğer';if(/TAKSI|TOPLU TASIMA|ULASIM|BENZIN|PETROL/.test(n))return C.includes('Ulaşım')?'Ulaşım':'Diğer';if(/RESTORAN|KAFE|CAFE|YEMEK|KOMAGENE|TAVUK/.test(n))return C.includes('Yeme İçme')?'Yeme İçme':'Diğer';return 'Diğer'}
 function seKind(title,raw){const n=seNorm(title);if(/ODEME.*TESEKKUR|HESAPTAN ODEME|OTOMATIK ODEME.*TESEKKUR/.test(n)||/\+$/.test(raw))return'payment';if(/IADE|IPTAL/.test(n))return'refund';if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';return'spend'}
+
+function seTebStreamRows(pages){
+ const out=[];
+ const amt='(?:\\d{1,3}(?:\\.\\d{3})*|\\d+)(?:,\\d{2}|,-)';
+ const rx=new RegExp('(\\d{1,2}\\s*[./-]\\s*\\d{1,2}\\s*[./-]\\s*\\d{4})\\s+(.{2,180}?)\\s+(-?\\s*TL\\.?\\s*'+amt+')(?=\\s|$)','gi');
+ for(const pg of pages){
+  let stream=(pg.items||[]).map(x=>x.s).join(' ').replace(/\\s+/g,' ').trim();
+  const n=seNorm(stream), hs=n.indexOf('ISLEM TARIHI'); if(hs>=0)stream=stream.slice(hs);
+  let cut=stream.length; for(const end of ['BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','GENEL TOPLAM']){const k=seNorm(stream).indexOf(end);if(k>=0&&k<cut)cut=k} stream=stream.slice(0,cut);
+  let m; while((m=rx.exec(stream))){
+   const d=seDateParts(m[1]),raw=m[3],amount=seMoney(raw); if(!d||amount==null||amount===0)continue;
+   let desc=m[2].replace(/\\s+/g,' ').trim();
+   // Bir sonraki tarih/özet alanı açıklamaya sızmışsa reddet.
+   if(seDateParts(desc)||/DONEM BORCU|SON ODEME|HESAP KESIM|MINIMUM ODEME/i.test(seNorm(desc)))continue;
+   const kind=seKind(desc,raw),category=kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc);
+   out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`TEB akış çekirdeği · ${raw} · ${d.raw} · S${pg.page}`});
+  }
+ }
+ const seen=new Set();return out.filter(r=>{const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(seen.has(k))return false;seen.add(k);return true});
+}
+
 function seProfile(bank){
  const profiles={
   TEB:{id:'TEB',locked:true,tableStart:['ISLEM TARIHI','ISLEM ACIKLAMASI','TUTAR'],tableEnd:['BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','GENEL TOPLAM'],devir:['ONCEKI DONEMDEN DEVIR EDILEN TUTAR','DEVREDEN BAKIYE'],debt:['DONEM BORCU'],pay:['ODEMELERINIZ','ODEME TOPLAMI']},
@@ -1620,14 +1641,21 @@ function seParse(pages){
    rows.push({date:activeDate.iso,title:desc,bankTitle:desc,amount:Math.abs(c.amount),kind,category,reason:`Fiziksel satır · ${c.raw} · ${activeDate.raw} · S${rr.page} · x${Math.round(c.x)}`});
   }
  }
+ if(bank==='TEB'){
+  const sr=seTebStreamRows(pages);
+  // TEB'de koordinat tablosu eksik kalabiliyor. Akış çekirdeği daha çok gerçek işlem bulursa onu esas al.
+  if(sr.length>=rows.length){rows.splice(0,rows.length,...sr);diag.mode='teb-content-stream-ledger-v201'}
+ }
  const seen=new Set(),uniq=[];for(const r of rows){const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(!seen.has(k)){seen.add(k);uniq.push(r)}}
  const vals={previous:null,spend:null,fees:null,payments:null,debt:null,spendCount:null};
  function rowValue(labels){labels=Array.isArray(labels)?labels:[labels];for(const line of flat){const n=seNorm(line);if(!labels.some(z=>n.includes(seNorm(z))))continue;const ms=[...line.matchAll(/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return Math.abs(v)}}return null}
  vals.previous=rowValue(profile.devir);vals.debt=rowValue(profile.debt);
  // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
  // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.
- const rawBank={payments:0,fees:0,refunds:0,spendCount:0,seen:0};
- for(const line of flat){const d=seDateParts(line);if(!d)continue;const ms=[...line.matchAll(/-?TL\.?\s*(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-)/gi)];if(!ms.length)continue;const raw=ms[ms.length-1][0],v=seMoney(raw);if(v==null)continue;const n=seNorm(line);rawBank.seen++;if(/ODEME.*TESEKKUR|HESAPTAN ODEME|OTOMATIK ODEME.*TESEKKUR/.test(n)){rawBank.payments+=v;continue}if(/IADE|IPTAL/.test(n)){rawBank.refunds+=v;continue}if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n)){rawBank.fees+=v;continue}rawBank.spendCount++}
+ const rawBank={payments:0,fees:0,refunds:0,spendCount:0,seen:uniq.length};
+ // Banka tarafındaki ödeme/faiz/iade, TEB işlem defterindeki açıkça sınıflandırılmış satırlardan alınır.
+ // Harcama toplamı ise dönem borcu denkleminden bağımsız olarak türetilir; özet toplam işlem diye kullanılmaz.
+ for(const r of uniq){if(r.kind==='payment')rawBank.payments+=r.amount;else if(r.kind==='refund')rawBank.refunds+=r.amount;else if(r.kind==='fee')rawBank.fees+=r.amount;else rawBank.spendCount++}
  for(const k of ['payments','fees','refunds'])rawBank[k]=Math.round(rawBank[k]*100)/100;
  vals.payments=rawBank.payments;vals.fees=rawBank.fees;vals.spendCount=rawBank.spendCount;
  if(vals.debt!=null&&vals.previous!=null)vals.spend=Math.round((vals.debt-vals.previous+rawBank.payments+rawBank.refunds-rawBank.fees)*100)/100;
