@@ -5239,3 +5239,6 @@ html.lightMode .debtDonutCenter small,html.lightMode .debtDonutLegend small{colo
  .modal:has(.statementV65Audit) .statementImportRow{padding:7px!important;border-radius:9px!important}
  .modal:has(.statementV65Audit) .btn{min-height:34px!important;padding:6px 9px!important;font-size:11px!important;position:static!important}
 }
+/* V198 — Evidence Core */
+.modal:has(.seV1) .seProfile{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;margin-bottom:8px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025)}
+.modal:has(.seV1) .seProfile b{font-size:11px}.modal:has(.seV1) .seProfile span{font-size:9px;color:var(--muted);white-space:nowrap}
