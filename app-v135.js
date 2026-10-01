@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 2.0 / V193 — CLEAN REBUILD ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v199';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v200';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1554,11 +1554,17 @@ let sePdf=null,seBlob=[];async function sePdfRuntime(){if(sePdf)return sePdf;awa
 async function seReadPdf(file){
  const p=await sePdfRuntime(),doc=await p.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise,pages=[];
  for(let n=1;n<=doc.numPages;n++){
-  const pg=await doc.getPage(n),ct=await pg.getTextContent(),items=(ct.items||[]).map(it=>({s:String(it.str||'').trim(),x:Number(it.transform?.[4]||0),y:Number(it.transform?.[5]||0),w:Number(it.width||0)})).filter(x=>x.s);
+  const pg=await doc.getPage(n),ct=await pg.getTextContent(),vp=pg.getViewport({scale:1}),rot=((pg.rotate||0)%360+360)%360;
+  const items=(ct.items||[]).map(it=>{const s=String(it.str||'').trim();let x=Number(it.transform?.[4]||0),y=Number(it.transform?.[5]||0),w=Number(it.width||0);
+    // TEB bazı PDF'leri sayfayı 180° döndürerek kaydediyor. Okuma koordinatlarını tek bir görsel sisteme çevir.
+    if(rot===180){x=vp.width-x-w;y=vp.height-y}
+    else if(rot===90){const ox=x;x=y;y=vp.width-ox}
+    else if(rot===270){const ox=x;x=vp.height-y;y=ox}
+    return{s,x,y,w};}).filter(x=>x.s);
   const rows=[];
-  for(const it of items){let r=rows.find(q=>Math.abs(q.y-it.y)<=5);if(!r){r={y:it.y,a:[]};rows.push(r)}r.a.push(it)}
+  for(const it of items){let r=rows.find(q=>Math.abs(q.y-it.y)<=3.2);if(!r){r={y:it.y,a:[]};rows.push(r)}r.a.push(it)}
   rows.sort((a,b)=>b.y-a.y);for(const r of rows)r.a.sort((a,b)=>a.x-b.x);
-  pages.push({page:n,items,rows});
+  pages.push({page:n,items,rows,rotation:rot});
  }
  return pages
 }
@@ -1580,7 +1586,7 @@ function seProfile(bank){
 function seParse(pages){
  const visualPages=pages.map(pg=>pg.rows.map(r=>({page:pg.page,y:r.y,text:r.a.map(q=>q.s).join(' ').replace(/\s+/g,' ').trim(),items:r.a}))),flat=visualPages.flat().map(r=>r.text),all=flat.join('\n');
  const bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI/i.test(all)?'İş Bankası':/HALKBANK|BANKKART/i.test(all)?'Halkbank':'Banka',profile=seProfile(bank);
- const diag={pages:pages.length,textItems:pages.reduce((n,p)=>n+p.items.length,0),dateCandidates:0,amountCandidates:0,headerFound:0,tableRows:0,rejected:[],mode:'physical-row-reconstruction-v199'};
+ const diag={pages:pages.length,textItems:pages.reduce((n,p)=>n+p.items.length,0),dateCandidates:0,amountCandidates:0,headerFound:0,tableRows:0,rejected:[],mode:'teb-normalized-row-core-v200'};
  const moneyRx=/^[\s]*(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))([+-])?[\s]*$/i;
  const summary=/TOPLAM|DONEM BORCU|DÖNEM BORCU|ASGARI|ASGARİ|LIMIT|LİMİT|FAIZ ORANI|FAİZ ORANI|AKDI FAIZ|AKDİ FAİZ|GECIKME|YILLIK|AYLIK|EKSTRE OZETI|EKSTRE ÖZETİ/i;
  const devirRx=/(?:ÖNCEKİ|ONCEKI).*(?:DEVIR|DEVİR)|DEVREDEN\s+BAK/i,rows=[];
@@ -1617,9 +1623,15 @@ function seParse(pages){
  const seen=new Set(),uniq=[];for(const r of rows){const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(!seen.has(k)){seen.add(k);uniq.push(r)}}
  const vals={previous:null,spend:null,fees:null,payments:null,debt:null,spendCount:null};
  function rowValue(labels){labels=Array.isArray(labels)?labels:[labels];for(const line of flat){const n=seNorm(line);if(!labels.some(z=>n.includes(seNorm(z))))continue;const ms=[...line.matchAll(/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return Math.abs(v)}}return null}
- vals.previous=rowValue(profile.devir);vals.spend=rowValue(['BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI','BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','GENEL TOPLAM']);vals.debt=rowValue(profile.debt);vals.payments=rowValue(profile.pay);vals.fees=rowValue(['TOPLAM FAİZ VE ÜCRETLER','TOPLAM FAIZ VE UCRETLER','FAİZ / ÜCRET','FAIZ / UCRET']);
+ vals.previous=rowValue(profile.devir);vals.debt=rowValue(profile.debt);
+ // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
+ // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.
+ const rawBank={payments:0,fees:0,refunds:0,spendCount:0,seen:0};
+ for(const line of flat){const d=seDateParts(line);if(!d)continue;const ms=[...line.matchAll(/-?TL\.?\s*(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-)/gi)];if(!ms.length)continue;const raw=ms[ms.length-1][0],v=seMoney(raw);if(v==null)continue;const n=seNorm(line);rawBank.seen++;if(/ODEME.*TESEKKUR|HESAPTAN ODEME|OTOMATIK ODEME.*TESEKKUR/.test(n)){rawBank.payments+=v;continue}if(/IADE|IPTAL/.test(n)){rawBank.refunds+=v;continue}if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n)){rawBank.fees+=v;continue}rawBank.spendCount++}
+ for(const k of ['payments','fees','refunds'])rawBank[k]=Math.round(rawBank[k]*100)/100;
+ vals.payments=rawBank.payments;vals.fees=rawBank.fees;vals.spendCount=rawBank.spendCount;
+ if(vals.debt!=null&&vals.previous!=null)vals.spend=Math.round((vals.debt-vals.previous+rawBank.payments+rawBank.refunds-rawBank.fees)*100)/100;
  const sums={spend:0,fees:0,payments:0,refunds:0};uniq.forEach(r=>sums[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount);for(const k of Object.keys(sums))sums[k]=Math.round(sums[k]*100)/100;
- for(const line of flat){const n=seNorm(line),m=n.match(/(?:HARCAMA|ISLEM)\s+SAYISI\D*(\d{1,3})/);if(m){vals.spendCount=+m[1];break}}
  diag.tableRows=uniq.length;diag.tableSpendRows=uniq.filter(r=>r.kind==='spend').length;diag.rejectedCount=diag.rejected.length;
  return{bank,profile,rows:uniq,bankValues:vals,motor:sums,diagnostic:diag}
 }
