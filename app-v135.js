@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v210-teb-180-row-direction-fix';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v213-teb-independent-bank-verify';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1755,7 +1755,7 @@ function seParse(pages){
  // TEB: iki bağımsız satır okuyucudan hangisinin muhasebe denklemi banka dönem borcuna daha yakınsa onu seç.
  // Satır sayısı artık seçim ölçütü değildir. Böylece çok satır bulan ama ödeme/tutar eşleşmesini bozan akış okuyucusu kazanamaz.
  if(bank==='TEB'){
-  // V212: TEB için tek okuyucuya körü körüne güvenme. PDF'nin ham satır, mantıksal satır,
+  // V213: TEB için tek okuyucuya körü körüne güvenme. PDF'nin ham satır, mantıksal satır,
   // görsel satır ve akış kanallarını AYRI adaylar olarak kur; banka dönem borcu denklemini
   // en küçük kuruş farkıyla kapatan adayı seç. Özet rakamı işlem olarak EKLEME ve fark üretme.
   const candidates=[
@@ -1768,7 +1768,7 @@ function seParse(pages){
   const score=c=>{const z=summarize(c.rows);if(vals.previous==null||vals.debt==null)return 1e15-c.rows.length;const calc=Math.round((vals.previous+z.spend+z.fees-z.payments-z.refunds)*100)/100;return Math.round(Math.abs(calc-vals.debt)*100)/100};
   candidates.sort((a,b)=>score(a)-score(b)||b.rows.length-a.rows.length);
   const best=candidates[0];
-  if(best){uniq=best.rows;diag.mode='teb-multi-channel-ledger-v212-'+best.id;diag.rawRejected=(best.rejected||[]).slice(0,40);diag.rawRows=uniq.length;diag.candidateScores=candidates.map(c=>({id:c.id,rows:c.rows.length,diff:score(c)}));}
+  if(best){uniq=best.rows;diag.mode='teb-multi-channel-ledger-v213-'+best.id;diag.rawRejected=(best.rejected||[]).slice(0,40);diag.rawRows=uniq.length;diag.candidateScores=candidates.map(c=>({id:c.id,rows:c.rows.length,diff:score(c)}));}
  }
  // TEB'deki “BU KARTINIZLA YAPILAN İŞLEM TOPLAMLARI” harcama toplamı değildir; dönem borcunu tekrar eder.
  // Ödeme/faiz değerlerini işlem tablosunun ham banka satırlarından ayrıca çıkar, harcamayı banka denklemiyle türet.
@@ -1778,7 +1778,9 @@ function seParse(pages){
  for(const r of uniq){if(r.kind==='payment')rawBank.payments+=r.amount;else if(r.kind==='refund')rawBank.refunds+=r.amount;else if(r.kind==='fee')rawBank.fees+=r.amount;else rawBank.spendCount++}
  for(const k of ['payments','fees','refunds'])rawBank[k]=Math.round(rawBank[k]*100)/100;
  vals.payments=rawBank.payments;vals.fees=rawBank.fees;vals.spendCount=rawBank.spendCount;
- if(vals.debt!=null&&vals.previous!=null){const derived=Math.round((vals.debt-vals.previous+rawBank.payments+rawBank.refunds-rawBank.fees)*100)/100;vals.spend=derived>=0?derived:null;if(derived<0)diag.rejected.push(`Banka harcama denklemi negatif (${derived.toFixed(2)}); harcama değeri tahmin edilmedi`)}
+ // V213: TEB PDF'sinde ayrı bir "Harcamalar" özet alanı yoksa BANKA sütununa denklemden türetilmiş rakam yazma.
+ // Harcama toplamı yalnız motorun gerçek işlem satırlarının toplamıdır; doğrulama bankanın açık Dönem Borcu alanına karşı yapılır.
+ vals.spend=null;
  const sums={spend:0,fees:0,payments:0,refunds:0};uniq.forEach(r=>sums[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount);for(const k of Object.keys(sums))sums[k]=Math.round(sums[k]*100)/100;
  diag.tableRows=uniq.length;diag.tableSpendRows=uniq.filter(r=>r.kind==='spend').length;diag.rejectedCount=diag.rejected.length;
  return{bank,profile,rows:uniq,bankValues:vals,motor:sums,diagnostic:diag}
@@ -1787,7 +1789,8 @@ function seDiff(a,b){return a==null?'—':Math.abs(a-b)<=.01?'✓':money(Math.ab
 function sePreview(cardId,res){statementImportRows=res.rows;statementImportMeta=res;const b=res.bankValues,m=res.motor;
  const calcDebt=(b.previous!=null)?Math.round((b.previous+m.spend+m.fees-m.payments-m.refunds)*100)/100:null;
  const eq=(a,c)=>a!=null&&c!=null&&Math.abs(a-c)<=.01;
- const motorCount=res.rows.filter(r=>r.kind==='spend').length; const checks=[['HARCAMA SAYISI',b.spendCount,motorCount,b.spendCount!=null&&b.spendCount===motorCount],['DEVREDEN BAKİYE',b.previous,b.previous,b.previous!=null],['HARCAMALAR',b.spend,m.spend,eq(b.spend,m.spend)],['ÖDEMELER',b.payments,m.payments,eq(b.payments,m.payments)],['FAİZ / ÜCRET',b.fees,m.fees,eq(b.fees,m.fees)],['DÖNEM BORCU',b.debt,calcDebt,eq(b.debt,calcDebt)]];
+ const motorCount=res.rows.filter(r=>r.kind==='spend').length; const checks=[['HARCAMA SAYISI',b.spendCount,motorCount,b.spendCount!=null&&b.spendCount===motorCount],['DEVREDEN BAKİYE',b.previous,b.previous,b.previous!=null],['HARCAMALAR',b.spend,m.spend,b.spend==null?true:eq(b.spend,m.spend)],['ÖDEMELER',b.payments,m.payments,eq(b.payments,m.payments)],['FAİZ / ÜCRET',b.fees,m.fees,eq(b.fees,m.fees)],['DÖNEM BORCU',b.debt,calcDebt,eq(b.debt,calcDebt)]];
+ // Harcamalar TEB özetinde ayrı alan olarak yazmıyorsa bu satır bilgilendirmedir; kilit kararını bankanın açık dönem borcu verir.
  const locked=checks.some(x=>!x[3]);statementImportMeta.locked=locked;
  const rowHtml=res.rows.map((r,i)=>`<div class="seRow seRowV195"><input class="seTitle" data-se-title="${i}" value="${esc(r.title)}"><small class="seMeta">${r.date} · ${esc(r.bankTitle||r.reason||'Ekstre işlemi')}</small><div class="seRowBottom"><input class="seAmount" data-se-amount="${i}" type="number" step="0.01" value="${r.amount.toFixed(2)}"><select class="seKind" data-se-kind="${i}"><option value="spend" ${r.kind==='spend'?'selected':''}>HARCAMA</option><option value="payment" ${r.kind==='payment'?'selected':''}>ÖDEME</option><option value="fee" ${r.kind==='fee'?'selected':''}>FAİZ/MASRAF</option><option value="refund" ${r.kind==='refund'?'selected':''}>İADE</option></select><select class="seCat" data-se-cat="${i}">${C.map(c=>`<option ${c===r.category?'selected':''}>${esc(c)}</option>`).join('')}</select></div></div>`).join('');
  return `<div class="seV1"><div class="seProfile"><b>${esc(res.bank)} EKSTRE PROFİLİ</b><span>${res.profile?.locked?'🔒 KİLİTLİ PROFİL':'GENEL PROFİL'}</span></div><div class="seStatus ${locked?'bad':'ok'}"><b>${locked?'DÜZELTME GEREKİYOR':'EKSTRE DOĞRULANDI'}</b><span>${locked?'Hata düzelmeden HANE’ye eklenmez.':'Banka değerleri ile motor sonucu uyuşuyor.'}</span></div><div class="seCompare"><div class="seHead"><b>KONTROL</b><b>BANKA</b><b>MOTOR</b><b>SONUÇ</b></div>${checks.map(x=>`<div><span>${x[0]}</span><b>${typeof x[1]==='number'?(x[0].includes('SAYISI')?x[1]:money(x[1])):'—'}</b><b>${typeof x[2]==='number'?(x[0].includes('SAYISI')?x[2]:money(x[2])):'—'}</b><strong class="${x[3]?'ok':'bad'}">${x[3]?'✓':(x[1]==null||x[2]==null?'—':seDiff(x[1],x[2]))}</strong></div>`).join('')}</div>${locked?`<div class="seWhy"><b>NEDEN KİLİTLİ?</b><span>${checks.filter(x=>!x[3]).map(x=>x[1]==null?x[0]+' banka değeri okunamadı':x[2]==null?x[0]+' motor değeri üretilemedi':x[0]+' uyuşmuyor · fark '+money(Math.abs(x[1]-x[2]))).join(' · ')}</span><small>Motor özet rakamını işlem diye kullanmaz ve farkı tahmin ederek kapatmaz. Hatalı satırı düzelt; karşılaştırma yeniden hesaplanır.</small></div>`:''}<div class="seRowsHead"><b>İŞLEMLER</b><span>${res.rows.length} satır · listede doğrudan düzenlenebilir</span></div><div class="seRows">${rowHtml}</div><button class="btn gold" data-action="statementV191Recheck">YENİDEN KONTROL ET</button><button class="btn" data-action="statementV191Confirm" ${locked?'disabled style="opacity:.45"':''}>HANE’YE EKLE</button></div>`}
