@@ -75,7 +75,7 @@ const money=n=>state?.settings?.privacy?'••••••':new Intl.NumberForm
 const upper=v=>String(v??'').toLocaleUpperCase('tr-TR');
 // S6 — Merkezi arayüz altyapısı. Görünümü değiştirmeden buton, ikon ve logo tanımları tek merkezden yönetilir.
 const HANE_UI=Object.freeze({
-  build:'20261001-HANE-WORK-V210-TEB-180-ROW-DIRECTION-FIX',
+  build:'20261001-HANE-WORK-V215-TEB-FEE-BEFORE-PAYMENT',
   brand:Object.freeze({name:'HANE',logo:'icons/hane-app-icon.png',logoVersion:'hane-blue-frame-v53'}),
   buttons:Object.freeze({base:'btn',primary:'btn gold',icon:'ib premiumTopIcon'}),
   nav:Object.freeze([
@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v214-teb-cross-channel-row-recovery';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v215-teb-fee-before-payment';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1602,7 +1602,7 @@ function seIso(d){return seDateParts(d)?.iso||''}
 function seRowDate(r,near=[]){const direct=seDateParts(r?.text);if(direct)return direct;const a=r?.items||[];for(let i=0;i<a.length;i++){for(let n=2;n<=5&&i+n<=a.length;n++){const z=seDateParts(a.slice(i,i+n).map(q=>q.s).join(' '));if(z)return z}}for(const x of near){const z=seDateParts(x?.text);if(z)return z}return null}
 function seNorm(s){return String(s||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function seCat(title){const n=seNorm(title),rules=state.statementCategoryRules||{};for(const [k,v] of Object.entries(rules))if(k&&n.includes(k)&&C.includes(v))return v;if(/MARKET|BIM|A101|SOK|ONUR|GIDA/.test(n))return C.includes('Market')?'Market':'Diğer';if(/TAKSI|TOPLU TASIMA|ULASIM|BENZIN|PETROL/.test(n))return C.includes('Ulaşım')?'Ulaşım':'Diğer';if(/RESTORAN|KAFE|CAFE|YEMEK|KOMAGENE|TAVUK/.test(n))return C.includes('Yeme İçme')?'Yeme İçme':'Diğer';return 'Diğer'}
-function seKind(title,raw){const n=seNorm(title),r=String(raw||'').replace(/\s+/g,'');if(/IADE|IPTAL/.test(n))return'refund';if(/CEPTETEB.*ODEME|ODEME.*TESEKKUR|HESAPTAN.*ODEME|OTOMATIK.*ODEME|KART.*ODEME/.test(n))return'payment';/* TEB'de TL.730,- ifadesindeki sondaki '-' NEGATİF İŞARET DEĞİL, sıfır kuruş gösterimidir. Eski /-$ / mantığı bu harcamaları ödeme sayıyordu. Yalnız tutarın BAŞINDAKİ eksi gerçek ödeme işaretidir. */if(/^-(?:TL\.?)?/i.test(r)||/\+$/.test(r))return'payment';if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';return'spend'}
+function seKind(title,raw){const n=seNorm(title),r=String(raw||'').replace(/\s+/g,'');if(/IADE|IPTAL/.test(n))return'refund';/* V215: ücret/BSMV/KKDF/faiz kontrolü ödeme kontrolünden ÖNCE yapılır. TEB'deki 'KARTTAN FATURA ODEME UCRETI' bir kart ödemesi değil banka ücretidir. */if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';if(/CEPTETEB.*ODEME|ODEME.*TESEKKUR|HESAPTAN.*ODEME|OTOMATIK.*ODEME|KART.*ODEME/.test(n))return'payment';/* TEB'de TL.730,- ifadesindeki sondaki '-' NEGATİF İŞARET DEĞİL, sıfır kuruş gösterimidir. Yalnız tutarın BAŞINDAKİ eksi gerçek ödeme işaretidir. */if(/^-(?:TL\.?)?/i.test(r)||/\+$/.test(r))return'payment';return'spend'}
 
 function seTebRawLineRows(pages){
  const out=[],rejected=[];
