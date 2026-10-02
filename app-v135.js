@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v221-halkbank-leading-plus-payment-fix';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v222-halkbank-payment-reconcile-fix';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1839,14 +1839,32 @@ function seParse(pages){
   // Daha çok satır bulmak tek başına yeterli değildir; aynı gerçek satırlar fingerprint ile tekilleştirilir.
   const merged=[...(halk.rows||[]),...((halkLine&&halkLine.rows)||[])], hs=new Set();
   uniq=merged.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(hs.has(k))return false;hs.add(k);return true});
-  diag.mode='halkbank-paraf-v221-leading-plus-payment';
+  diag.mode='halkbank-paraf-v222-payment-reconcile';
   diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;
   diag.rawRejected=[...(halk.rejected||[]),...((halkLine&&halkLine.rejected)||[])].slice(0,40);
  }
  const vals={previous:null,spend:null,fees:null,payments:null,debt:null,spendCount:null};
  function rowValue(labels){labels=Array.isArray(labels)?labels:[labels];for(const line of flat){const n=seNorm(line);if(!labels.some(z=>n.includes(seNorm(z))))continue;const ms=[...line.matchAll(/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return Math.abs(v)}}return null}
  vals.previous=rowValue(profile.devir);vals.debt=rowValue(profile.debt);
- if(bank==='Halkbank'){const hv=seHalkSummary(pages);Object.assign(vals,hv);vals.spendCount=uniq.filter(r=>r.kind==='spend').length;}
+ if(bank==='Halkbank'){
+  const hv=seHalkSummary(pages);Object.assign(vals,hv);
+  // V222: Bazı Paraf PDF'lerinde "Hesaptan Ödeme" satırının + işareti PDF metin
+  // katmanında kayboluyor. Bu durumda satır açıklaması da eksik/bozuk gelebiliyor ve
+  // gerçek ödeme, harcama olarak sınıflanıyordu. Bankanın açık DONEMSEL ALACAK toplamı
+  // varken motor hiç ödeme bulamamışsa SADECE aynı tutardaki tek fiziksel satırı ödeme
+  // olarak yeniden sınıflandır. Sentetik satır/tutar üretme; doğru okunan ekstreye dokunma.
+  const payNow=Math.round(uniq.filter(r=>r.kind==='payment').reduce((a,r)=>a+r.amount,0)*100)/100;
+  if((hv.payments||0)>0 && payNow===0){
+    const target=Math.round(hv.payments*100)/100;
+    const exact=uniq.map((r,i)=>({r,i})).filter(x=>x.r.kind==='spend'&&Math.abs(x.r.amount-target)<=.01);
+    if(exact.length===1){
+      const i=exact[0].i,r=uniq[i];
+      uniq[i]={...r,kind:'payment',category:'Kart Ödemesi',reason:(r.reason||'')+' · V222 Halkbank banka alacak toplamıyla doğrulanan ödeme'};
+      diag.halkbankPaymentRepair={amount:target,row:i,mode:'exact-bank-payment-total'};
+    }
+  }
+  vals.spendCount=uniq.filter(r=>r.kind==='spend').length;
+}
  // TEB: iki bağımsız satır okuyucudan hangisinin muhasebe denklemi banka dönem borcuna daha yakınsa onu seç.
  // Satır sayısı artık seçim ölçütü değildir. Böylece çok satır bulan ama ödeme/tutar eşleşmesini bozan akış okuyucusu kazanamaz.
  if(bank==='TEB'){
