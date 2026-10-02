@@ -1,4 +1,4 @@
 {
-  "version": "V234",
-  "message": "V234: V231 DenizBank düzeltmeleri ve V230 Ziraat profili korunarak paket genel denetimden geçirildi. Eski build/sürüm adları temizlendi, HAN arayüz sınıf adları güncellendi, PWA önbellek sürümü eşitlendi ve statik sözdizimi/bağlantı kontrolleri tamamlandı."
+  "version": "V236",
+  "message": "V236: V235 kart-ekstre banka kilidi ve tüm banka profilleri korunarak genel audit yapıldı. Aktif TARA adları HAN olarak temizlendi; eski build/cache kimlikleri V236 ile eşitlendi; hatalı HAN build uyarısı düzeltildi; PWA ve ana dosya referansları merkezileştirildi."
 }
