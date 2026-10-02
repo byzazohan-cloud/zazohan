@@ -1,4 +1,4 @@
 {
-  "version": "V222",
-  "message": "V222: Halkbank/Paraf ekstrelerinde PDF metin katmanında + işareti kaybolan Hesaptan Ödeme satırları, bankanın Dönemsel Alacak toplamıyla birebir doğrulanarak ödeme olarak sınıflandırılır. Sentetik işlem üretilmez; doğru okunan ekstreler değiştirilmez."
+  "version": "V223",
+  "message": "V223: Halkbank/Paraf ekstrelerinde PDF metin katmanında + işareti kaybolan Hesaptan Ödeme satırları, bankanın Dönemsel Alacak toplamıyla birebir doğrulanarak ödeme olarak sınıflandırılır. Sentetik işlem üretilmez; doğru okunan ekstreler değiştirilmez."
 }

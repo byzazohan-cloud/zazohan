@@ -1785,7 +1785,7 @@ function seHalkSummary(pages){
 function seProfile(bank){
  const profiles={
   TEB:{id:'TEB',locked:true,tableStart:['ISLEM TARIHI','ISLEM ACIKLAMASI','TUTAR'],tableEnd:['BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','GENEL TOPLAM'],devir:['ONCEKI DONEMDEN DEVIR EDILEN TUTAR','DEVREDEN BAKIYE'],debt:['DONEM BORCU'],pay:['ODEMELERINIZ','ODEME TOPLAMI']},
-  'İş Bankası':{id:'ISBANK',locked:true,tableStart:['ISLEM TARIHI','ACIKLAMA','TUTAR'],tableEnd:['TOPLAM'],devir:['ONCEKI DONEM BORCU','DEVREDEN'],debt:['DONEM BORCU'],pay:['ODEME']},
+  'İş Bankası':{id:'ISBANK',locked:true,tableStart:['ISLEM TARIHI','ACIKLAMA','TUTAR'],tableEnd:['TOPLAM'],devir:['BIR ONCEKI HESAP OZETI BAKIYENIZ','ONCEKI HESAP OZETI BAKIYENIZ','ONCEKI DONEM BORCU','DEVREDEN'],debt:['HESAP OZETI BORCU','DONEM BORCU'],pay:['HESAPTAN AKTARIM','ODEME']},
   DenizBank:{id:'DENIZ',locked:true,tableStart:['ISLEM TARIHI','ACIKLAMA','TUTAR'],tableEnd:['TOPLAM'],devir:['ONCEKI DONEM','DEVREDEN'],debt:['DONEM BORCU'],pay:['ODEME']},
   Halkbank:{id:'HALK',locked:true,tableStart:['ISLEM TARIHI','ACIKLAMA','TUTAR'],tableEnd:['BIR SONRAKI'],devir:['BIR ONCEKI DONEM EKSTRE BORCU'],debt:['HESAP BAKIYESI'],pay:['DONEMSEL ALACAK KAYITLARI']}
  };return profiles[bank]||{id:'GENEL',locked:false,tableStart:['ISLEM TARIHI','TUTAR'],tableEnd:['GENEL TOPLAM'],devir:['DEVREDEN','ONCEKI DONEM'],debt:['DONEM BORCU'],pay:['ODEME']}
@@ -1804,7 +1804,7 @@ function seParse(pages){
    const x=g[0].x;if(Number.isFinite(amountX)&&x<amountX-95)continue;
    const v=seMoney(txt);if(v==null||v===0)continue;out.push({q:g[g.length-1],x,raw:txt,amount:v,parts:g});
   }
-  out.sort((u,v)=>v.x-u.x);const seen=new Set();return out.filter(c=>{const k=c.raw+'|'+Math.round(c.x);if(seen.has(k))return false;seen.add(k);return true});
+  if(bank==='İş Bankası'&&Number.isFinite(amountX)){out.sort((u,v)=>Math.abs(u.x-amountX)-Math.abs(v.x-amountX));}else out.sort((u,v)=>v.x-u.x);const seen=new Set();return out.filter(c=>{if(bank==='İş Bankası'&&Number.isFinite(amountX)&&c.x>amountX+110)return false;const k=c.raw+'|'+Math.round(c.x);if(seen.has(k))return false;seen.add(k);return true});
  }
  for(const vp of visualPages){
   let hi=vp.findIndex(r=>{const n=seNorm(r.text);return n.includes('ISLEM')&&n.includes('TUTAR')});
@@ -1919,6 +1919,14 @@ function seParse(pages){
   for(const r of uniq){if(r.kind==='payment')rawBank.payments+=r.amount;else if(r.kind==='refund')rawBank.refunds+=r.amount;else if(r.kind==='fee')rawBank.fees+=r.amount;else rawBank.spendCount++}
   for(const k of ['payments','fees','refunds'])rawBank[k]=Math.round(rawBank[k]*100)/100;
   vals.payments=rawBank.payments;vals.fees=rawBank.fees;vals.spendCount=rawBank.spendCount;vals.spend=null;
+ }
+ // V223 İş Bankası Maximum: MaxiPuan sütunu para hareketi değildir.
+ // PDF'de puan hücresi TUTAR'ın sağında bulunduğundan yalnız TUTAR sütununa en yakın hücre seçilir.
+ // Ayrıca 'MAXIPUAN ILAVE' satırları yalnız puan hareketidir; finansal işlem listesine alınmaz.
+ if(bank==='İş Bankası'){
+  uniq=uniq.filter(r=>!/MAXIPUAN\s*ILAVE/.test(seNorm(r.bankTitle||r.title)));
+  vals.spendCount=uniq.filter(r=>r.kind==='spend').length;
+  diag.mode='isbank-maximum-column-locked-v223';
  }
  const sums={spend:0,fees:0,payments:0,refunds:0};uniq.forEach(r=>sums[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount);for(const k of Object.keys(sums))sums[k]=Math.round(sums[k]*100)/100;
  diag.tableRows=uniq.length;diag.tableSpendRows=uniq.filter(r=>r.kind==='spend').length;diag.rejectedCount=diag.rejected.length;
