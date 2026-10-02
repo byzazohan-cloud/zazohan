@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v230-ziraat-bankkart-profile';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v231-denizbank-strict-amount-reconcile';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1808,12 +1808,15 @@ function seDenizRows(pages){
    const ms=[...rest.matchAll(moneyTL)];if(!ms.length){rejected.push(`S${pg.page}: ${line}`);continue}
    // İşlem Tutarı DenizBank tablosunun en sağındaki/son TL değeridir. Bonus değeri TL eki taşımadığından karışmaz.
    const mm=ms[ms.length-1],amount=seHalkMoney(mm[0]);if(amount==null||Math.abs(amount)<.005)continue;
+   // V231: Aynı DenizBank işlem satırındaki diğer TL hücrelerini de kanıt adayı olarak sakla.
+   // Varsayılan yine bankanın işlem tutarı sütunu (son TL); adaylar yalnız banka toplamıyla TAM ve TEKİL eşleşme varsa kullanılabilir.
+   const amountCandidates=[...new Set(ms.map(x=>seHalkMoney(x[0])).filter(Number.isFinite).map(Math.abs).filter(x=>x>=.005))];
    let desc=rest.slice(0,mm.index).trim();
    // Açıklamanın sonundaki bonus puanı (örn. 0.60) işlem adı değildir.
    desc=desc.replace(/\s+\d+(?:\.\d{1,2})\s*$/,'').trim();
    if(!desc||skip.test(seNorm(desc)))continue;
    const kind=seKind(desc,mm[0]),category=kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc);
-   out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`DenizBank V228 satır okuyucu · ${mm[0]} · S${pg.page}`});
+   out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),amountCandidates,kind,category,reason:`DenizBank V231 satır okuyucu · ${mm[0]} · S${pg.page}`});
   }
  }
  // V229 DenizBank: aynı gün/aynı işyeri/aynı tutardaki gerçek mükerrer harcamaları koru.
@@ -1824,6 +1827,16 @@ function seDenizRows(pages){
 function seDenizReconcileRows(rows,vals){
  if(!rows?.length)return rows||[];
  const bankFee=+vals.fees||0, bankSpend=+vals.spend||0;
+ // V231 DenizBank: bazı PDF varyantlarında işlem satırında birden fazla TL hücresi vardır ve
+ // metin çıkarım sırası işlem tutarını son hücreye koymayabilir. Banka özet toplamı ile yalnızca
+ // TEK bir satırdaki TEK bir alternatif tutar tam eşleşiyorsa o hücreyi seç. Fark tahmini yapılmaz.
+ const exactOneAmountFix=(kind,target,label)=>{
+  if(!(target>=0))return;const cur=rows.filter(r=>r.kind===kind).reduce((a,r)=>a+(+r.amount||0),0),delta=Math.round((target-cur)*100);if(!delta)return;
+  const hits=[];rows.forEach((r,i)=>{if(r.kind!==kind)return;const base=Math.round((+r.amount||0)*100);for(const a of (r.amountCandidates||[])){const c=Math.round((+a||0)*100);if(c!==base&&c-base===delta)hits.push({i,a})}});
+  if(hits.length===1){const h=hits[0],old=rows[h.i];rows=rows.map((r,i)=>i===h.i?{...r,amount:h.a,reason:(r.reason||'')+` · V231 DenizBank ${label} banka toplamıyla tekil hücre doğrulaması`}:r)}
+ };
+ exactOneAmountFix('spend',bankSpend,'harcama');
+ exactOneAmountFix('fee',bankFee,'faiz/ücret');
  let spendRows=rows.filter(r=>r.kind==='spend'), feeRows=rows.filter(r=>r.kind==='fee');
  let spend=spendRows.reduce((a,r)=>a+(+r.amount||0),0), fees=feeRows.reduce((a,r)=>a+(+r.amount||0),0);
  const needFee=Math.round((bankFee-fees)*100);
