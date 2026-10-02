@@ -1,4 +1,4 @@
 {
-  "version": "V227",
-  "message": "V227: Ekstre kategori öğrenmesi TEB/Halkbank/İş Bankası için kalıcılaştırıldı; kullanıcı harcama kategorisini değiştirdiğinde sonraki okumada aynı işyeri kuralı uygulanır. Ödeme/faiz/iade normal gider kategorisinden çıkarıldı. İş Bankası Maximum PDF’de ayrı harcama/ödeme/faiz banka özeti bulunmayan alanlar sahte yeşil doğrulama yerine nötr gösterilir; doğrulama bağımsız devreden bakiye ve dönem borcu denklemiyle yapılır."
+  "version": "V233",
+  "message": "V233: V231 DenizBank düzeltmeleri ve V230 Ziraat profili korunarak paket genel denetimden geçirildi. Eski build/sürüm adları temizlendi, HAN arayüz sınıf adları güncellendi, PWA önbellek sürümü eşitlendi ve statik sözdizimi/bağlantı kontrolleri tamamlandı."
 }
