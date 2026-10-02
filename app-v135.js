@@ -1782,6 +1782,34 @@ function seHalkSummary(pages){
  return{previous:get(['BIR ONCEKI DONEM']),spend:get(['DONEM ICI BORC TUTARI']),fees:get(['TOPLAM FAIZ, UCRET','TOPLAM FAIZ UCRET']),payments:get(['DONEMSEL ALACAK']),debt:get(['HESAP BAKIYESI'])}
 }
 
+
+// V224 İş Bankası Maximum fallback: bazı Maximum PDF'lerinde koordinat satırları tarih hücresini
+// kaybedebiliyor (0 tarih adayı). Metin katmanındaki tam işlem satırını doğrudan okur.
+function seIsbankLineRows(pages){
+ const out=[],rejected=[];
+ const dateRx=/^(\d{1,2}\s*[.\/-]\s*\d{1,2}\s*[.\/-]\s*\d{4})\s+(.+)$/;
+ const moneyRx=/[-+]?\s*(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-)/g;
+ const stop=/\*{3}ODEMELER|AYLIK\s*TAKSITLI|KALAN\s*TAKSITLI|KREDI\s*KARTI\s*HESAP\s*OZETI|MESAJINIZ\s*VAR|TOPLAM\s+\d/i;
+ for(const pg of pages){
+  const src=[...(pg.logicalLines||[]),...(pg.rawLines||[])];
+  for(const rawLine of src){
+   const line=String(rawLine||'').replace(/\s+/g,' ').trim(), n=seNorm(line);
+   if(!line||stop.test(n)||/BIRONCEKIHESAPOZETIBAKIYENIZ|BIR ONCEKI HESAP OZETI BAKIYENIZ/.test(n))continue;
+   const m=line.match(dateRx); if(!m)continue;
+   const d=seDateParts(m[1]); if(!d)continue;
+   let rest=m[2].trim(); const ms=[...rest.matchAll(moneyRx)]; if(!ms.length){rejected.push(`S${pg.page}: ${line}`);continue}
+   // İş Bankası Maximum satırında ilk parasal değer gerçek TUTAR'dır. Sağdaki MaxiPuan ve
+   // taksit parantezi finansal hareket değildir.
+   const mm=ms[0], raw=mm[0], amount=seMoneySigned(raw); if(amount==null||Math.abs(amount)<0.005)continue;
+   let desc=rest.slice(0,mm.index).trim(); if(!desc)continue;
+   if(/MAXIPUAN\s*ILAVE/.test(seNorm(desc)))continue;
+   const kind=seKind(desc,raw),category=kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc);
+   out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`İş Bankası Maximum V224 metin satırı · ${raw} · S${pg.page}`});
+  }
+ }
+ const seen=new Set(); return {rows:out.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(seen.has(k))return false;seen.add(k);return true}),rejected};
+}
+
 function seProfile(bank){
  const profiles={
   TEB:{id:'TEB',locked:true,tableStart:['ISLEM TARIHI','ISLEM ACIKLAMASI','TUTAR'],tableEnd:['BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','GENEL TOPLAM'],devir:['ONCEKI DONEMDEN DEVIR EDILEN TUTAR','DEVREDEN BAKIYE'],debt:['DONEM BORCU'],pay:['ODEMELERINIZ','ODEME TOPLAMI']},
@@ -1829,11 +1857,17 @@ function seParse(pages){
  }
  const halk=bank==='Halkbank'?seHalkRows(pages):null;
  const halkLine=bank==='Halkbank'?seHalkLineRows(pages):null;
+ const isbankLine=bank==='İş Bankası'?seIsbankLineRows(pages):null;
  const tebRaw=bank==='TEB'?seTebRawLineRows(pages):{rows:[],rejected:[]};
  const tebLogical=bank==='TEB'?seTebLogicalRows(pages):{rows:[],rejected:[]};
  const tebStrictRows=bank==='TEB'?seTebStrictRows(pages):[];
  const tebStreamRows=bank==='TEB'?seTebStreamRows(pages):[];
  const seen=new Set();let uniq=[];for(const r of rows){const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(!seen.has(k)){seen.add(k);uniq.push(r)}}
+ if(isbankLine){
+  // Koordinat okuyucu tarihleri göremese bile metin satırları güvenilir kaynaktır.
+  // Metin okuyucu satır bulduysa onu kullan; böylece MaxiPuan sütunu da işlem tutarına karışmaz.
+  if(isbankLine.rows.length){uniq=isbankLine.rows;diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;diag.rawRejected=(isbankLine.rejected||[]).slice(0,40);diag.mode='isbank-maximum-line-v224';}
+ }
  if(halk){
   // V219: koordinat okuyucu boş/eksik kaldığında metin-akışı okuyucusuna geç.
   // Daha çok satır bulmak tek başına yeterli değildir; aynı gerçek satırlar fingerprint ile tekilleştirilir.
@@ -1926,7 +1960,7 @@ function seParse(pages){
  if(bank==='İş Bankası'){
   uniq=uniq.filter(r=>!/MAXIPUAN\s*ILAVE/.test(seNorm(r.bankTitle||r.title)));
   vals.spendCount=uniq.filter(r=>r.kind==='spend').length;
-  diag.mode='isbank-maximum-column-locked-v223';
+  diag.mode=(diag.mode==='isbank-maximum-line-v224'?'isbank-maximum-line-v224':'isbank-maximum-column-locked-v223');
  }
  const sums={spend:0,fees:0,payments:0,refunds:0};uniq.forEach(r=>sums[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount);for(const k of Object.keys(sums))sums[k]=Math.round(sums[k]*100)/100;
  diag.tableRows=uniq.length;diag.tableSpendRows=uniq.filter(r=>r.kind==='spend').length;diag.rejectedCount=diag.rejected.length;
