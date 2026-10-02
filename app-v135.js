@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v226-isbank-summary-optional-fix';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v230-ziraat-bankkart-profile';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1841,6 +1841,54 @@ function seDenizReconcileRows(rows,vals){
  return rows;
 }
 
+
+
+// V230 ZİRAAT BANKKART: Bankkart PDF'lerinde işlem tutarı Türk para biçimindedir.
+// '+' son eki yalnız gerçek kart ödemesini belirtir. Taksit açıklamasındaki toplam işlem tutarı
+// işlem tutarı değildir; satırın EN SON parasal değeri gerçek ekstre hareketidir.
+function seZiraatRows(pages){
+ const perPage=[],rejected=[];
+ const dateRx=/^(\d{1,2}[.\/-]\d{1,2}[.\/-]\d{4})\s+(.+)$/;
+ const moneyRx=/(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}\+?/g;
+ const stop=/FAIZ VE UCRETLER|AYLIK FAIZ ORAN|YILLIK FAIZ ORAN|DEVREDEN BAKIYE|HARCAMALARINIZ|ODEMELERINIZ|DONEM BORCU|BUYUK MUKELLEF|BANKKART AVANTAJ/;
+ for(const pg of pages){
+  const src=(pg.logicalLines&&pg.logicalLines.length?pg.logicalLines:pg.rawLines||[]).map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean), rows=[];
+  for(const line of src){
+   const m=line.match(dateRx);if(!m)continue;const d=seDateParts(m[1]);if(!d)continue;
+   const rest=m[2].trim(),n=seNorm(rest);if(stop.test(n))continue;
+   const ms=[...rest.matchAll(moneyRx)];if(!ms.length){rejected.push(`S${pg.page}: ${line}`);continue}
+   const mm=(ms.length>1&&!/TL\s*ISLEMIN|TL\s*İŞLEMIN|TL\s*İŞLEMİN/i.test(rest))?ms[0]:ms[ms.length-1],raw=mm[0],amount=seMoney(raw.replace(/\+$/,''));if(amount==null||Math.abs(amount)<.005)continue;
+   let desc=rest.slice(0,mm.index).trim();
+   // Taksit satırında açıklama içinde "3.750,00 TL İşlemin 1/2 Taksidi" bulunabilir; açıklama olarak korunur.
+   if(!desc||stop.test(seNorm(desc)))continue;
+   const kind=/\+$/.test(raw)?'payment':seKind(desc,raw),category=kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc);
+   rows.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`Ziraat Bankkart V230 satır okuyucu · ${raw} · S${pg.page}`});
+  }
+  perPage.push(rows);
+ }
+ // Bazı Ziraat PDF'lerinde yeni sayfa önceki sayfanın son birkaç satırını tekrar eder.
+ // Yalnız sayfa sınırındaki en uzun suffix/prefix örtüşmesini kaldır; aynı gün gerçek mükerrerleri koru.
+ const fp=r=>[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');let out=[];
+ for(const rows of perPage){let ov=0,max=Math.min(out.length,rows.length);for(let k=1;k<=max;k++){let ok=true;for(let j=0;j<k;j++)if(fp(out[out.length-k+j])!==fp(rows[j])){ok=false;break}if(ok)ov=k}out.push(...rows.slice(ov))}
+ return {rows:out,rejected};
+}
+function seZiraatSummary(pages){
+ let previous=null,spend=null,fees=null,payments=null,debt=null;
+ // Devreden ve dönem borcu üst bilgi/işlem başlığından da bağımsız okunur.
+ const all=[];for(const p of pages)all.push(...(p.logicalLines||[]),...(p.rawLines||[]));
+ for(const line0 of all){const line=String(line0||'').replace(/\s+/g,' ').trim(),n=seNorm(line);
+  if(previous==null&&/ONCEKI AYDAN DEVIR/.test(n)){const ms=[...line.matchAll(/(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}/g)];if(ms.length)previous=seMoney(ms[ms.length-1][0])}
+  if(debt==null&&/DONEM BORCU TL/.test(n)){const ms=[...line.matchAll(/(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}/g)];if(ms.length)debt=seMoney(ms[0][0])}
+ }
+ // Muhasebe denkleminin değer satırı: 5 TL değeri sırasıyla devir, harcama, faiz/ücret, ödeme, dönem borcudur.
+ for(const pg of pages){const rr=pg.rawLines||[];for(let i=0;i<rr.length;i++){const n=seNorm(rr[i]);if(!(/DEVREDEN BAKIYE/.test(n)&&/HARCAMALARINIZ/.test(n)&&/ODEMELERINIZ/.test(n)&&/DONEM BORCU/.test(n)))continue;
+   for(let j=i+1;j<Math.min(i+5,rr.length);j++){const ms=[...String(rr[j]).matchAll(/(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}\s*TL/gi)];if(ms.length>=5){const v=ms.slice(0,5).map(x=>seMoney(x[0].replace(/TL/ig,'')));[previous,spend,fees,payments,debt]=v;return{previous,spend,fees,payments,debt}}}
+  }}
+ // PDF.js satır gruplaması başlıkları ayırdıysa, görsel satırlarda 5 TL değerli denklemi ara.
+ for(const pg of pages){for(const r of (pg.rows||[])){const text=(r.a||[]).map(q=>q.s).join(' '),ms=[...text.matchAll(/(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2}\s*TL/gi)];if(ms.length>=5){const v=ms.slice(0,5).map(x=>seMoney(x[0].replace(/TL/ig,'')));if(v.every(x=>x!=null)){[previous,spend,fees,payments,debt]=v;return{previous,spend,fees,payments,debt}}}}}
+ return{previous,spend,fees,payments,debt};
+}
+
 // V224 İş Bankası Maximum fallback: bazı Maximum PDF'lerinde koordinat satırları tarih hücresini
 // kaybedebiliyor (0 tarih adayı). Metin katmanındaki tam işlem satırını doğrudan okur.
 function seIsbankLineRows(pages){
@@ -1873,12 +1921,13 @@ function seProfile(bank){
   TEB:{id:'TEB',locked:true,tableStart:['ISLEM TARIHI','ISLEM ACIKLAMASI','TUTAR'],tableEnd:['BU KARTINIZLA YAPILAN ISLEM TOPLAMLARI','GENEL TOPLAM'],devir:['ONCEKI DONEMDEN DEVIR EDILEN TUTAR','DEVREDEN BAKIYE'],debt:['DONEM BORCU'],pay:['ODEMELERINIZ','ODEME TOPLAMI']},
   'İş Bankası':{id:'ISBANK',locked:true,tableStart:['ISLEM TARIHI','ACIKLAMA','TUTAR'],tableEnd:['TOPLAM'],devir:['BIR ONCEKI HESAP OZETI BAKIYENIZ','ONCEKI HESAP OZETI BAKIYENIZ','ONCEKI DONEM BORCU','DEVREDEN'],debt:['HESAP OZETI BORCU','DONEM BORCU'],pay:['HESAPTAN AKTARIM','ODEME']},
   DenizBank:{id:'DENIZ',locked:true,tableStart:['ISLEM TARIHI','ACIKLAMA','TUTAR'],tableEnd:['TOPLAM'],devir:['ONCEKI DONEM','DEVREDEN'],debt:['DONEM BORCU'],pay:['ODEME']},
-  Halkbank:{id:'HALK',locked:true,tableStart:['ISLEM TARIHI','ACIKLAMA','TUTAR'],tableEnd:['BIR SONRAKI'],devir:['BIR ONCEKI DONEM EKSTRE BORCU'],debt:['HESAP BAKIYESI'],pay:['DONEMSEL ALACAK KAYITLARI']}
+  Halkbank:{id:'HALK',locked:true,tableStart:['ISLEM TARIHI','ACIKLAMA','TUTAR'],tableEnd:['BIR SONRAKI'],devir:['BIR ONCEKI DONEM EKSTRE BORCU'],debt:['HESAP BAKIYESI'],pay:['DONEMSEL ALACAK KAYITLARI']},
+  Ziraat:{id:'ZIRAAT',locked:true,tableStart:['ISLEM TARIHI','ISLEM ACIKLAMASI','TL TUTAR'],tableEnd:['FAIZ VE UCRETLER'],devir:['ONCEKI AYDAN DEVIR'],debt:['DONEM BORCU TL'],pay:['ODEMELERINIZ']}
  };return profiles[bank]||{id:'GENEL',locked:false,tableStart:['ISLEM TARIHI','TUTAR'],tableEnd:['GENEL TOPLAM'],devir:['DEVREDEN','ONCEKI DONEM'],debt:['DONEM BORCU'],pay:['ODEME']}
 }
 function seParse(pages){
  const visualPages=pages.map(pg=>pg.rows.map(r=>({page:pg.page,y:r.y,text:r.a.map(q=>q.s).join(' ').replace(/\s+/g,' ').trim(),items:r.a}))),flat=visualPages.flat().map(r=>r.text),all=flat.join('\n');
- const bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI|ISBANK\.COM\.TR|MAXIMUM\s+VISA|MAXIPUAN|MAXIMUM\.COM\.TR/i.test(all)?'İş Bankası':/HALK\s*BANK|HALKBANK|TURKIYE\s+HALK\s+BANKASI|TÜRKİYE\s+HALK\s+BANKASI|PARAF/i.test(all)?'Halkbank':'Banka',profile=seProfile(bank);
+ const bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI|ISBANK\.COM\.TR|MAXIMUM\s+VISA|MAXIPUAN|MAXIMUM\.COM\.TR/i.test(all)?'İş Bankası':/HALK\s*BANK|HALKBANK|TURKIYE\s+HALK\s+BANKASI|TÜRKİYE\s+HALK\s+BANKASI|PARAF/i.test(all)?'Halkbank':/ZIRAAT\s*BANKASI|ZİRAAT\s*BANKASI|BANKKART/i.test(all)?'Ziraat':'Banka',profile=seProfile(bank);
  const diag={pages:pages.length,textItems:pages.reduce((n,p)=>n+p.items.length,0),dateCandidates:0,amountCandidates:0,headerFound:0,tableRows:0,rejected:[],mode:'teb-normalized-row-core-v200'};
  const moneyRx=/^[\s]*(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))([+-])?[\s]*$/i;
  const summary=/TOPLAM|DONEM BORCU|DÖNEM BORCU|ASGARI|ASGARİ|LIMIT|LİMİT|FAIZ ORANI|FAİZ ORANI|AKDI FAIZ|AKDİ FAİZ|GECIKME|YILLIK|AYLIK|EKSTRE OZETI|EKSTRE ÖZETİ/i;
@@ -1917,6 +1966,7 @@ function seParse(pages){
  const halkLine=bank==='Halkbank'?seHalkLineRows(pages):null;
  const isbankLine=bank==='İş Bankası'?seIsbankLineRows(pages):null;
  const denizLine=bank==='DenizBank'?seDenizRows(pages):null;
+ const ziraatLine=bank==='Ziraat'?seZiraatRows(pages):null;
  const tebRaw=bank==='TEB'?seTebRawLineRows(pages):{rows:[],rejected:[]};
  const tebLogical=bank==='TEB'?seTebLogicalRows(pages):{rows:[],rejected:[]};
  const tebStrictRows=bank==='TEB'?seTebStrictRows(pages):[];
@@ -1937,10 +1987,12 @@ function seParse(pages){
   diag.rawRejected=[...(halk.rejected||[]),...((halkLine&&halkLine.rejected)||[])].slice(0,40);
  }
  if(denizLine&&denizLine.rows.length){uniq=denizLine.rows;diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;diag.rawRejected=(denizLine.rejected||[]).slice(0,40);diag.mode='denizbank-line-v228';}
+ if(ziraatLine&&ziraatLine.rows.length){uniq=ziraatLine.rows;diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;diag.rawRejected=(ziraatLine.rejected||[]).slice(0,40);diag.mode='ziraat-bankkart-line-v230';}
  const vals={previous:null,spend:null,fees:null,payments:null,debt:null,spendCount:null};
  function rowValue(labels){labels=Array.isArray(labels)?labels:[labels];for(const line of flat){const n=seNorm(line);if(!labels.some(z=>n.includes(seNorm(z))))continue;const ms=[...line.matchAll(/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return Math.abs(v)}}return null}
  vals.previous=rowValue(profile.devir);vals.debt=rowValue(profile.debt);
  if(bank==='DenizBank'){const dv=seDenizSummary(pages);Object.assign(vals,dv);uniq=seDenizReconcileRows(uniq,vals);vals.spendCount=uniq.filter(r=>r.kind==='spend').length;}
+ if(bank==='Ziraat'){const zv=seZiraatSummary(pages);Object.assign(vals,zv);vals.spendCount=uniq.filter(r=>r.kind==='spend').length;}
  if(bank==='Halkbank'){
   const hv=seHalkSummary(pages);Object.assign(vals,hv);
   // V222: Bazı Paraf PDF'lerinde "Hesaptan Ödeme" satırının + işareti PDF metin
