@@ -1785,6 +1785,39 @@ function seHalkSummary(pages){
 }
 
 
+
+
+// V228 DENIZBANK: DenizBank ekstreleri 1,234.56 para biçimi kullanır.
+// Özet alanları ve işlem satırları banka PDF'sinden doğrudan okunur; Bonus sütunu işlem tutarı sayılmaz.
+function seDenizSummary(pages){
+ const lines=[];for(const p of pages)lines.push(...(p.logicalLines||[]),...(p.rawLines||[]));
+ const src=lines.map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean);
+ const get=(label)=>{const L=seNorm(label);for(const line of src){const n=seNorm(line);if(!n.includes(L))continue;const ms=[...line.matchAll(/[+\-]?(?:\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{2})\+?\s*TL/gi)];if(ms.length){const v=seHalkMoney(ms[ms.length-1][0]);if(v!=null)return Math.abs(v)}}return null};
+ return {previous:get('ONCEKI HESAP BAKIYENIZ'),spend:get('DONEM ICI HARCAMANIZ'),fees:get('TOPLAM FAIZ VE UCRETLER'),payments:get('ODEMELER'),debt:get('DONEM BORCU')};
+}
+function seDenizRows(pages){
+ const out=[],rejected=[];
+ const dateStart=/^(\d{1,2}[.\/-]\d{1,2}[.\/-]\d{4})(?:\s+|$)(.*)$/;
+ const moneyTL=/[+\-]?(?:\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{2})\+?\s*TL/gi;
+ const skip=/ONCEKI DONEM EKSTRE BORCU|TOPLAM\s|DONEM BORCU|ASGARI ODEME|HESAP KESIM|SON ODEME|KART LIMIT|NAKIT AVANS|HARCANABILIR BONUS|BIR SONRAKI AY/;
+ for(const pg of pages){
+  const src=[...(pg.logicalLines||[]),...(pg.rawLines||[])].map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean);
+  for(const line of src){
+   const m=line.match(dateStart);if(!m)continue;const d=seDateParts(m[1]);if(!d)continue;const rest=(m[2]||'').trim(),n=seNorm(rest);if(skip.test(n))continue;
+   const ms=[...rest.matchAll(moneyTL)];if(!ms.length){rejected.push(`S${pg.page}: ${line}`);continue}
+   // İşlem Tutarı DenizBank tablosunun en sağındaki/son TL değeridir. Bonus değeri TL eki taşımadığından karışmaz.
+   const mm=ms[ms.length-1],amount=seHalkMoney(mm[0]);if(amount==null||Math.abs(amount)<.005)continue;
+   let desc=rest.slice(0,mm.index).trim();
+   // Açıklamanın sonundaki bonus puanı (örn. 0.60) işlem adı değildir.
+   desc=desc.replace(/\s+\d+(?:\.\d{1,2})\s*$/,'').trim();
+   if(!desc||skip.test(seNorm(desc)))continue;
+   const kind=seKind(desc,mm[0]),category=kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc);
+   out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`DenizBank V228 satır okuyucu · ${mm[0]} · S${pg.page}`});
+  }
+ }
+ const seen=new Set();return {rows:out.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(seen.has(k))return false;seen.add(k);return true}),rejected};
+}
+
 // V224 İş Bankası Maximum fallback: bazı Maximum PDF'lerinde koordinat satırları tarih hücresini
 // kaybedebiliyor (0 tarih adayı). Metin katmanındaki tam işlem satırını doğrudan okur.
 function seIsbankLineRows(pages){
@@ -1860,6 +1893,7 @@ function seParse(pages){
  const halk=bank==='Halkbank'?seHalkRows(pages):null;
  const halkLine=bank==='Halkbank'?seHalkLineRows(pages):null;
  const isbankLine=bank==='İş Bankası'?seIsbankLineRows(pages):null;
+ const denizLine=bank==='DenizBank'?seDenizRows(pages):null;
  const tebRaw=bank==='TEB'?seTebRawLineRows(pages):{rows:[],rejected:[]};
  const tebLogical=bank==='TEB'?seTebLogicalRows(pages):{rows:[],rejected:[]};
  const tebStrictRows=bank==='TEB'?seTebStrictRows(pages):[];
@@ -1879,9 +1913,11 @@ function seParse(pages){
   diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;
   diag.rawRejected=[...(halk.rejected||[]),...((halkLine&&halkLine.rejected)||[])].slice(0,40);
  }
+ if(denizLine&&denizLine.rows.length){uniq=denizLine.rows;diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;diag.rawRejected=(denizLine.rejected||[]).slice(0,40);diag.mode='denizbank-line-v228';}
  const vals={previous:null,spend:null,fees:null,payments:null,debt:null,spendCount:null};
  function rowValue(labels){labels=Array.isArray(labels)?labels:[labels];for(const line of flat){const n=seNorm(line);if(!labels.some(z=>n.includes(seNorm(z))))continue;const ms=[...line.matchAll(/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return Math.abs(v)}}return null}
  vals.previous=rowValue(profile.devir);vals.debt=rowValue(profile.debt);
+ if(bank==='DenizBank'){const dv=seDenizSummary(pages);Object.assign(vals,dv);vals.spendCount=uniq.filter(r=>r.kind==='spend').length;}
  if(bank==='Halkbank'){
   const hv=seHalkSummary(pages);Object.assign(vals,hv);
   // V222: Bazı Paraf PDF'lerinde "Hesaptan Ödeme" satırının + işareti PDF metin
@@ -2239,4 +2275,9 @@ function bootHane(){
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootHane,{once:true});
 else bootHane();
 
-document.addEventListener('change',async e=>{if(e.target?.id!=='statementImportInput')return;const f=e.target.files?.[0];if(!f||!statementImportCardId)return;open('EKSTRE OKUNUYOR','<div class="notice"><b id="statementImportProgress">PDF okunuyor…</b><br>Belge cihazında işlenir. Önce banka değerleri, sonra işlem satırları bağımsız çıkarılır.</div>');try{const pages=await seReadPdf(f),res=seParse(pages);if(!res.rows.length){const d=res.diagnostic||{};throw Error(`İşlem satırı oluşturulamadı. PDF: ${d.pages||0} sayfa · ${d.textItems||0} metin öğesi · ${d.dateCandidates||0} tarih adayı · ${d.amountCandidates||0} tutar adayı · ${d.headerFound||0} tablo başlığı. Motor tahmin yapmadı.`);}statementImportMeta=res;open('EKSTRE ÖNİZLEME',sePreview(statementImportCardId,res),{cardId:statementImportCardId})}catch(err){console.error(err);open('EKSTRE OKUNAMADI',`<div class="notice"><b>OKUMA DURDU</b><br>${esc(err.message||'Dosya okunamadı.')}<br><small>Yanlış veri HANE’ye eklenmedi.</small></div>`)}finally{e.target.value=''}});
+document.addEventListener('change',async e=>{
+ if(e.target?.matches?.('[data-se-cat]')){const i=+e.target.dataset.seCat,r=statementImportRows[i];if(r){r.category=e.target.value;seRememberCategory(r,r.category);await save();showToast('KATEGORİ ÖĞRENİLDİ');}return;}
+ if(e.target?.matches?.('[data-se-kind]')){const i=+e.target.dataset.seKind,r=statementImportRows[i];if(r){r.kind=e.target.value;r.category=r.kind==='fee'?'Vergi & Faiz':r.kind==='payment'?'Kart Ödemesi':r.kind==='refund'?'Diğer':(r.category||'Diğer');}return;}
+ if(e.target?.matches?.('[data-se-amount]')){const i=+e.target.dataset.seAmount,r=statementImportRows[i],v=Number(e.target.value);if(r&&Number.isFinite(v))r.amount=Math.abs(v);return;}
+ if(e.target?.matches?.('[data-se-title]')){const i=+e.target.dataset.seTitle,r=statementImportRows[i];if(r)r.title=e.target.value;return;}
+ if(e.target?.id!=='statementImportInput')return;const f=e.target.files?.[0];if(!f||!statementImportCardId)return;open('EKSTRE OKUNUYOR','<div class="notice"><b id="statementImportProgress">PDF okunuyor…</b><br>Belge cihazında işlenir. Önce banka değerleri, sonra işlem satırları bağımsız çıkarılır.</div>');try{const pages=await seReadPdf(f),res=seParse(pages);if(!res.rows.length){const d=res.diagnostic||{};throw Error(`İşlem satırı oluşturulamadı. PDF: ${d.pages||0} sayfa · ${d.textItems||0} metin öğesi · ${d.dateCandidates||0} tarih adayı · ${d.amountCandidates||0} tutar adayı · ${d.headerFound||0} tablo başlığı. Motor tahmin yapmadı.`);}statementImportMeta=res;open('EKSTRE ÖNİZLEME',sePreview(statementImportCardId,res),{cardId:statementImportCardId})}catch(err){console.error(err);open('EKSTRE OKUNAMADI',`<div class="notice"><b>OKUMA DURDU</b><br>${esc(err.message||'Dosya okunamadı.')}<br><small>Yanlış veri HANE’ye eklenmedi.</small></div>`)}finally{e.target.value=''}});
