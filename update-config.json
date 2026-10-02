@@ -1,4 +1,4 @@
 {
-  "version": "209",
-  "message": "V209: TEB sıfır-kuruş gösterimi (TL.730,-) artık ödeme olarak sınıflandırılmaz. Yalnız -TL ile başlayan gerçek negatif ödeme kabul edilir. 5 gerçek TEB ekstresi regresyon testi: 5/5 geçti."
+  "version": "217",
+  "message": "V217: TEB kilitli profil korunarak Halkbank Paraf ekstre profili eklendi. Paraf 1,234.56 para biçimi, banka özet alanları, ödeme ve faiz/ücret satırları ayrı okunur."
 }
