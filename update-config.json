@@ -1,4 +1,4 @@
 {
-  "version": "217",
-  "message": "V217: TEB kilitli profil korunarak Halkbank Paraf ekstre profili eklendi. Paraf 1,234.56 para biçimi, banka özet alanları, ödeme ve faiz/ücret satırları ayrı okunur."
+  "version": "V218",
+  "message": "V218: Halkbank/Paraf banka tanıma düzeltildi. Türkiye Halk Bankası / Halk Bank / Paraf metinleri doğrudan Halkbank parserına yönlendirilir. TEB kilitli motoruna dokunulmadı."
 }

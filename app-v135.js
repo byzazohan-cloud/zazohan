@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v217-halkbank-paraf';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v218-halkbank-paraf-detect';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1753,7 +1753,7 @@ function seProfile(bank){
 }
 function seParse(pages){
  const visualPages=pages.map(pg=>pg.rows.map(r=>({page:pg.page,y:r.y,text:r.a.map(q=>q.s).join(' ').replace(/\s+/g,' ').trim(),items:r.a}))),flat=visualPages.flat().map(r=>r.text),all=flat.join('\n');
- const bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI/i.test(all)?'İş Bankası':/HALKBANK|BANKKART/i.test(all)?'Halkbank':'Banka',profile=seProfile(bank);
+ const bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI/i.test(all)?'İş Bankası':/HALK\s*BANK|HALKBANK|TURKIYE\s+HALK\s+BANKASI|TÜRKİYE\s+HALK\s+BANKASI|PARAF/i.test(all)?'Halkbank':'Banka',profile=seProfile(bank);
  const diag={pages:pages.length,textItems:pages.reduce((n,p)=>n+p.items.length,0),dateCandidates:0,amountCandidates:0,headerFound:0,tableRows:0,rejected:[],mode:'teb-normalized-row-core-v200'};
  const moneyRx=/^[\s]*(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))([+-])?[\s]*$/i;
  const summary=/TOPLAM|DONEM BORCU|DÖNEM BORCU|ASGARI|ASGARİ|LIMIT|LİMİT|FAIZ ORANI|FAİZ ORANI|AKDI FAIZ|AKDİ FAİZ|GECIKME|YILLIK|AYLIK|EKSTRE OZETI|EKSTRE ÖZETİ/i;
