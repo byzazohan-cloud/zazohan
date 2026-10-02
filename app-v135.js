@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v222-halkbank-payment-reconcile-fix';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v225-isbank-maximum-detect-fix';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1804,7 +1804,7 @@ function seIsbankLineRows(pages){
    let desc=rest.slice(0,mm.index).trim(); if(!desc)continue;
    if(/MAXIPUAN\s*ILAVE/.test(seNorm(desc)))continue;
    const kind=seKind(desc,raw),category=kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc);
-   out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`İş Bankası Maximum V224 metin satırı · ${raw} · S${pg.page}`});
+   out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`İş Bankası Maximum V225 metin satırı · ${raw} · S${pg.page}`});
   }
  }
  const seen=new Set(); return {rows:out.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(seen.has(k))return false;seen.add(k);return true}),rejected};
@@ -1820,7 +1820,7 @@ function seProfile(bank){
 }
 function seParse(pages){
  const visualPages=pages.map(pg=>pg.rows.map(r=>({page:pg.page,y:r.y,text:r.a.map(q=>q.s).join(' ').replace(/\s+/g,' ').trim(),items:r.a}))),flat=visualPages.flat().map(r=>r.text),all=flat.join('\n');
- const bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI/i.test(all)?'İş Bankası':/HALK\s*BANK|HALKBANK|TURKIYE\s+HALK\s+BANKASI|TÜRKİYE\s+HALK\s+BANKASI|PARAF/i.test(all)?'Halkbank':'Banka',profile=seProfile(bank);
+ const bank=/TURK EKONOMI BANKASI|TÜRK EKONOMİ BANKASI|\bTEB\b/i.test(all)?'TEB':/DENIZBANK|DENİZBANK/i.test(all)?'DenizBank':/IS BANKASI|İŞ BANKASI|ISBANK\.COM\.TR|MAXIMUM\s+VISA|MAXIPUAN|MAXIMUM\.COM\.TR/i.test(all)?'İş Bankası':/HALK\s*BANK|HALKBANK|TURKIYE\s+HALK\s+BANKASI|TÜRKİYE\s+HALK\s+BANKASI|PARAF/i.test(all)?'Halkbank':'Banka',profile=seProfile(bank);
  const diag={pages:pages.length,textItems:pages.reduce((n,p)=>n+p.items.length,0),dateCandidates:0,amountCandidates:0,headerFound:0,tableRows:0,rejected:[],mode:'teb-normalized-row-core-v200'};
  const moneyRx=/^[\s]*(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))([+-])?[\s]*$/i;
  const summary=/TOPLAM|DONEM BORCU|DÖNEM BORCU|ASGARI|ASGARİ|LIMIT|LİMİT|FAIZ ORANI|FAİZ ORANI|AKDI FAIZ|AKDİ FAİZ|GECIKME|YILLIK|AYLIK|EKSTRE OZETI|EKSTRE ÖZETİ/i;
@@ -1866,7 +1866,7 @@ function seParse(pages){
  if(isbankLine){
   // Koordinat okuyucu tarihleri göremese bile metin satırları güvenilir kaynaktır.
   // Metin okuyucu satır bulduysa onu kullan; böylece MaxiPuan sütunu da işlem tutarına karışmaz.
-  if(isbankLine.rows.length){uniq=isbankLine.rows;diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;diag.rawRejected=(isbankLine.rejected||[]).slice(0,40);diag.mode='isbank-maximum-line-v224';}
+  if(isbankLine.rows.length){uniq=isbankLine.rows;diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;diag.rawRejected=(isbankLine.rejected||[]).slice(0,40);diag.mode='isbank-maximum-line-v225';}
  }
  if(halk){
   // V219: koordinat okuyucu boş/eksik kaldığında metin-akışı okuyucusuna geç.
@@ -1960,7 +1960,7 @@ function seParse(pages){
  if(bank==='İş Bankası'){
   uniq=uniq.filter(r=>!/MAXIPUAN\s*ILAVE/.test(seNorm(r.bankTitle||r.title)));
   vals.spendCount=uniq.filter(r=>r.kind==='spend').length;
-  diag.mode=(diag.mode==='isbank-maximum-line-v224'?'isbank-maximum-line-v224':'isbank-maximum-column-locked-v223');
+  diag.mode=(diag.mode==='isbank-maximum-line-v225'?'isbank-maximum-line-v225':'isbank-maximum-column-locked-v223');
  }
  const sums={spend:0,fees:0,payments:0,refunds:0};uniq.forEach(r=>sums[r.kind==='refund'?'refunds':r.kind==='payment'?'payments':r.kind==='fee'?'fees':'spend']+=r.amount);for(const k of Object.keys(sums))sums[k]=Math.round(sums[k]*100)/100;
  diag.tableRows=uniq.length;diag.tableSpendRows=uniq.filter(r=>r.kind==='spend').length;diag.rejectedCount=diag.rejected.length;
