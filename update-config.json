@@ -1,4 +1,4 @@
 {
-  "version": "V218",
-  "message": "V218: Halkbank/Paraf banka tanıma düzeltildi. Türkiye Halk Bankası / Halk Bank / Paraf metinleri doğrudan Halkbank parserına yönlendirilir. TEB kilitli motoruna dokunulmadı."
+  "version": "V219",
+  "message": "V219: Halkbank/Paraf tutar okuyucu düzeltildi. Koordinata bağlı tutar yakalama yanında tarih+açıklama+ilk tutar metin satırı okuyucusu eklendi. TEB ve çalışan diğer banka motorları değiştirilmedi."
 }

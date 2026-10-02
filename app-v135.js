@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v218-halkbank-paraf-detect';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v219-halkbank-amount-line-fix';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1736,6 +1736,37 @@ function seHalkRows(pages){
  // Aynı işlem gerçekten tekrar edebilir; yalnız PDF'nin aynı fiziksel satırı iki kez üretmesini engelle.
  const seen=new Set();return{rows:out.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(seen.has(k))return false;seen.add(k);return true}),rejected:diag.rejected}
 }
+
+// V219 HALKBANK / PARAF: logical/raw line fallback.
+// Halkbank PDF'lerinde tutar hücresi koordinat olarak TUTAR başlığından uzak düşebiliyor.
+// Bu okuyucu koordinata güvenmez: tarih + açıklama + ilk para değerini işlem tutarı kabul eder;
+// ardından gelen KALAN BORÇ / ParafPara değerlerini işlem tutarına karıştırmaz.
+function seHalkLineRows(pages){
+ const out=[],rejected=[];
+ const dateStart=/^(\d{1,2}[.\/-]\d{1,2}[.\/-]\d{4})\s+(.+)$/;
+ const moneyToken=/[+\-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{2})\+?/g;
+ const stop=/BIR SONRAKI|EKSTRE ILE ILGILI|TURKIYE HALK BANKASI|FAIZ ORANLARI|MERSIS|TICARET SICIL/;
+ for(const pg of pages){
+  const src=[...(pg.logicalLines||[]),...(pg.rawLines||[])];let inTable=false;
+  for(let i=0;i<src.length;i++){
+   const line=String(src[i]||'').replace(/\s+/g,' ').trim(),n=seNorm(line);
+   if(n.includes('ISLEM')&&n.includes('TARIHI')&&n.includes('TUTAR')){inTable=true;continue}
+   if(!inTable)continue;if(stop.test(n)){inTable=false;continue}
+   const m=line.match(dateStart);if(!m)continue;
+   const d=seDateParts(m[1]);if(!d)continue;
+   let rest=m[2].trim(),matches=[...rest.matchAll(moneyToken)];
+   if(!matches.length){rejected.push(`S${pg.page}: ${line}`);continue}
+   // İlk para tokenı işlem tutarıdır. Halkbank tablosunda sonraki sayılar KALAN BORÇ/TAKSİT/ParafPara sütunlarıdır.
+   const mm=matches[0],raw=mm[0],amount=seHalkMoney(raw);if(amount==null||Math.abs(amount)<0.005){rejected.push(`S${pg.page}: ${line}`);continue}
+   let desc=rest.slice(0,mm.index).trim();
+   if(!desc){rejected.push(`S${pg.page}: ${line}`);continue}
+   const kind=seKind(desc,raw),category=kind==='fee'?'Vergi & Faiz':kind==='payment'?'Kart Ödemesi':seCat(desc);
+   out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`Halkbank Paraf metin satırı · ${raw} · S${pg.page}`});
+  }
+ }
+ const seen=new Set();return{rows:out.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(seen.has(k))return false;seen.add(k);return true}),rejected};
+}
+
 function seHalkSummary(pages){
  const lines=[];for(const p of pages){lines.push(...(p.logicalLines||[]),...(p.rawLines||[]));}
  const normLines=lines.map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean);
@@ -1789,12 +1820,21 @@ function seParse(pages){
   }
  }
  const halk=bank==='Halkbank'?seHalkRows(pages):null;
+ const halkLine=bank==='Halkbank'?seHalkLineRows(pages):null;
  const tebRaw=bank==='TEB'?seTebRawLineRows(pages):{rows:[],rejected:[]};
  const tebLogical=bank==='TEB'?seTebLogicalRows(pages):{rows:[],rejected:[]};
  const tebStrictRows=bank==='TEB'?seTebStrictRows(pages):[];
  const tebStreamRows=bank==='TEB'?seTebStreamRows(pages):[];
  const seen=new Set();let uniq=[];for(const r of rows){const k=[r.date,seNorm(r.title),r.amount,r.kind].join('|');if(!seen.has(k)){seen.add(k);uniq.push(r)}}
- if(halk){uniq=halk.rows.slice();diag.mode='halkbank-paraf-v217';diag.rawRejected=halk.rejected.slice(0,40);}
+ if(halk){
+  // V219: koordinat okuyucu boş/eksik kaldığında metin-akışı okuyucusuna geç.
+  // Daha çok satır bulmak tek başına yeterli değildir; aynı gerçek satırlar fingerprint ile tekilleştirilir.
+  const merged=[...(halk.rows||[]),...((halkLine&&halkLine.rows)||[])], hs=new Set();
+  uniq=merged.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(hs.has(k))return false;hs.add(k);return true});
+  diag.mode='halkbank-paraf-v219-coordinate+line';
+  diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;
+  diag.rawRejected=[...(halk.rejected||[]),...((halkLine&&halkLine.rejected)||[])].slice(0,40);
+ }
  const vals={previous:null,spend:null,fees:null,payments:null,debt:null,spendCount:null};
  function rowValue(labels){labels=Array.isArray(labels)?labels:[labels];for(const line of flat){const n=seNorm(line);if(!labels.some(z=>n.includes(seNorm(z))))continue;const ms=[...line.matchAll(/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return Math.abs(v)}}return null}
  vals.previous=rowValue(profile.devir);vals.debt=rowValue(profile.debt);
