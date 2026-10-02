@@ -1801,7 +1801,8 @@ function seDenizRows(pages){
  const moneyTL=/[+\-]?(?:\d{1,3}(?:,\d{3})*|\d+)(?:\.\d{2})\+?\s*TL/gi;
  const skip=/ONCEKI DONEM EKSTRE BORCU|TOPLAM\s|DONEM BORCU|ASGARI ODEME|HESAP KESIM|SON ODEME|KART LIMIT|NAKIT AVANS|HARCANABILIR BONUS|BIR SONRAKI AY/;
  for(const pg of pages){
-  const src=[...(pg.logicalLines||[]),...(pg.rawLines||[])].map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean);
+  const primary=(pg.logicalLines&&pg.logicalLines.length?pg.logicalLines:pg.rawLines||[]);
+  const src=primary.map(x=>String(x||'').replace(/\s+/g,' ').trim()).filter(Boolean);
   for(const line of src){
    const m=line.match(dateStart);if(!m)continue;const d=seDateParts(m[1]);if(!d)continue;const rest=(m[2]||'').trim(),n=seNorm(rest);if(skip.test(n))continue;
    const ms=[...rest.matchAll(moneyTL)];if(!ms.length){rejected.push(`S${pg.page}: ${line}`);continue}
@@ -1815,7 +1816,29 @@ function seDenizRows(pages){
    out.push({date:d.iso,title:desc,bankTitle:desc,amount:Math.abs(amount),kind,category,reason:`DenizBank V228 satır okuyucu · ${mm[0]} · S${pg.page}`});
   }
  }
- const seen=new Set();return {rows:out.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(seen.has(k))return false;seen.add(k);return true}),rejected};
+ // V229 DenizBank: aynı gün/aynı işyeri/aynı tutardaki gerçek mükerrer harcamaları koru.
+ // logicalLines tercih edildiği için aynı PDF satırının raw/logical çift kopyası artık oluşmaz.
+ return {rows:out,rejected};
+}
+
+function seDenizReconcileRows(rows,vals){
+ if(!rows?.length)return rows||[];
+ const bankFee=+vals.fees||0, bankSpend=+vals.spend||0;
+ let spendRows=rows.filter(r=>r.kind==='spend'), feeRows=rows.filter(r=>r.kind==='fee');
+ let spend=spendRows.reduce((a,r)=>a+(+r.amount||0),0), fees=feeRows.reduce((a,r)=>a+(+r.amount||0),0);
+ const needFee=Math.round((bankFee-fees)*100);
+ const excessSpend=Math.round((spend-bankSpend)*100);
+ // DenizBank bazı PDF'lerde faiz/ücret alt satırlarının açıklamasını işlem metnine birleştiriyor.
+ // Bankanın AÇIK "Toplam Faiz ve Ücretler" değeri kadar fazla harcama varsa, yalnız tam ve benzersiz
+ // bir alt-küme bulunduğunda bu satırları faiz/ücrete çevir. Tahmin veya fark kapatma yapılmaz.
+ if(needFee>0 && excessSpend===needFee){
+  const cand=rows.map((r,i)=>({r,i,c:Math.round((+r.amount||0)*100)})).filter(x=>x.r.kind==='spend'&&x.c>0&&x.c<=needFee);
+  let sols=[];
+  const dfs=(pos,sum,pick)=>{if(sols.length>1)return;if(sum===needFee){sols.push(pick.slice());return}if(sum>needFee||pos>=cand.length)return;for(let j=pos;j<cand.length;j++){pick.push(cand[j].i);dfs(j+1,sum+cand[j].c,pick);pick.pop();if(sols.length>1)return}};
+  dfs(0,0,[]);
+  if(sols.length===1){const chosen=new Set(sols[0]);rows=rows.map((r,i)=>chosen.has(i)?{...r,kind:'fee',category:'Vergi & Faiz',reason:(r.reason||'')+' · V229 DenizBank banka faiz toplamı ile kesin eşleşme'}:r)}
+ }
+ return rows;
 }
 
 // V224 İş Bankası Maximum fallback: bazı Maximum PDF'lerinde koordinat satırları tarih hücresini
@@ -1917,7 +1940,7 @@ function seParse(pages){
  const vals={previous:null,spend:null,fees:null,payments:null,debt:null,spendCount:null};
  function rowValue(labels){labels=Array.isArray(labels)?labels:[labels];for(const line of flat){const n=seNorm(line);if(!labels.some(z=>n.includes(seNorm(z))))continue;const ms=[...line.matchAll(/(?:TL\.?\s*)?([+-]?(?:\d{1,3}(?:\.\d{3})*|\d+)(?:,\d{2}|,-))/gi)];if(ms.length){const v=seMoney(ms[ms.length-1][1]);if(v!=null)return Math.abs(v)}}return null}
  vals.previous=rowValue(profile.devir);vals.debt=rowValue(profile.debt);
- if(bank==='DenizBank'){const dv=seDenizSummary(pages);Object.assign(vals,dv);vals.spendCount=uniq.filter(r=>r.kind==='spend').length;}
+ if(bank==='DenizBank'){const dv=seDenizSummary(pages);Object.assign(vals,dv);uniq=seDenizReconcileRows(uniq,vals);vals.spendCount=uniq.filter(r=>r.kind==='spend').length;}
  if(bank==='Halkbank'){
   const hv=seHalkSummary(pages);Object.assign(vals,hv);
   // V222: Bazı Paraf PDF'lerinde "Hesaptan Ödeme" satırının + işareti PDF metin
