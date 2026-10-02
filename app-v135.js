@@ -1544,7 +1544,7 @@ function stmtMoney(v){
 
 // === HANE EKSTRE MOTORU 4.3 / V210 — TEB 180° ROW DIRECTION FIX ===
 let statementImportCardId=null,statementImportRows=[],statementImportMeta={};
-const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v220-halkbank-headerless-line-fix';
+const HANE_PDF_MODULE='./__hane_engine__/pdf/pdf.min.mjs',HANE_PDF_WORKER='./__hane_engine__/pdf/pdf.worker.min.mjs',HANE_ENGINE_CACHE='hane-engine-v221-halkbank-leading-plus-payment-fix';
 const HANE_PDF_PACKAGE={url:'https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-4.10.38.tgz',integrity:'sha512-/Y3fcFrXEAsMjJXeL9J8+ZG9U01LbuWaYypvDW2ycW1jL269L3js3DVBjDJ0Up9Np1uqDXsDrRihHANhZOlwdQ==',files:{'package/build/pdf.min.mjs':'__hane_engine__/pdf/pdf.min.mjs','package/build/pdf.worker.min.mjs':'__hane_engine__/pdf/pdf.worker.min.mjs'}};
 function seB64(b){let s='';for(let i=0;i<b.length;i+=32768)s+=String.fromCharCode(...b.subarray(i,i+32768));return btoa(s)}
 function seTarStr(u,s,l){const p=u.subarray(s,s+l);let e=p.indexOf(0);if(e<0)e=p.length;return new TextDecoder().decode(p.subarray(0,e)).trim()}
@@ -1602,7 +1602,7 @@ function seIso(d){return seDateParts(d)?.iso||''}
 function seRowDate(r,near=[]){const direct=seDateParts(r?.text);if(direct)return direct;const a=r?.items||[];for(let i=0;i<a.length;i++){for(let n=2;n<=5&&i+n<=a.length;n++){const z=seDateParts(a.slice(i,i+n).map(q=>q.s).join(' '));if(z)return z}}for(const x of near){const z=seDateParts(x?.text);if(z)return z}return null}
 function seNorm(s){return String(s||'').toLocaleUpperCase('tr-TR').replace(/İ/g,'I').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function seCat(title){const n=seNorm(title),rules=state.statementCategoryRules||{};for(const [k,v] of Object.entries(rules))if(k&&n.includes(k)&&C.includes(v))return v;if(/MARKET|BIM|A101|SOK|ONUR|GIDA/.test(n))return C.includes('Market')?'Market':'Diğer';if(/TAKSI|TOPLU TASIMA|ULASIM|BENZIN|PETROL/.test(n))return C.includes('Ulaşım')?'Ulaşım':'Diğer';if(/RESTORAN|KAFE|CAFE|YEMEK|KOMAGENE|TAVUK/.test(n))return C.includes('Yeme İçme')?'Yeme İçme':'Diğer';return 'Diğer'}
-function seKind(title,raw){const n=seNorm(title),r=String(raw||'').replace(/\s+/g,'');if(/IADE|IPTAL/.test(n))return'refund';/* V215: ücret/BSMV/KKDF/faiz kontrolü ödeme kontrolünden ÖNCE yapılır. TEB'deki 'KARTTAN FATURA ODEME UCRETI' bir kart ödemesi değil banka ücretidir. */if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';if(/CEPTETEB.*ODEME|ODEME.*TESEKKUR|HESAPTAN.*ODEME|OTOMATIK.*ODEME|KART.*ODEME/.test(n))return'payment';/* TEB'de TL.730,- ifadesindeki sondaki '-' NEGATİF İŞARET DEĞİL, sıfır kuruş gösterimidir. Yalnız tutarın BAŞINDAKİ eksi gerçek ödeme işaretidir. */if(/^-(?:TL\.?)?/i.test(r)||/\+$/.test(r))return'payment';return'spend'}
+function seKind(title,raw){const n=seNorm(title),r=String(raw||'').replace(/\s+/g,'');if(/IADE|IPTAL/.test(n))return'refund';/* V215: ücret/BSMV/KKDF/faiz kontrolü ödeme kontrolünden ÖNCE yapılır. TEB'deki 'KARTTAN FATURA ODEME UCRETI' bir kart ödemesi değil banka ücretidir. */if(/FAIZ|BSMV|KKDF|KOMISYON|UCRET/.test(n))return'fee';if(/CEPTETEB.*ODEME|ODEME.*TESEKKUR|HESAPTAN.*ODEME|OTOMATIK.*ODEME|KART.*ODEME/.test(n))return'payment';/* TEB'de TL.730,- ifadesindeki sondaki '-' NEGATİF İŞARET DEĞİL, sıfır kuruş gösterimidir. Yalnız tutarın BAŞINDAKİ eksi gerçek ödeme işaretidir. */if(/^-(?:TL\.?)?/i.test(r)||/^\+/.test(r)||/\+$/.test(r))return'payment';return'spend'}
 
 function seTebRawLineRows(pages){
  const out=[],rejected=[];
@@ -1839,7 +1839,7 @@ function seParse(pages){
   // Daha çok satır bulmak tek başına yeterli değildir; aynı gerçek satırlar fingerprint ile tekilleştirilir.
   const merged=[...(halk.rows||[]),...((halkLine&&halkLine.rows)||[])], hs=new Set();
   uniq=merged.filter(r=>{const k=[r.date,seNorm(r.title),Math.round(r.amount*100),r.kind].join('|');if(hs.has(k))return false;hs.add(k);return true});
-  diag.mode='halkbank-paraf-v220-coordinate+headerless-line';
+  diag.mode='halkbank-paraf-v221-leading-plus-payment';
   diag.dateCandidates=uniq.length;diag.amountCandidates=uniq.length;diag.tableRows=uniq.length;
   diag.rawRejected=[...(halk.rejected||[]),...((halkLine&&halkLine.rejected)||[])].slice(0,40);
  }

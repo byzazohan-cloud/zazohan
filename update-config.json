@@ -1,4 +1,4 @@
 {
   "version": "V220",
-  "message": "V220: Halkbank/Paraf tutar okuyucu düzeltildi. Koordinata bağlı tutar yakalama yanında tarih+açıklama+ilk tutar metin satırı okuyucusu eklendi. TEB ve çalışan diğer banka motorları değiştirilmedi."
+  "message": "V221: Halkbank/Paraf ekstrelerinde tutarın başındaki + işareti ödeme olarak sınıflandırılır. Boş dönem ekstresi ve önceki dönem borcu ödemesi artık harcama sayılmaz. Diğer banka motorları değiştirilmedi."
 }
