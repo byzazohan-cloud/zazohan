@@ -5242,3 +5242,5 @@ html.lightMode .debtDonutCenter small,html.lightMode .debtDonutLegend small{colo
 /* V198 — Evidence Core */
 .modal:has(.seV1) .seProfile{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;margin-bottom:8px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025)}
 .modal:has(.seV1) .seProfile b{font-size:11px}.modal:has(.seV1) .seProfile span{font-size:9px;color:var(--muted);white-space:nowrap}
+/* V227: finansal ekstre hareketleri normal gider kategorisi değildir. */
+.seCatFinancial{display:flex;align-items:center;min-height:32px;padding:0 10px;border:1px solid rgba(255,255,255,.10);border-radius:8px;color:#92a3b5;font-size:10px;font-weight:700;letter-spacing:.02em}
