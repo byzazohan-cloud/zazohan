@@ -1,4 +1,4 @@
 {
-  "version": "V245",
-  "message": "V245: V244 çalışan banka motorları korunarak ekstre yeniden içe aktarma mükerrer kayıt riski giderildi; ekstre dönemi kart hesap kesim döngüsüne göre belirleniyor; Devreden Bakiye yalnız önceki ekstre dönem borcu varsa bağımsız karşılaştırılıyor; sürüm kimlikleri V245 ile eşitlendi."
+  "version": "V246",
+  "message": "V246: V245 banka/ekstre ve finans motorları korunarak Çalışma sekmesinden Yol Ücreti arayüzü kaldırıldı; Mesai ve Saatlik İş kayıtlarına Ödeme Alındı / Ödeme Alınmadı seçeneği eklendi. Mevcut eski yol kayıtları silinmez."
 }
