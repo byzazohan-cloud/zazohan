@@ -1,4 +1,4 @@
 {
-  "version": "V240",
-  "message": "V240: V235 kart-ekstre banka kilidi ve tüm banka profilleri korunarak genel audit yapıldı. Aktif TARA adları HAN olarak temizlendi; eski build/cache kimlikleri V240 ile eşitlendi; hatalı HAN build uyarısı düzeltildi; PWA ve ana dosya referansları merkezileştirildi."
+  "version": "V241",
+  "message": "V241: V240 çalışan banka motorları korunarak sürüm/cache kimlikleri tekleştirildi; yedekleme ekranından kaldırılmış RUTİN aktarım/eşleştirme kalıntıları bağımlılıklar korunarak temizlendi; merkezi finans köprüsü HANE-only hale getirildi."
 }
