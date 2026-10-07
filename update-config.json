@@ -1,4 +1,4 @@
 {
-  "version": "V246",
-  "message": "V246: V245 banka/ekstre ve finans motorları korunarak Çalışma sekmesinden Yol Ücreti arayüzü kaldırıldı; Mesai ve Saatlik İş kayıtlarına Ödeme Alındı / Ödeme Alınmadı seçeneği eklendi. Mevcut eski yol kayıtları silinmez."
+  "version": "V247",
+  "message": "V247: V246 çalışan sistemleri korunarak yalnız TEB Motor Devreden Bakiye kaynağı düzeltildi. TEB devreden bakiye mevcut PDF’deki Önceki Dönemden Devir Edilen Tutar alanından okunur; diğer banka ve çalışma sistemleri değiştirilmedi."
 }
