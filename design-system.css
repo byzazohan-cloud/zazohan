@@ -314,3 +314,32 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .financeHub .cardsV55Top{gap:10px!important}
 .financeHub .cardsV55Top>button{margin-left:8px!important}
 @media(max-width:380px){.financeHub .cardsV55Actions{gap:10px!important}.financeHub .cardsV55Metrics{gap:7px!important}}
+
+/* V260 — Finance real component layout, isolated from other screens */
+.financeHub .cardsV55Page{padding:12px 10px 28px!important;min-width:0!important}
+.financeHub .cardsV55Top{margin:8px 0 16px!important;gap:12px!important}
+.financeHub .cardsV55Top>b,.financeHub .cardsV55Top>div b{font-size:15px!important}
+.financeHub .cardsV55Stage{margin:0 -10px 4px!important}
+.financeHub .cardsV55Nav{gap:16px!important;margin:8px auto 16px!important}
+.financeHub .cardsV55Info{padding:14px 12px!important;margin:14px 0!important;border-radius:13px!important}
+.financeHub .cardsV55Bank{padding:10px 0 12px!important;gap:12px!important}
+.financeHub .cardsV55Metrics{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:7px!important;margin:12px 0 2px!important}
+.financeHub .cardsV55Metrics>div{padding:9px 3px!important;border:1px solid rgba(71,191,255,.25)!important;border-radius:8px!important;background:#081c2a!important}
+.financeHub .cardsV55Metrics small{font-size:8px!important;min-height:21px!important;line-height:1.25!important}
+.financeHub .cardsV55Metrics b{font-size:clamp(8px,2.5vw,11px)!important;white-space:normal!important;overflow:visible!important;overflow-wrap:anywhere!important}
+.financeHub .cardsV55Actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important;margin:17px 0 19px!important}
+.financeHub .cardsV55Actions>button{height:76px!important;min-height:76px!important;padding:12px 8px!important;border:1px solid #148dc5!important;border-radius:12px!important;background:linear-gradient(180deg,#07324b,#061624)!important}
+.financeHub .cardsV55Actions>button i{font-size:23px!important;line-height:25px!important}
+.financeHub .cardsV55Actions>button span{font-size:11px!important;margin-top:7px!important}
+.financeHub .cardsV55Recent{padding:14px 12px!important;margin-top:14px!important;border-radius:13px!important}
+.financeHub .cardsV55Tx{min-height:63px!important;gap:10px!important;padding:10px 4px!important}
+.financeHub .financeSegmented{gap:8px!important;margin:8px 10px 15px!important}
+.financeHub .financeSegmented button{min-height:43px!important}
+@media(max-width:390px){
+.financeHub .cardsV55Page{padding-left:8px!important;padding-right:8px!important}
+.financeHub .cardsV55Metrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+.financeHub .cardsV55Metrics small{min-height:0!important;font-size:8px!important}
+.financeHub .cardsV55Metrics b{font-size:11px!important}
+.financeHub .cardsV55Actions{gap:11px!important}
+.financeHub .cardsV55Actions>button{height:72px!important;min-height:72px!important}
+}

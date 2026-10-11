@@ -1,4 +1,4 @@
-const CACHE='hane-shell-v259-button-spacing';
+const CACHE='hane-shell-v260-finans-real-layout';
 const SHELL=['./','./index.html','./styles.css','./design-system.css','./app-v253.js','./central-core.js','./bootstrap-security.js','./manifest.json'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
