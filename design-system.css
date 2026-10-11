@@ -343,3 +343,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .financeHub .cardsV55Actions{gap:11px!important}
 .financeHub .cardsV55Actions>button{height:72px!important;min-height:72px!important}
 }
+
+/* V261: dated, editable salary deductions in monthly overview and entitlement details */
+.zDeductionList{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+.zDeductionTitle{font-size:11px;font-weight:800;letter-spacing:.3px;color:#8ddcff}
+.zDeductionItem{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:10px;border:1px solid rgba(73,179,240,.3);border-radius:10px;background:rgba(3,20,33,.65)}
+.zDeductionInfo{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.zDeductionInfo b{font-size:11px}.zDeductionInfo small{font-size:10px;opacity:.8;overflow-wrap:anywhere}.zDeductionInfo strong{color:#ff737c;font-size:12px}
+.zDeductionControls{display:flex;gap:8px;flex-wrap:wrap}
+.zDeductionControls button{border:1px solid #2a91c3;border-radius:8px;padding:9px 10px;background:#092d44;color:#e6f6ff;font-size:10px;font-weight:700;cursor:pointer}
+.zDeductionControls button:last-child{border-color:#a9535a;color:#ffadb3}
