@@ -1,4 +1,4 @@
 {
-  "version": "V250",
-  "message": "V250: V245 banka/ekstre ve finans motorları korunarak Çalışma sekmesinden Yol Ücreti arayüzü kaldırıldı; Mesai ve Saatlik İş kayıtlarına Ödeme Alındı / Ödeme Alınmadı seçeneği eklendi. Mevcut eski yol kayıtları silinmez."
+  "version": "V257",
+  "message": "V257: V254 Harçlık düzeltmesi korunarak yalnız Finans kart görünümü, metrik kutuları ve işlem butonları düzenlendi."
 }

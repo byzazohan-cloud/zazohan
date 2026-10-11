@@ -277,3 +277,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:390px){.content{padding-inline:12px!important}.quick,.v2WorkActions{gap:8px!important}.btn,.miniAddBtn,.hanFixBtn,.zWorkFilter{padding:9px 10px!important;font-size:12px!important}.v1947CleanNav button{font-size:9px!important}}
 @media(max-width:340px){.v1947CleanNav button{font-size:8px!important}.v2MemberActions{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* V257: approved Finance-only layout refinement */
+.financeHub .financeHubTabs{gap:5px!important;margin-bottom:10px}
+.financeHub .financeHubTabs button{height:40px!important;min-height:40px!important;border-radius:10px;font-size:11px}
+.financeHub .cardsV55Stage{margin-bottom:5px}
+.financeHub .cardsV55Nav{margin:0 auto 9px;max-width:230px}
+.financeHub .cardsV55Nav button{height:34px;width:34px}
+.financeHub .cardsV55Info,.financeHub .cardsV55Recent{padding:10px;border-radius:13px;margin-bottom:9px}
+.financeHub .cardsV55Bank{gap:8px;padding-bottom:9px}
+.financeHub .cardsV55Metrics{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-top:9px}
+.financeHub .cardsV55Metrics>div{padding:5px 2px;border:1px solid rgba(71,191,255,.18);border-radius:7px;background:linear-gradient(180deg,rgba(8,39,59,.5),rgba(3,13,21,.3));}
+.financeHub .cardsV55Metrics small{font-size:7px;min-height:20px;line-height:1.2}
+.financeHub .cardsV55Metrics b{font-size:clamp(8px,2.3vw,11px);text-overflow:clip;overflow-wrap:anywhere;white-space:normal}
+.financeHub .cardsV55Actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:11px}
+.financeHub .cardsV55Actions button{min-height:61px;height:auto;padding:8px;border-radius:12px}
+.financeHub .cardsV55Actions button span{font-size:10px}
+.financeHub .cardsV55Recent .cardsV55Tx{min-height:53px}
+@media(max-width:360px){.financeHub .cardsV55Metrics{gap:2px}.financeHub .cardsV55Metrics small{font-size:6px}.financeHub .cardsV55Metrics b{font-size:8px}}
