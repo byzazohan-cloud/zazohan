@@ -300,3 +300,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .financeHub .financeSegmented{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:4px;margin-bottom:10px}
 .financeHub .financeSegmented button{min-width:0;min-height:39px;border-radius:10px;font-size:11px}
 @media(max-width:380px){.financeHub .cardsV55Metrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}.financeHub .cardsV55Metrics small{font-size:8px!important;min-height:0!important}.financeHub .cardsV55Metrics b{font-size:10px!important}}
+
+/* V259 — actual Finance controls: consistent visible separation */
+.financeHub .financeSegmented{gap:9px!important;padding:5px!important}
+.financeHub .financeSegmented button{margin:0!important}
+.financeHub .cardsV55Actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;margin:14px 0 16px!important}
+.financeHub .cardsV55Actions>button{box-sizing:border-box!important;width:100%!important;min-width:0!important;margin:0!important;min-height:66px!important;padding:10px 6px!important;border-radius:12px!important}
+.financeHub .cardsV55Nav{display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;margin-bottom:13px!important}
+.financeHub .cardsV55Bank{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+.financeHub .cardsV55Bank>button{flex-shrink:0!important;margin:0!important}
+.financeHub .cardsV55Metrics{gap:8px!important;margin:12px 0!important}
+.financeHub .cardsV55Metrics>div{min-width:0!important;box-sizing:border-box!important}
+.financeHub .cardsV55Top{gap:10px!important}
+.financeHub .cardsV55Top>button{margin-left:8px!important}
+@media(max-width:380px){.financeHub .cardsV55Actions{gap:10px!important}.financeHub .cardsV55Metrics{gap:7px!important}}
