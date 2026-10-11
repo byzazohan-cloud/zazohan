@@ -295,3 +295,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .financeHub .cardsV55Actions button span{font-size:10px}
 .financeHub .cardsV55Recent .cardsV55Tx{min-height:53px}
 @media(max-width:360px){.financeHub .cardsV55Metrics{gap:2px}.financeHub .cardsV55Metrics small{font-size:6px}.financeHub .cardsV55Metrics b{font-size:8px}}
+
+/* V258: target actual finance tabs, preserve chosen card layout */
+.financeHub .financeSegmented{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:4px;margin-bottom:10px}
+.financeHub .financeSegmented button{min-width:0;min-height:39px;border-radius:10px;font-size:11px}
+@media(max-width:380px){.financeHub .cardsV55Metrics{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}.financeHub .cardsV55Metrics small{font-size:8px!important;min-height:0!important}.financeHub .cardsV55Metrics b{font-size:10px!important}}
